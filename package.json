@@ -13,13 +13,20 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "artplayer": "^5.2.2",
+    "artplayer-plugin-hls-control": "^1.0.1",
+    "axios": "^1.7.9",
+    "hls.js": "^1.5.20",
     "pinia": "^2.3.1",
+    "qs": "^6.14.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "@ricons/material": "^0.13.0",
     "@tsconfig/node22": "^22.0.0",
     "@types/node": "^22.10.7",
+    "@vicons/material": "^0.13.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vitejs/plugin-vue-jsx": "^4.1.1",
     "@vue/eslint-config-prettier": "^10.1.0",
@@ -28,9 +35,12 @@
     "eslint": "^9.18.0",
     "eslint-plugin-vue": "^9.32.0",
     "jiti": "^2.4.2",
+    "naive-ui": "^2.41.0",
     "npm-run-all2": "^7.0.2",
     "prettier": "^3.4.2",
     "typescript": "~5.7.3",
+    "vfonts": "^0.0.3",
+    "vicons": "^0.0.1",
     "vite": "^6.0.11",
     "vite-plugin-vue-devtools": "^7.7.0",
     "vue-tsc": "^2.2.0"
