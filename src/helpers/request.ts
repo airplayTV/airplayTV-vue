@@ -12,7 +12,9 @@ const httpInstance = axios.create({
 httpInstance.interceptors.request.use(
   (config) => {
     const url = new URL(config.url!, apiUrl)
-    url.searchParams.append('_source', getStorageSync(KEY_VIDEO_SOURCE))
+    if (!url.searchParams.get('_source')) {
+      url.searchParams.append('_source', getStorageSync(KEY_VIDEO_SOURCE))
+    }
     config.url = url.pathname + url.search
     return config
   },

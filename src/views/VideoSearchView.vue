@@ -14,6 +14,7 @@
             :video-list="videoSearchResultMap[sourceName].list"
             :page="videoSearchResultMap[sourceName].page"
             :pages="videoSearchResultMap[sourceName].pages"
+            :source="sourceName"
             @on-update-page="onUpdatePage"
           />
 
@@ -24,6 +25,8 @@
         </n-tab-pane>
       </n-tabs>
     </div>
+
+    <AppFooter />
   </div>
 </template>
 
@@ -38,6 +41,8 @@ import { useRoute } from 'vue-router'
 import { apiUrl } from '@/config.ts'
 import { getStorageSync } from '@/helpers/utils.ts'
 import { KEY_VIDEO_SOURCE } from '@/helpers/constant.ts'
+import { httpVideoSearch } from '@/helpers/api.ts'
+import AppFooter from '@/components/AppFooter.vue'
 
 const route = ref(null)
 const windowWidth = ref(0)
@@ -46,6 +51,7 @@ const cols = ref(2)
 const videoSearchResultMap = ref({})
 const searchEventSource = ref(null)
 const loadingBar = ref(null)
+const keyword = ref(null)
 
 const computeWindowWidth = () => {
   windowWidth.value = window.innerWidth
@@ -71,8 +77,8 @@ const onMountedHandler = () => {
 }
 
 const onBeforeMountHandler = () => {
-  console.log('[onBeforeMountHandler]', route.value.query)
-  resetSearchEvent(route.value.query.keyword)
+  keyword.value = route.value.query.keyword
+  resetSearchEvent(keyword.value)
 }
 
 const resetSearchEvent = (keyword) => {
@@ -84,7 +90,6 @@ const resetSearchEvent = (keyword) => {
   )
 
   searchEventSource.value.addEventListener('update', (e) => {
-    // console.log(JSON.parse(e.data))
     try {
       const resp = JSON.parse(e.data)
       let d = resp.data.data
@@ -96,10 +101,8 @@ const resetSearchEvent = (keyword) => {
         d.total = 0
       }
       videoSearchResultMap.value[resp.source] = d
-
-      // console.log('[XXX]', JSON.parse(JSON.stringify(videoSearchResultMap.value)))
     } catch (e) {
-      //
+      console.log('[JSON.Error]', e)
     }
   })
 
@@ -115,8 +118,33 @@ const resetSearchEvent = (keyword) => {
   }
 }
 
-const onUpdatePage = (page) => {
-  console.log('[onUpdatePageXX]', page)
+const onUpdatePage = (data) => {
+  console.log('[onUpdatePage]', data)
+  const o = {
+    _source: data.source,
+    page: data.page,
+    keyword: keyword.value,
+  }
+
+  loadingBar.value?.start()
+
+  httpVideoSearch(new URLSearchParams(o).toString())
+    .then((resp) => {
+      console.log('[httpVideoSearch.resp]', resp)
+      console.log('[data.source]', data.source)
+
+      videoSearchResultMap.value[data.source] = {
+        total: resp.data?.total,
+        msg: resp?.msg,
+        ...resp.data,
+      }
+    })
+    .catch((err) => {
+      console.log('[httpVideoSearch.Error]', err)
+    })
+    .finally(() => {
+      loadingBar.value?.finish()
+    })
 }
 
 const computedTabName = (sourceName) => {
@@ -137,6 +165,7 @@ const computedTabMsg = (sourceName) => {
 
 export default defineComponent({
   components: {
+    AppFooter,
     AppSearchList,
     AppHeader,
     NTabs,

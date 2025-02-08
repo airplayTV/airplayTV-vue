@@ -17,10 +17,10 @@
 
     <div class="flex-row flex-justify-center" v-if="page > 0">
       <n-pagination
-        v-model:page="page"
+        v-model:page="pageModel"
         :page-count="pages"
         simple
-        @update:page="$emit('onUpdatePage', page)"
+        @update:page="$emit('onUpdatePage', { source, page: pageModel })"
       />
     </div>
 
@@ -29,7 +29,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, defineProps } from 'vue'
+import { defineComponent, ref } from 'vue'
 import {
   NButton,
   NEllipsis,
@@ -46,6 +46,7 @@ import { BrokenImageRound } from '@vicons/material'
 import { useRouter } from 'vue-router'
 
 const router = ref(null)
+const pageModel = ref(null)
 
 const onOpenVideo = (video) => {
   console.log('[]', router)
@@ -66,18 +67,21 @@ export default defineComponent({
     NPagination,
     BrokenImageRound,
   },
-  props: ['cols', 'videoList', 'page', 'pages'],
+  props: ['cols', 'videoList', 'page', 'pages', 'source'],
   emits: ['onUpdatePage'],
-  setup() {
+  setup(props) {
     // const { sourceList } = storeToRefs(useAppStore())
     // const { getSourceList, setSourceList } = useAppStore()
     // onBeforeMount(onBeforeMountHandler)
     // loadingBar.value = useLoadingBar()
     router.value = useRouter()
 
+    pageModel.value = props.page
+
     return {
       // page,
       onOpenVideo,
+      pageModel,
     }
   },
 })

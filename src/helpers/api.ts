@@ -105,8 +105,19 @@ const httpVideoSource = (vid: string | number, pid: string | number) => {
   return httpInstance.get(`/api/video/source?vid=${vid}&pid=${pid}`)
 }
 
+const httpVideoSearch = (query: string) => {
+  return httpInstance.get(`/api/video/search?${query}`)
+}
+
 const httpVideoSearchSSE = (keyword: string, page: string | number) => {
   return httpInstance.get(`/api/sse/video/search?keyword=${keyword}&page=${page}`)
 }
 
-export { httpSourceList, httpVideoList, httpVideo, httpVideoSource, httpVideoSearchSSE }
+export {
+  httpSourceList,
+  httpVideoList,
+  httpVideo,
+  httpVideoSource,
+  httpVideoSearch,
+  httpVideoSearchSSE,
+}
