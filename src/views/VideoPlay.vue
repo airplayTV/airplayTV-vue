@@ -10,16 +10,19 @@
         <AppArtplayer @get-instance="getArtInstance" :option="artOption" :style="artStyle" />
       </div>
 
-      <div v-if="source" style="margin: 4px 0; color: dimgray">
-        <n-text>{{ source.url }}</n-text>
+      <div style="margin: 10px 0; color: dimgray">
+        <n-text v-if="source">{{ source.url }}</n-text>
       </div>
 
-      <n-collapse>
+      <n-collapse accordion default-expanded-names="1">
         <n-collapse-item title="选集" name="1">
           <AppSourceList v-if="video" :vid="video.id" :source-list="videoSourceList" />
         </n-collapse-item>
       </n-collapse>
     </div>
+
+    <AppFooter />
+
   </div>
 </template>
 
@@ -34,6 +37,7 @@ import AppArtplayer from '@/components/AppArtplayer.vue'
 import { formatVideoSourceMap } from '@/helpers/app.ts'
 import Hls from 'hls.js'
 import artplayerPluginHlsControl from 'artplayer-plugin-hls-control'
+import AppFooter from "@/components/AppFooter.vue";
 
 const route = ref(null)
 const loadingBar = ref(null)
@@ -149,7 +153,9 @@ const loadVideoSource = (vid, pid) => {
         }
       }
     })
-    .catch((err) => {})
+    .catch((err) => {
+      console.log('[httpVideoSource.Error]', err)
+    })
     .finally(() => {
       loadingBar.value!.finish()
     })
@@ -161,7 +167,7 @@ const loadVideo = (vid) => {
       video.value = resp.data
     })
     .catch((err) => {
-      //
+      console.log('[httpVideo.Error]', err)
     })
 }
 
@@ -173,10 +179,14 @@ const videoSourceList = computed(() => {
 const getArtInstance = (art) => {
   console.info('[art]', art)
   artInstance.value = art
+  art.on('ready', () => {
+    art.play();
+  });
 }
 
 export default defineComponent({
   components: {
+    AppFooter,
     NH2,
     AppSourceList,
     AppHeader,

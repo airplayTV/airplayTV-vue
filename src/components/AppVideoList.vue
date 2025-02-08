@@ -41,7 +41,7 @@ import {
 import { httpVideoList } from '../helpers/api'
 import { BrokenImageRound } from '@vicons/material'
 import { getStorageSync } from '../helpers/utils'
-import { KEY_VIDEO_TAG } from '../helpers/constant'
+import { KEY_VIDEO_SOURCE, KEY_VIDEO_TAG } from '../helpers/constant'
 import { useRouter } from 'vue-router'
 
 const videoList = ref([])
@@ -78,7 +78,8 @@ const onUpdatePage = (data: number) => {
 
 const onOpenVideo = (video) => {
   console.log('[]', router)
-  router.value.push(`/video/detail/${video.id}`)
+  const source = getStorageSync(KEY_VIDEO_SOURCE)
+  router.value.push(`/video/detail/${video.id}?_source=${source}`)
 }
 
 export default defineComponent({

@@ -44,13 +44,16 @@ import {
 } from 'naive-ui'
 import { BrokenImageRound } from '@vicons/material'
 import { useRouter } from 'vue-router'
+import { getStorageSync } from "@/helpers/utils.ts";
+import { KEY_VIDEO_SOURCE } from "@/helpers/constant.ts";
 
 const router = ref(null)
 const pageModel = ref(null)
 
 const onOpenVideo = (video) => {
   console.log('[]', router)
-  router.value.push(`/video/detail/${video.id}`)
+  const source = getStorageSync(KEY_VIDEO_SOURCE)
+  router.value.push(`/video/detail/${video.id}?_source=${source}`)
 }
 
 export default defineComponent({

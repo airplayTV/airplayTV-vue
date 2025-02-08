@@ -1,7 +1,7 @@
 <template>
   <div v-if="video" class="flex-column">
     <div class="flex-column flex-align-center">
-      <n-image width="200" height="280" :src="video.thumbX" class="thumb">
+      <n-image width="200" height="280" :src="video.thumb" class="thumb">
         <template #error>
           <n-icon :size="100" color="lightGrey">
             <BrokenImageRound />
