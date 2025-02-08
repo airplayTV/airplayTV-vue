@@ -3,12 +3,7 @@
     <n-grid x-gap="12" y-gap="1" :cols="cols">
       <n-gi v-for="(video, idx) in videoList" :key="idx" @click="onOpenVideo(video)">
         <div class="flex-row flex-justify-center flex-align-center">
-          <n-image width="175" height="230" :src="video.thumbX" class="thumb" preview-disabled>
-            <template #error>
-              <n-icon :size="100" color="lightGrey">
-                <BrokenImageRound />
-              </n-icon>
-            </template>
+          <n-image width="175" height="230" :src="video.thumb" class="thumb" preview-disabled>
           </n-image>
         </div>
 
@@ -91,6 +86,7 @@ export default defineComponent({
 <style scoped>
 .thumb {
   border-radius: 4px;
+  background-color: #f2f2f2;
 }
 
 .name {
