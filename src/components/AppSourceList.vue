@@ -41,11 +41,12 @@ import {
   NText,
 } from 'naive-ui'
 import { BrokenImageRound } from '@vicons/material'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { getStorageSync } from "@/helpers/utils.ts";
 import { KEY_VIDEO_SOURCE } from "@/helpers/constant.ts";
 
 const video = ref(null)
+const route = ref(null)
 const router = ref(null)
 
 const onOpenVideoPlay = (vid, source) => {
@@ -78,6 +79,7 @@ export default defineComponent({
   },
   props: ['sourceList', 'vid'],
   setup() {
+    route.value = useRoute()
     router.value = useRouter()
     return {
       video,

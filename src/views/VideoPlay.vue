@@ -27,7 +27,17 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeMount, onMounted, ref } from 'vue'
+import {
+  computed,
+  defineComponent,
+  onBeforeMount,
+  onBeforeUnmount,
+  onBeforeUpdate,
+  onMounted,
+  onUpdated,
+  ref,
+  watch
+} from 'vue'
 import { useRoute } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import { httpVideo, httpVideoSource } from '../helpers/api'
@@ -39,8 +49,11 @@ import Hls from 'hls.js'
 import artplayerPluginHlsControl from 'artplayer-plugin-hls-control'
 import AppFooter from "@/components/AppFooter.vue";
 
+const timer = ref(null)
+const updateCount = ref(0)
 const route = ref(null)
 const loadingBar = ref(null)
+const tmpQuery = ref(null)
 
 const source = ref(null)
 const video = ref(null)
@@ -54,15 +67,42 @@ const artStyle = ref({
 
 const onBeforeMountHandler = () => {
   console.log('[]', route.value.params)
-  loadVideoSource(route.value.params.vid, route.value.params.pid)
-  loadVideo(route.value.params.vid)
+  // loadVideoSource(route.value.params.vid, route.value.params.pid)
+  // loadVideo(route.value.params.vid)
+  checkUpdateVideo(route.value.params)
+}
+
+const checkUpdateVideo = (params) => {
+  // tmpQuery
+  const v = JSON.stringify(params)
+  console.log('[checkUpdateVideo]', tmpQuery.value, v)
+  if (v != tmpQuery.value) {
+    tmpQuery.value = v
+
+    video.value = null
+    source.value = null
+
+    loadVideoSource(route.value.params.vid, route.value.params.pid)
+    loadVideo(route.value.params.vid)
+  }
 }
 
 const onMountedHandler = () => {
+  console.log('[onMountedHandler]', route.value.params)
+
   artStyle.value.height = `${computePlayerHeight()}px`
   window.onresize = () => {
     artStyle.value.height = `${computePlayerHeight()}px`
   }
+}
+
+const onBeforeUpdateHandler = () => {
+  console.log('[onBeforeUpdateHandler]', updateCount.value)
+  checkUpdateVideo(route.value.params)
+
+}
+const onUpdatedHandler = () => {
+  console.log('[onUpdatedHandler]', route.value.params)
 }
 
 const computePlayerHeight = () => {
@@ -182,6 +222,36 @@ const getArtInstance = (art) => {
   art.on('ready', () => {
     art.play();
   });
+
+  art.on('play', () => {
+    console.info('play');
+    handlerTimeUpdate()
+  });
+
+
+  // art.on('video:timeupdate', (currentTime) => {
+  //   console.log('pppp',currentTime);
+  // });
+  // art.on('video:durationchange', (duration) => {
+  //   console.log('pppp', duration);
+  // });
+
+}
+
+const handlerTimeUpdate = () => {
+  if (timer.value) {
+    clearInterval(timer.value)
+  }
+  timer.value = setInterval(() => {
+    console.log('[Intval]', artInstance.value.currentTime, artInstance.value.duration)
+  }, 5000)
+}
+
+
+const onBeforeUnmountHandler = () => {
+  if (timer.value) {
+    clearInterval(timer.value)
+  }
 }
 
 export default defineComponent({
@@ -201,6 +271,14 @@ export default defineComponent({
 
     onBeforeMount(onBeforeMountHandler)
     onMounted(onMountedHandler)
+    onBeforeUpdate(onBeforeUpdateHandler)
+    onUpdated(onUpdatedHandler)
+    onBeforeUnmount(onBeforeUnmountHandler)
+
+    watch(route, (newValue) => {
+      console.log('[route]', newValue)
+    })
+
     return {
       source,
       video,
