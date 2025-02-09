@@ -7,7 +7,11 @@
 
       <!--<video :src="video.url" style="width: 100%" />-->
       <div style="border-radius: 4px; display: flex; min-height: 180px">
-        <AppArtplayer @get-instance="getArtInstance" :option="artOption" :style="artStyle" />
+        <AppArtplayer
+          :key="artOption"
+          :option="artOption"
+          :style="artStyle"
+          @get-instance="getArtInstance" />
       </div>
 
       <div style="margin: 10px 0; color: dimgray">
@@ -16,7 +20,7 @@
 
       <n-collapse accordion default-expanded-names="1">
         <n-collapse-item title="选集" name="1">
-          <AppSourceList v-if="video" :vid="video.id" :source-list="videoSourceList" />
+          <AppSourceList v-if="video" :vid="vid" :pid="pid" :source-list="videoSourceList" />
         </n-collapse-item>
       </n-collapse>
     </div>
@@ -48,10 +52,14 @@ import { formatVideoSourceMap } from '@/helpers/app.ts'
 import Hls from 'hls.js'
 import artplayerPluginHlsControl from 'artplayer-plugin-hls-control'
 import AppFooter from "@/components/AppFooter.vue";
+import { addHistory, findHistory, updateHistory } from "@/helpers/db.ts";
+import { getCurrentSource } from "@/helpers/utils.ts";
 
 const timer = ref(null)
 const updateCount = ref(0)
 const route = ref(null)
+const vid = ref(null)
+const pid = ref(null)
 const loadingBar = ref(null)
 const tmpQuery = ref(null)
 
@@ -76,9 +84,16 @@ const checkUpdateVideo = (params) => {
   // tmpQuery
   const v = JSON.stringify(params)
   console.log('[checkUpdateVideo]', tmpQuery.value, v)
+
+  vid.value = route.value.params.vid
+  pid.value = route.value.params.pid
+
   if (v != tmpQuery.value) {
     tmpQuery.value = v
 
+    if (timer.value) {
+      clearInterval(timer.value)
+    }
     video.value = null
     source.value = null
 
@@ -244,7 +259,35 @@ const handlerTimeUpdate = () => {
   }
   timer.value = setInterval(() => {
     console.log('[Intval]', artInstance.value.currentTime, artInstance.value.duration)
+    addHistoryWarp()
   }, 5000)
+}
+
+const addHistoryWarp = async () => {
+  const _source = getCurrentSource(route.value)
+  const find = await findHistory(_source, vid.value, pid.value)
+  console.log('[find]', find)
+  if (!find) {
+    await addHistory({
+      source: _source,
+      vid: vid.value,
+      pid: pid.value,
+      name: video.value.name,
+      thumb: video.value.thumb,
+      url: source.value.url,
+      type: source.value.type,
+      duration: artInstance.value.duration,
+      lastTime: artInstance.value.currentTime,
+      updated_at: Date.now(),
+    })
+  } else {
+    await updateHistory(find.id, {
+      lastTime: artInstance.value.currentTime,
+      updated_at: Date.now(),
+    })
+  }
+
+
 }
 
 
@@ -286,6 +329,8 @@ export default defineComponent({
       artOption,
       artStyle,
       getArtInstance,
+      vid,
+      pid,
     }
   },
 })

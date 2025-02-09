@@ -29,7 +29,7 @@ export default {
       this.$emit('get-instance', this.instance)
     })
   },
-  beforeDestroy() {
+  beforeUnmount() {
     if (this.instance && this.instance.destroy) {
       this.instance.destroy(false)
     }

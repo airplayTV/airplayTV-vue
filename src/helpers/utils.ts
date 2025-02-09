@@ -1,3 +1,5 @@
+import { KEY_VIDEO_SOURCE } from "@/helpers/constant.ts";
+
 const getStorageSync = (key: string) => {
   const v = localStorage.getItem(key)
   if (!v) {
@@ -45,4 +47,17 @@ const arrayValuePick = (list: [], params: any, calculate: (item: any, v: any) =>
   return result
 }
 
-export { getStorageSync, setStorageSync, removeStorageSync, arrayContainsValue }
+const getCurrentSource = (route) => {
+  if (route && route._source) {
+    return route._source
+  }
+  return getStorageSync(KEY_VIDEO_SOURCE)
+}
+
+export {
+  getStorageSync,
+  setStorageSync,
+  removeStorageSync,
+  arrayContainsValue,
+  getCurrentSource,
+}
