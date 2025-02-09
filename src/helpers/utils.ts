@@ -54,10 +54,28 @@ const getCurrentSource = (route) => {
   return getStorageSync(KEY_VIDEO_SOURCE)
 }
 
+const computeWindowWidthColumn = () => {
+  let column = 0
+  if (window.innerWidth <= 370) {
+    column = 1
+  } else if (window.innerWidth <= 370 + 200) {
+    column = 2
+  } else if (window.innerWidth <= 370 + 200 * 2) {
+    column = 3
+  } else if (window.innerWidth <= 370 + 200 * 3) {
+    column = 4
+  } else {
+    column = 5
+  }
+  return { _column: column, _windowWidth: window.innerWidth }
+}
+
+
 export {
   getStorageSync,
   setStorageSync,
   removeStorageSync,
   arrayContainsValue,
   getCurrentSource,
+  computeWindowWidthColumn,
 }

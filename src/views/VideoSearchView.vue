@@ -39,7 +39,7 @@ import { NResult, NTabPane, NTabs, useLoadingBar } from 'naive-ui'
 import AppSearchList from '@/components/AppSearchList.vue'
 import { useRoute } from 'vue-router'
 import { apiUrl } from '@/config.ts'
-import { getStorageSync } from '@/helpers/utils.ts'
+import { computeWindowWidthColumn, getStorageSync } from '@/helpers/utils.ts'
 import { KEY_VIDEO_SOURCE } from '@/helpers/constant.ts'
 import { httpVideoSearch } from '@/helpers/api.ts'
 import AppFooter from '@/components/AppFooter.vue'
@@ -53,27 +53,15 @@ const searchEventSource = ref(null)
 const loadingBar = ref(null)
 const keyword = ref(null)
 
-const computeWindowWidth = () => {
-  windowWidth.value = window.innerWidth
-  console.log('[]', window.innerWidth)
-  if (window.innerWidth <= 370) {
-    cols.value = 1
-  } else if (window.innerWidth <= 370 + 200) {
-    cols.value = 2
-  } else if (window.innerWidth <= 370 + 200 * 2) {
-    cols.value = 3
-  } else if (window.innerWidth <= 370 + 200 * 3) {
-    cols.value = 4
-  } else {
-    cols.value = 5
-  }
-}
-
 const onMountedHandler = () => {
   window.onresize = () => {
-    computeWindowWidth()
+    const { _column, _windowWidth } = computeWindowWidthColumn()
+    windowWidth.value = _windowWidth
+    cols.value = _column
   }
-  computeWindowWidth()
+  const { _column, _windowWidth } = computeWindowWidthColumn()
+  windowWidth.value = _windowWidth
+  cols.value = _column
 }
 
 const onBeforeMountHandler = () => {
