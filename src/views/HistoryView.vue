@@ -40,7 +40,9 @@ import { defineComponent, onBeforeMount, onMounted, ref } from "vue";
 import { computeWindowWidthColumn } from "@/helpers/utils.ts";
 import { listHistory } from "@/helpers/db.ts";
 import { NEllipsis, NGi, NGrid, NImage } from "naive-ui";
+import { useRouter } from "vue-router";
 
+const router = ref(null)
 const windowWidth = ref(0)
 const cols = ref(2)
 const historyList = ref(null)
@@ -66,6 +68,11 @@ const onBeforeMountHandler = async () => {
   console.log('[historyList]', historyList.value)
 }
 
+const onOpenVideo = (video) => {
+  console.log('[]', router)
+  // router.value.push(`/video/detail/${video.vid}?_source=${video._source}`)
+  router.value.push(`/video/play/${video.vid}/${video.pid}?_source=${video._source}`)
+}
 
 export default defineComponent({
   components: {
@@ -79,9 +86,12 @@ export default defineComponent({
     onMounted(onMountedHandler)
     onBeforeMount(onBeforeMountHandler)
 
+    router.value = useRouter()
+
     return {
       cols,
       historyList,
+      onOpenVideo,
     }
   }
 })
