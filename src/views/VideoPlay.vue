@@ -223,7 +223,11 @@ const videoSourceList = computed(() => {
 const getArtInstance = (art) => {
   console.info('[art]', art)
   artInstance.value = art
-  art.on('ready', () => {
+  art.on('ready', async () => {
+    const _findHistory = await findHistory(getCurrentSource(route.value), vid.value, pid.value)
+    if (_findHistory.lastTime && _findHistory.duration - _findHistory.lastTime >= 60) {
+      art.seek = _findHistory.lastTime
+    }
     art.play()
   })
 
