@@ -97,12 +97,12 @@ const httpVideoList = (tag: string | number, page: number) => {
   return httpInstance.get(`/api/video/list?tag=${tag}&page=${page}`)
 }
 
-const httpVideo = (id: string | number) => {
-  return httpInstance.get(`/api/video/detail?id=${id}`)
+const httpVideo = (query: string) => {
+  return httpInstance.get(`/api/video/detail?${query}`)
 }
 
-const httpVideoSource = (vid: string | number, pid: string | number) => {
-  return httpInstance.get(`/api/video/source?vid=${vid}&pid=${pid}`)
+const httpVideoSource = (vid: string | number, pid: string | number, _source: string) => {
+  return httpInstance.get(`/api/video/source?vid=${vid}&pid=${pid}&_source=${_source}`)
 }
 
 const httpVideoSearch = (query: string) => {

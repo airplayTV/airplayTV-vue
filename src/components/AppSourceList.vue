@@ -2,7 +2,7 @@
   <div>
     <div v-for="(source, idx) in sourceList" :key="idx">
       <n-h5>
-        <n-text type="info">
+        <n-text>
           {{ idx }}
         </n-text>
       </n-h5>
@@ -10,10 +10,11 @@
       <div class="flex-row" style="gap: 8px 12px">
         <div v-for="(item, idx) in source" :key="idx" class="source-item">
           <n-tag
-            :type="pid===item.id?'info':''"
+            :type="pid === item.id ? 'info' : ''"
             :bordered="false"
-            @click="onOpenVideoPlay(vid, item)">
-            {{ item.name }},{{ item.id }}
+            @click="onOpenVideoPlay(vid, item)"
+          >
+            {{ item.name }}
           </n-tag>
         </div>
       </div>
@@ -45,8 +46,8 @@ import {
 } from 'naive-ui'
 import { BrokenImageRound } from '@vicons/material'
 import { useRoute, useRouter } from 'vue-router'
-import { getStorageSync } from "@/helpers/utils.ts";
-import { KEY_VIDEO_SOURCE } from "@/helpers/constant.ts";
+import { getCurrentSource, getStorageSync } from '@/helpers/utils.ts'
+import { KEY_VIDEO_SOURCE } from '@/helpers/constant.ts'
 
 const video = ref(null)
 const route = ref(null)
@@ -54,8 +55,9 @@ const router = ref(null)
 
 const onOpenVideoPlay = (vid, source) => {
   console.log('[source]', vid, source)
+  console.log('[source]', route.value)
   const _source = getStorageSync(KEY_VIDEO_SOURCE)
-  router.value.push(`/video/play/${vid}/${source.id}?_source=${_source}`)
+  router.value.push(`/video/play/${vid}/${source.id}?_source=${getCurrentSource(route.value)}`)
 }
 
 export default defineComponent({

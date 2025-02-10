@@ -31,7 +31,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onBeforeMount, onMounted, ref } from 'vue'
+import { defineComponent, onBeforeMount, onBeforeUpdate, onMounted, onUpdated, ref } from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '@/stores/app.ts'
@@ -47,7 +47,7 @@ import AppFooter from '@/components/AppFooter.vue'
 const route = ref(null)
 const windowWidth = ref(0)
 const cols = ref(2)
-// const appSourceList = ref(null)
+const appSourceList = ref(null)
 const videoSearchResultMap = ref({})
 const searchEventSource = ref(null)
 const loadingBar = ref(null)
@@ -65,8 +65,7 @@ const onMountedHandler = () => {
 }
 
 const onBeforeMountHandler = () => {
-  keyword.value = route.value.query.keyword
-  resetSearchEvent(keyword.value)
+  doSearch()
 }
 
 const resetSearchEvent = (keyword) => {
@@ -78,6 +77,7 @@ const resetSearchEvent = (keyword) => {
   )
 
   searchEventSource.value.addEventListener('update', (e) => {
+    console.log('[JSON]', e)
     try {
       const resp = JSON.parse(e.data)
       let d = resp.data.data
@@ -143,12 +143,35 @@ const computedTabName = (sourceName) => {
   return `${sourceName}(${n})`
 }
 const computedTabMsg = (sourceName) => {
-  console.log('[xx]', {
-    aa: sourceName,
-    bb: videoSearchResultMap.value[sourceName]?.msg,
-    cc: JSON.parse(JSON.stringify(videoSearchResultMap.value[sourceName])),
-  })
+  // console.log('[xx]', {
+  //   aa: sourceName,
+  //   bb: videoSearchResultMap.value[sourceName]?.msg,
+  //   cc: JSON.parse(JSON.stringify(videoSearchResultMap.value[sourceName]))
+  // })
   return videoSearchResultMap.value[sourceName]?.msg
+}
+
+const onBeforeUpdateHandler = () => {
+  console.log('[onBeforeUpdateHandler]')
+
+  doSearch()
+}
+const onUpdatedHandler = () => {
+  console.log('[onUpdatedHandler]')
+}
+
+const resetVideoSearchResultMap = () => {
+  appSourceList.value.filter((item) => {
+    videoSearchResultMap.value[item.name] = { msg: false, total: false, name: item.name }
+  })
+}
+
+const doSearch = () => {
+  if (keyword.value != route.value.query.keyword) {
+    resetVideoSearchResultMap()
+    keyword.value = route.value.query.keyword
+    resetSearchEvent(keyword.value)
+  }
 }
 
 export default defineComponent({
@@ -164,18 +187,16 @@ export default defineComponent({
     const { sourceList } = storeToRefs(useAppStore())
     const { getSourceList, setSourceList } = useAppStore()
 
-    // appSourceList.value = sourceList.value
+    appSourceList.value = sourceList.value
     // console.log('[sourceList.XXX]', sourceList.value)
-
-    sourceList.value.filter((item) => {
-      videoSearchResultMap.value[item.name] = { msg: false, total: false, name: item.name }
-    })
 
     route.value = useRoute()
     loadingBar.value = useLoadingBar()
 
     onMounted(onMountedHandler)
     onBeforeMount(onBeforeMountHandler)
+    onBeforeUpdate(onBeforeUpdateHandler)
+    onUpdated(onUpdatedHandler)
     return {
       cols,
       // appSourceList,

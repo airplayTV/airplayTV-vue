@@ -11,11 +11,12 @@
           :key="artOption"
           :option="artOption"
           :style="artStyle"
-          @get-instance="getArtInstance" />
+          @get-instance="getArtInstance"
+        />
       </div>
 
-      <div style="margin: 10px 0; color: dimgray">
-        <n-text v-if="source">{{ source.url }}</n-text>
+      <div style="margin: 10px 0; color: dimgray; word-wrap: break-word" v-if="source">
+        {{ source.url }}
       </div>
 
       <n-collapse accordion default-expanded-names="1">
@@ -26,7 +27,6 @@
     </div>
 
     <AppFooter />
-
   </div>
 </template>
 
@@ -40,7 +40,7 @@ import {
   onMounted,
   onUpdated,
   ref,
-  watch
+  watch,
 } from 'vue'
 import { useRoute } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
@@ -51,9 +51,9 @@ import AppArtplayer from '@/components/AppArtplayer.vue'
 import { formatVideoSourceMap } from '@/helpers/app.ts'
 import Hls from 'hls.js'
 import artplayerPluginHlsControl from 'artplayer-plugin-hls-control'
-import AppFooter from "@/components/AppFooter.vue";
-import { addHistory, findHistory, updateHistory } from "@/helpers/db.ts";
-import { getCurrentSource } from "@/helpers/utils.ts";
+import AppFooter from '@/components/AppFooter.vue'
+import { addHistory, findHistory, updateHistory } from '@/helpers/db.ts'
+import { getCurrentSource } from '@/helpers/utils.ts'
 
 const timer = ref(null)
 const updateCount = ref(0)
@@ -114,7 +114,6 @@ const onMountedHandler = () => {
 const onBeforeUpdateHandler = () => {
   console.log('[onBeforeUpdateHandler]', updateCount.value)
   checkUpdateVideo(route.value.params)
-
 }
 const onUpdatedHandler = () => {
   console.log('[onUpdatedHandler]', route.value.params)
@@ -190,7 +189,7 @@ const getControls = () => {
 
 const loadVideoSource = (vid, pid) => {
   loadingBar.value!.start()
-  httpVideoSource(vid, pid)
+  httpVideoSource(vid, pid, getCurrentSource(route.value))
     .then((resp) => {
       console.log('[respSouece]', resp)
       source.value = resp.data
@@ -217,7 +216,7 @@ const loadVideoSource = (vid, pid) => {
 }
 
 const loadVideo = (vid) => {
-  httpVideo(vid)
+  httpVideo(new URLSearchParams({ id: vid, _source: getCurrentSource(route.value) }).toString())
     .then((resp) => {
       video.value = resp.data
     })
@@ -235,14 +234,13 @@ const getArtInstance = (art) => {
   console.info('[art]', art)
   artInstance.value = art
   art.on('ready', () => {
-    art.play();
-  });
+    art.play()
+  })
 
   art.on('play', () => {
-    console.info('play');
+    console.info('play')
     handlerTimeUpdate()
-  });
-
+  })
 
   // art.on('video:timeupdate', (currentTime) => {
   //   console.log('pppp',currentTime);
@@ -250,7 +248,6 @@ const getArtInstance = (art) => {
   // art.on('video:durationchange', (duration) => {
   //   console.log('pppp', duration);
   // });
-
 }
 
 const handlerTimeUpdate = () => {
@@ -286,10 +283,7 @@ const addHistoryWarp = async () => {
       updated_at: Date.now(),
     })
   }
-
-
 }
-
 
 const onBeforeUnmountHandler = () => {
   if (timer.value) {

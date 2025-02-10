@@ -1,4 +1,4 @@
-import { KEY_VIDEO_SOURCE } from "@/helpers/constant.ts";
+import { KEY_VIDEO_SOURCE } from '@/helpers/constant.ts'
 
 const getStorageSync = (key: string) => {
   const v = localStorage.getItem(key)
@@ -48,8 +48,11 @@ const arrayValuePick = (list: [], params: any, calculate: (item: any, v: any) =>
 }
 
 const getCurrentSource = (route) => {
-  if (route && route._source) {
-    return route._source
+  // if (route && route._source) {
+  //   return route._source
+  // }
+  if (route && route.query?._source) {
+    return route.query._source
   }
   return getStorageSync(KEY_VIDEO_SOURCE)
 }
@@ -69,7 +72,6 @@ const computeWindowWidthColumn = () => {
   }
   return { _column: column, _windowWidth: window.innerWidth }
 }
-
 
 export {
   getStorageSync,

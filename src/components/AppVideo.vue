@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeMount, ref } from 'vue'
+import { computed, defineComponent, onBeforeMount, onBeforeUpdate, onUpdated, ref } from 'vue'
 import {
   NButton,
   NEllipsis,
@@ -48,17 +48,19 @@ import { useRoute } from 'vue-router'
 import { httpVideo } from '@/helpers/api.ts'
 import AppSourceList from '@/components/AppSourceList.vue'
 import { formatVideoSourceMap } from '@/helpers/app.ts'
+import { getCurrentSource } from '@/helpers/utils.ts'
 
 const video = ref(null)
 // const pages = ref(0)
 // const page = ref(0)
+const _key = ref(null)
 
 const loadingBar = ref(null)
 const route = ref(null)
 
 const loadVideo = (id: string | number) => {
   loadingBar.value!.start()
-  httpVideo(id)
+  httpVideo(new URLSearchParams({ id, _source: getCurrentSource(route.value) }).toString())
     .then((resp) => {
       console.log('[resp]', resp)
       video.value = resp.data
@@ -73,12 +75,26 @@ const loadVideo = (id: string | number) => {
 
 const onBeforeMountHandler = () => {
   console.log('[ROUTE]', route.value.params)
-  loadVideo(route.value.params.id)
+  // loadVideo(route.value.params.id)
+  doRequest()
 }
 
 const videoSourceList = computed(() => {
   return formatVideoSourceMap(video.value.links)
 })
+
+const onBeforeUpdateHandler = () => {
+  doRequest()
+}
+const onUpdatedHandler = () => {}
+
+const doRequest = () => {
+  const _k = `${route.value.params.id},${route.value.query._source}`
+  if (_k != _key.value) {
+    _key.value = _k
+    loadVideo(route.value.params.id)
+  }
+}
 
 export default defineComponent({
   components: {
@@ -102,6 +118,10 @@ export default defineComponent({
     // const { sourceList } = storeToRefs(useAppStore())
     // const { getSourceList, setSourceList } = useAppStore()
     onBeforeMount(onBeforeMountHandler)
+
+    onBeforeUpdate(onBeforeUpdateHandler)
+    onUpdated(onUpdatedHandler)
+
     loadingBar.value = useLoadingBar()
     route.value = useRoute()
     return {
