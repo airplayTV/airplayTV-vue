@@ -1,102 +1,107 @@
-import { websocketAddr } from '../config'
-import { navigateToUrl, setStorageSync } from './utils'
-import {
-  CONTROL_BACK,
-  CONTROL_FORWARD,
-  CONTROL_FULLSCREEN,
-  CONTROL_INFO,
-  CONTROL_LOAD_VIDEO,
-  CONTROL_MUTE,
-  CONTROL_PAUSE,
-  CONTROL_PLAY,
-  CONTROL_QRCODE,
-  CONTROL_VOLUME,
-  KEY_VIDEO_SOURCE,
-  KEY_CLIENT_ID,
-} from './constant'
+import { websocketUrl } from '@/config.ts'
 
 let isConnecting = false
-let socketHandler = null
+let _websocket: WebSocket
+let _events: EventsType = {
+  connect: () => {
+  },
+  disConnect: () => {
+  }
+}
 
-function connect() {
-  if (isConnecting) {
-    console.log('[isConnecting...]')
+type EventsType = {
+  connect: () => void;
+  disConnect: () => void;
+}
+
+
+const connect = () => {
+  if (_websocket && _websocket.readyState == 1) {
     return
   }
-  isConnecting = true
+  _websocket = new WebSocket(websocketUrl)
 
-  if (socketHandler && socketHandler.readyState === socketHandler.OPEN) {
-    return
+  _websocket.onopen = function(event) {
+    console.log('[onopen]', event)
+
   }
+  _websocket.onmessage = function(msg) {
+    try {
+      const data = JSON.parse(msg.data)
+      console.log('[onmessage]', data)
+      switch (data.event) {
+        case 'connect':
+          console.log('[....connect]', data)
+          delegateFunctionCall(_events.connect, data)
 
-  // socketHandler = uni.connectSocket({
-  //   url: websocketAddr,
-  //   complete: () => {
-  //   }
-  // })
-  // socketHandler.onOpen(function (result) {
-  //   uni.$emit('onWebsocketOpen', result)
-  // })
-  // socketHandler.onClose(function (result) {
-  //   isConnecting = false
-  //   console.log('[onClose.readyState]', socketHandler.readyState)
-  //   uni.$emit('onWebsocketClose', result)
-  // })
-  // socketHandler.onError(function (result) {
-  //   isConnecting = false
-  //   console.log('[onError.readyState]', socketHandler.readyState)
-  //   uni.$emit('onWebsocketError', result)
-  // })
-  // socketHandler.onMessage(function (result) {
-  //   try {
-  //     const data = JSON.parse(result.data)
-  //     handleWebsocketEvent(data.event, data)
-  //     uni.$emit('onWebsocketMessage', data)
-  //   } catch (e) {
-  //     console.log('[onWebsocketMessageParseError]', { result, e })
-  //   }
-  // })
-}
+          setTimeout(() => {
+            delegateFunctionCall(_events.connect, data)
+          }, 3000)
 
-function send(SendSocketMessageOptions) {
-  // if (socketHandler.readyState === socketHandler.CLOSED) {
-  //   uni.$emit('onWebsocketClose')
-  //   return false;
-  // }
-  if (socketHandler.readyState !== socketHandler.OPEN) {
-    return false
+          break
+        case 'disConnect':
+          delegateFunctionCall(_events.disConnect, data)
+          break
+      }
+    } catch (e) {
+      console.log('[JSON.parse.Error]', e)
+    }
+
   }
-  socketHandler.send(SendSocketMessageOptions)
-
-  return true
-}
-
-function close() {}
-
-function handleWebsocketEvent(event, data) {
-  console.log('[handleWebsocketEvent]', event, data)
-  switch (event) {
-    case 'connect':
-      setStorageSync(KEY_CLIENT_ID, data.client_id)
-      break
-    case CONTROL_LOAD_VIDEO:
-      setStorageSync(KEY_VIDEO_SOURCE, data.source)
-      navigateToUrl(
-        `/video/play?airplay=1&vid=${data.vid}&pid=${data.pid}&_t=${Date.now()}&name=${encodeURIComponent(data.name)}`,
-      )
-      break
-    case CONTROL_MUTE:
-    case CONTROL_FULLSCREEN:
-    case CONTROL_QRCODE:
-    case CONTROL_INFO:
-    case CONTROL_VOLUME:
-    case CONTROL_BACK:
-    case CONTROL_PLAY:
-    case CONTROL_PAUSE:
-    case CONTROL_FORWARD:
-      // uni.$emit('onControlEvent', data)
-      break
+  _websocket.onclose = function(event) {
+    console.log('[onclose]', event)
+    setTimeout(connect, 3000)
+  }
+  _websocket.onerror = function(event) {
+    console.log('[onerror]', event)
   }
 }
 
-export { connect, send, close }
+const delegateFunctionCall = (fn: any, data: any) => {
+  if (typeof fn == 'function') {
+    fn(data)
+  }
+}
+
+const addEventsHandler = (events: any) => {
+  console.log('[addEventsHandler]', events)
+
+  const { connect, disConnect } = events
+  if (connect) {
+    _events.connect = connect
+  }
+  if (disConnect) {
+    _events.disConnect = disConnect
+  }
+}
+
+const removeEventsHandler = () => {
+  _events = {
+    connect: () => {
+    },
+    disConnect: () => {
+    }
+  }
+}
+
+const send = (data: any) => {
+  switch (_websocket.readyState) {
+    case 0:// WebSocket.CONNECTING 套接字已创建，但连接尚未打开。
+      break
+    case 1:// WebSocket.OPEN 连接已打开，准备进行通信。
+      _websocket.send(data)
+      break
+    case 2:// WebSocket.CLOSING 连接正在关闭中。
+      break
+    case 3:// WebSocket.CLOSED 连接已关闭或无法打开。
+      connect()
+      break
+  }
+}
+
+
+const joinGroup = () => {
+  //
+}
+
+export { connect, joinGroup, addEventsHandler, removeEventsHandler }

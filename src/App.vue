@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, onBeforeMount } from 'vue'
 import {
   NLoadingBarProvider,
   NMessageProvider,
@@ -11,6 +11,23 @@ import {
 // import { useAppStore } from '@/stores/app.ts'
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '@/stores/app.ts'
+import { v4 as uuidv4 } from 'uuid'
+import { getStorageSync, setStorageSync } from '@/helpers/utils.ts'
+import { KEY_CLIENT_ID } from '@/helpers/constant.ts'
+import { connect } from '@/helpers/websocket.ts'
+
+const onBeforeMountHandler = () => {
+  const clientId = getStorageSync(KEY_CLIENT_ID)
+  if (!clientId) {
+    setStorageSync(KEY_CLIENT_ID, uuidv4()?.replaceAll('-', ''))
+  }
+
+  console.log('[client-id]', getStorageSync(KEY_CLIENT_ID))
+
+  connect()
+
+
+}
 
 export default defineComponent({
   components: {
@@ -23,6 +40,9 @@ export default defineComponent({
   },
   setup() {
     const { sourceList } = storeToRefs(useAppStore())
+
+    onBeforeMount(onBeforeMountHandler)
+
     return {
       sourceList
     }

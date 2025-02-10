@@ -65,7 +65,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onBeforeMount, onMounted, ref } from 'vue'
+import { defineComponent, onBeforeMount, onBeforeUnmount, onMounted, ref } from 'vue'
 import {
   NButton,
   NDivider,
@@ -83,6 +83,7 @@ import { useAppStore } from '@/stores/app.ts'
 import { arrayContainsValue, getStorageSync, setStorageSync } from '@/helpers/utils.ts'
 import { KEY_VIDEO_SOURCE, KEY_VIDEO_TAG } from '@/helpers/constant.ts'
 import { clearHistory } from '@/helpers/db.ts'
+import { addEventsHandler , removeEventsHandler} from '@/helpers/websocket.ts'
 
 const source = ref(null)
 const tag = ref(null)
@@ -97,7 +98,17 @@ const onBeforeMountHandler = () => {
   tag.value = getStorageSync(KEY_VIDEO_TAG)
 }
 
+const onBeforeUnmountHandler = () => {
+  console.log('[卸载页面监听ws数据]')
+  removeEventsHandler()
+}
+
 const onMountedHandler = () => {
+  addEventsHandler({
+    connect: (data) => {
+      console.log('[设置页面监听ws数据]', data)
+    }
+  })
   handleTagList(source.value)
 }
 
@@ -179,6 +190,7 @@ export default defineComponent({
     message.value = useMessage()
 
     onBeforeMount(onBeforeMountHandler)
+    onBeforeUnmount(onBeforeUnmountHandler)
     onMounted(onMountedHandler)
 
     return {
