@@ -235,7 +235,7 @@ const getArtInstance = (art) => {
   artInstance.value = art
   art.on('ready', async () => {
     const _findHistory = await findHistory(getCurrentSource(route.value), vid.value, pid.value)
-    if (_findHistory.lastTime && _findHistory.duration - _findHistory.lastTime >= 60) {
+    if (_findHistory && _findHistory.lastTime && _findHistory.duration - _findHistory.lastTime >= 60) {
       art.seek = _findHistory.lastTime
       message.value.info('跳转到最新进度播放')
     }
