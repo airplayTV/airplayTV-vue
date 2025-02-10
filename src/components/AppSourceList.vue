@@ -102,5 +102,11 @@ export default defineComponent({
     background-color: #18a058;
     color: #ffffff;
   }
+
+  .n-tag {
+    min-width: 50px;
+    display: flex;
+    justify-content: center;
+  }
 }
 </style>
