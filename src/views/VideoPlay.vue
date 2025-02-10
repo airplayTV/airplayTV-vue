@@ -45,7 +45,15 @@ import {
 import { useRoute } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import { httpVideo, httpVideoSource } from '../helpers/api'
-import { NCollapse, NCollapseItem, NH2, NText, useLoadingBar } from 'naive-ui'
+import {
+  NCollapse,
+  NCollapseItem,
+  NH2,
+  NText,
+  useLoadingBar,
+  useMessage,
+  useNotification
+} from 'naive-ui'
 import AppSourceList from '@/components/AppSourceList.vue'
 import AppArtplayer from '@/components/AppArtplayer.vue'
 import { formatVideoSourceMap } from '@/helpers/app.ts'
@@ -62,6 +70,8 @@ const vid = ref(null)
 const pid = ref(null)
 const loadingBar = ref(null)
 const tmpQuery = ref(null)
+const notification = ref(null)
+const message = ref(null)
 
 const source = ref(null)
 const video = ref(null)
@@ -227,6 +237,7 @@ const getArtInstance = (art) => {
     const _findHistory = await findHistory(getCurrentSource(route.value), vid.value, pid.value)
     if (_findHistory.lastTime && _findHistory.duration - _findHistory.lastTime >= 60) {
       art.seek = _findHistory.lastTime
+      message.value.info('跳转到最新进度播放')
     }
     art.play()
   })
@@ -297,6 +308,9 @@ export default defineComponent({
   setup() {
     route.value = useRoute()
     loadingBar.value = useLoadingBar()
+
+    notification.value = useNotification()
+    message.value = useMessage()
 
     onBeforeMount(onBeforeMountHandler)
     onMounted(onMountedHandler)

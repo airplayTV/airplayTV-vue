@@ -30,11 +30,11 @@
         </n-form-item>
 
         <div>
-          <n-space>
-            <n-button strong secondary type="warning" @click="onClearVideoHistory">
+          <n-space justify="end">
+            <n-button strong secondary type="warning" @click="showClearHistoryModal=true">
               清空历史
             </n-button>
-            <n-button strong secondary type="warning" @click="onClearLocalStorage">
+            <n-button strong secondary type="warning" @click="showClearStorageModal = true">
               清空缓存
             </n-button>
           </n-space>
@@ -42,24 +42,41 @@
       </n-form>
     </div>
 
-    <!--    <n-modal-->
-    <!--      v-model:show="showModal"-->
-    <!--      :mask-closable="false"-->
-    <!--      preset="dialog"-->
-    <!--      title="确认"-->
-    <!--      content="你确认"-->
-    <!--      positive-text="确认"-->
-    <!--      negative-text="算了"-->
-    <!--      @positive-click="onPositiveClick"-->
-    <!--      @negative-click="onNegativeClick"-->
-    <!--    />-->
+    <n-modal
+      v-model:show="showClearHistoryModal"
+      preset="dialog"
+      title="提示"
+      content="确定清空历史数据？"
+      positive-text="确认"
+      negative-text="关闭"
+      @positive-click="onClearVideoHistory"
+    />
+    <n-modal
+      v-model:show="showClearStorageModal"
+      preset="dialog"
+      title="提示"
+      content="确定清空缓存数据？"
+      positive-text="确认"
+      negative-text="关闭"
+      @positive-click="onClearLocalStorage"
+    />
 
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, onBeforeMount, onMounted, ref } from 'vue'
-import { NButton, NDivider, NForm, NFormItem, NInput, NSelect, NSpace } from 'naive-ui'
+import {
+  NButton,
+  NDivider,
+  NForm,
+  NFormItem,
+  NInput,
+  NModal,
+  NSelect,
+  NSpace,
+  useMessage
+} from 'naive-ui'
 import AppHeader from '@/components/AppHeader.vue'
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '@/stores/app.ts'
@@ -71,6 +88,9 @@ const source = ref(null)
 const tag = ref(null)
 const formattedSourceList = ref(null)
 const formattedTagList = ref(null)
+const showClearHistoryModal = ref(false)
+const showClearStorageModal = ref(false)
+const message = ref(null)
 
 const onBeforeMountHandler = () => {
   source.value = getStorageSync(KEY_VIDEO_SOURCE)
@@ -118,11 +138,20 @@ const onUpdateTag = (value) => {
   setStorageSync(KEY_VIDEO_TAG, value)
 }
 
+const onClearVideoHistoryHandler = async () => {
+  showClearHistoryModal.value = true
+}
+const onClearLocalStorageHandler = () => {
+  showClearStorageModal.value = true
+}
+
 const onClearVideoHistory = async () => {
   await clearHistory()
+  message.value.info('历史播放记录已清空')
 }
 const onClearLocalStorage = () => {
   localStorage.clear()
+  message.value.info('本地缓存数据已清空')
 }
 
 export default defineComponent({
@@ -134,7 +163,8 @@ export default defineComponent({
     NSelect,
     NSpace,
     NDivider,
-    NButton
+    NButton,
+    NModal
   },
   setup() {
     const { sourceList } = storeToRefs(useAppStore())
@@ -146,6 +176,8 @@ export default defineComponent({
       }
     })
 
+    message.value = useMessage()
+
     onBeforeMount(onBeforeMountHandler)
     onMounted(onMountedHandler)
 
@@ -156,8 +188,12 @@ export default defineComponent({
       formattedTagList,
       onUpdateSource,
       onUpdateTag,
+      onClearVideoHistoryHandler,
+      onClearLocalStorageHandler,
       onClearVideoHistory,
-      onClearLocalStorage
+      onClearLocalStorage,
+      showClearHistoryModal,
+      showClearStorageModal
     }
   }
 })
