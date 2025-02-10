@@ -3,8 +3,13 @@
     <n-grid x-gap="12" y-gap="1" :cols="cols">
       <n-gi v-for="(video, idx) in videoList" :key="idx" @click="onOpenVideo(video)">
         <div class="flex-row flex-justify-center flex-align-center">
-          <n-image width="175" height="230" :src="video.thumb" class="thumb" preview-disabled>
-          </n-image>
+          <n-image
+            width="175"
+            height="230"
+            :src="video.thumb"
+            :key="video.thumb"
+            class="thumb"
+            preview-disabled />
         </div>
 
         <div class="name text-align-center">
@@ -36,31 +41,31 @@ import {
   NInputGroup,
   NPagination,
   NSelect,
-  useLoadingBar,
+  useLoadingBar
 } from 'naive-ui'
 import { httpVideoList } from '../helpers/api'
 import { BrokenImageRound } from '@vicons/material'
-import { getStorageSync } from '../helpers/utils'
+import { getCurrentSource, getStorageSync } from '../helpers/utils'
 import { KEY_VIDEO_SOURCE, KEY_VIDEO_TAG } from '../helpers/constant'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const videoList = ref([])
 const pages = ref(0)
 const page = ref(0)
 const loadingBar = ref(null)
 const router = ref(null)
+const route = ref(null)
 
 const loadVideoList = (tag: string | number, _page: number) => {
   loadingBar.value?.start()
-  httpVideoList(tag, _page)
+  httpVideoList(tag, _page, getCurrentSource(route.value))
     .then((resp) => {
-      console.log('[resp]', resp)
       videoList.value = resp.data.list
       pages.value = resp.data.pages
       page.value = resp.data.page
     })
     .catch((err) => {
-      console.log('[err]', err)
+      console.log('[httpVideoList.Error]', err)
     })
     .finally(() => {
       loadingBar.value?.finish()
@@ -77,7 +82,6 @@ const onUpdatePage = (data: number) => {
 }
 
 const onOpenVideo = (video) => {
-  console.log('[]', router)
   const source = getStorageSync(KEY_VIDEO_SOURCE)
   router.value.push(`/video/detail/${video.id}?_source=${source}`)
 }
@@ -94,7 +98,7 @@ export default defineComponent({
     NImage,
     NEllipsis,
     NPagination,
-    BrokenImageRound,
+    BrokenImageRound
   },
   props: ['cols'],
   setup() {
@@ -103,14 +107,15 @@ export default defineComponent({
     onBeforeMount(onBeforeMountHandler)
     loadingBar.value = useLoadingBar()
     router.value = useRouter()
+    route.value = useRoute()
     return {
       videoList,
       pages,
       page,
       onUpdatePage,
-      onOpenVideo,
+      onOpenVideo
     }
-  },
+  }
 })
 </script>
 

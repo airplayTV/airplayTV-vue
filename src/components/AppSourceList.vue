@@ -42,21 +42,17 @@ import {
   NPagination,
   NSelect,
   NTag,
-  NText,
+  NText
 } from 'naive-ui'
 import { BrokenImageRound } from '@vicons/material'
 import { useRoute, useRouter } from 'vue-router'
-import { getCurrentSource, getStorageSync } from '@/helpers/utils.ts'
-import { KEY_VIDEO_SOURCE } from '@/helpers/constant.ts'
+import { getCurrentSource } from '@/helpers/utils.ts'
 
 const video = ref(null)
 const route = ref(null)
 const router = ref(null)
 
 const onOpenVideoPlay = (vid, source) => {
-  console.log('[source]', vid, source)
-  console.log('[source]', route.value)
-  const _source = getStorageSync(KEY_VIDEO_SOURCE)
   router.value.push(`/video/play/${vid}/${source.id}?_source=${getCurrentSource(route.value)}`)
 }
 
@@ -80,7 +76,7 @@ export default defineComponent({
     NH5,
     NGridItem,
     NText,
-    BrokenImageRound,
+    BrokenImageRound
   },
   props: ['sourceList', 'vid', 'pid'],
   setup() {
@@ -88,9 +84,9 @@ export default defineComponent({
     router.value = useRouter()
     return {
       video,
-      onOpenVideoPlay,
+      onOpenVideoPlay
     }
-  },
+  }
 })
 </script>
 

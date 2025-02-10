@@ -24,23 +24,48 @@
           <n-select
             v-model:value="tag"
             placeholder="选择类型"
-            @update:value="onUpdateSource"
+            @update:value="onUpdateTag"
             :options="formattedTagList"
           />
         </n-form-item>
+
+        <div>
+          <n-space>
+            <n-button strong secondary type="warning" @click="onClearVideoHistory">
+              清空历史
+            </n-button>
+            <n-button strong secondary type="warning" @click="onClearLocalStorage">
+              清空缓存
+            </n-button>
+          </n-space>
+        </div>
       </n-form>
     </div>
+
+    <!--    <n-modal-->
+    <!--      v-model:show="showModal"-->
+    <!--      :mask-closable="false"-->
+    <!--      preset="dialog"-->
+    <!--      title="确认"-->
+    <!--      content="你确认"-->
+    <!--      positive-text="确认"-->
+    <!--      negative-text="算了"-->
+    <!--      @positive-click="onPositiveClick"-->
+    <!--      @negative-click="onNegativeClick"-->
+    <!--    />-->
+
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, onBeforeMount, onMounted, ref } from 'vue'
-import { NDivider, NForm, NFormItem, NInput, NSelect, NSpace } from 'naive-ui'
+import { NButton, NDivider, NForm, NFormItem, NInput, NSelect, NSpace } from 'naive-ui'
 import AppHeader from '@/components/AppHeader.vue'
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '@/stores/app.ts'
 import { arrayContainsValue, getStorageSync, setStorageSync } from '@/helpers/utils.ts'
 import { KEY_VIDEO_SOURCE, KEY_VIDEO_TAG } from '@/helpers/constant.ts'
+import { clearHistory } from '@/helpers/db.ts'
 
 const source = ref(null)
 const tag = ref(null)
@@ -64,7 +89,7 @@ const handleTagList = (source) => {
         return {
           label: _tag.name,
           value: _tag.value,
-          data: _tag,
+          data: _tag
         }
       })
 
@@ -88,6 +113,18 @@ const onUpdateSource = (value) => {
   handleTagList(source.value)
 }
 
+const onUpdateTag = (value) => {
+  console.log('[onUpdateTag]', value)
+  setStorageSync(KEY_VIDEO_TAG, value)
+}
+
+const onClearVideoHistory = async () => {
+  await clearHistory()
+}
+const onClearLocalStorage = () => {
+  localStorage.clear()
+}
+
 export default defineComponent({
   components: {
     AppHeader,
@@ -97,6 +134,7 @@ export default defineComponent({
     NSelect,
     NSpace,
     NDivider,
+    NButton
   },
   setup() {
     const { sourceList } = storeToRefs(useAppStore())
@@ -104,7 +142,7 @@ export default defineComponent({
       return {
         label: item.name,
         value: item.name,
-        data: item,
+        data: item
       }
     })
 
@@ -117,7 +155,10 @@ export default defineComponent({
       formattedSourceList,
       formattedTagList,
       onUpdateSource,
+      onUpdateTag,
+      onClearVideoHistory,
+      onClearLocalStorage
     }
-  },
+  }
 })
 </script>

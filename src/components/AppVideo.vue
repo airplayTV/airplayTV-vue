@@ -1,13 +1,7 @@
 <template>
   <div v-if="video" class="flex-column">
     <div class="flex-column flex-align-center">
-      <n-image width="200" height="280" :src="video.thumb" class="thumb">
-        <template #error>
-          <n-icon :size="100" color="lightGrey">
-            <BrokenImageRound />
-          </n-icon>
-        </template>
-      </n-image>
+      <n-image width="200" height="280" :src="video.thumb" :key="video.thumb" class="thumb" />
     </div>
 
     <n-h2>{{ video.name }}</n-h2>
@@ -41,7 +35,7 @@ import {
   NPagination,
   NSelect,
   NText,
-  useLoadingBar,
+  useLoadingBar
 } from 'naive-ui'
 import { BrokenImageRound } from '@vicons/material'
 import { useRoute } from 'vue-router'
@@ -60,13 +54,12 @@ const route = ref(null)
 
 const loadVideo = (id: string | number) => {
   loadingBar.value!.start()
-  httpVideo(new URLSearchParams({ id, _source: getCurrentSource(route.value) }).toString())
+  httpVideo(id, getCurrentSource(route.value))
     .then((resp) => {
-      console.log('[resp]', resp)
       video.value = resp.data
     })
     .catch((err) => {
-      console.log('[err]', err)
+      console.log('[httpVideo.Error]', err)
     })
     .finally(() => {
       loadingBar.value!.finish()
@@ -74,7 +67,6 @@ const loadVideo = (id: string | number) => {
 }
 
 const onBeforeMountHandler = () => {
-  console.log('[ROUTE]', route.value.params)
   // loadVideo(route.value.params.id)
   doRequest()
 }
@@ -86,7 +78,8 @@ const videoSourceList = computed(() => {
 const onBeforeUpdateHandler = () => {
   doRequest()
 }
-const onUpdatedHandler = () => {}
+const onUpdatedHandler = () => {
+}
 
 const doRequest = () => {
   const _k = `${route.value.params.id},${route.value.query._source}`
@@ -112,7 +105,7 @@ export default defineComponent({
     NH2,
     NText,
     NPagination,
-    BrokenImageRound,
+    BrokenImageRound
   },
   setup() {
     // const { sourceList } = storeToRefs(useAppStore())
@@ -126,9 +119,9 @@ export default defineComponent({
     route.value = useRoute()
     return {
       video,
-      videoSourceList,
+      videoSourceList
     }
-  },
+  }
 })
 </script>
 

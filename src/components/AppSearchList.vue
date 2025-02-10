@@ -3,8 +3,7 @@
     <n-grid x-gap="12" y-gap="1" :cols="cols">
       <n-gi v-for="(video, idx) in videoList" :key="idx" @click="onOpenVideo(video)">
         <div class="flex-row flex-justify-center flex-align-center">
-          <n-image width="175" height="230" :src="video.thumb" class="thumb" preview-disabled>
-          </n-image>
+          <n-image width="175" height="230" :src="video.thumb" :key="video.thumb" class="thumb" preview-disabled />
         </div>
 
         <div class="name text-align-center">
