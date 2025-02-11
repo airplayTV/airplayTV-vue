@@ -15,8 +15,20 @@
         />
       </div>
 
-      <div style="margin: 10px 0; color: dimgray; word-wrap: break-word" v-if="source">
-        {{ source.url }}
+      <div style="color: dimgray; word-wrap: break-word" v-if="source">
+        <div style="padding: 8px 0">
+
+          <n-text depth="2">{{ source.url }}</n-text>
+        </div>
+
+        <n-ellipsis :line-clamp="5">
+          <b>
+            <n-text depth="2">简介：</n-text>
+          </b>
+          <n-text depth="3">
+            {{ video.intro }}
+          </n-text>
+        </n-ellipsis>
       </div>
 
       <n-collapse accordion default-expanded-names="1">
@@ -48,6 +60,7 @@ import { httpVideo, httpVideoSource } from '../helpers/api'
 import {
   NCollapse,
   NCollapseItem,
+  NEllipsis,
   NH2,
   NText,
   useLoadingBar,
@@ -296,6 +309,7 @@ const onBeforeUnmountHandler = () => {
 
 export default defineComponent({
   components: {
+    NEllipsis,
     AppFooter,
     NH2,
     AppSourceList,
