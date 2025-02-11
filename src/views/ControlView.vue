@@ -274,7 +274,7 @@ const sendControlHandler = (data) => {
       break
   }
 
-  sendControl({
+  sendControl(room.value, {
     group: room.value,
     event: data.event,
     value: data.value,

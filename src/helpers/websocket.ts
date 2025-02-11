@@ -134,8 +134,12 @@ const joinGroup = (groupName: string) => {
   }))
 }
 
-const sendControl = (controlContext: Object) => {
-  send(JSON.stringify(controlContext))
+const sendControl = (groupName: string, controlContext: Object) => {
+  send(JSON.stringify({
+    group: groupName,
+    event: DataEventName.EventSendToGroup,
+    data: controlContext,
+  }))
 }
 
 export {
