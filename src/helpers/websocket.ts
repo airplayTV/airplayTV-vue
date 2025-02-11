@@ -121,6 +121,10 @@ const send = (data: any) => {
   }
 }
 
+const socketReady = () => {
+  return _websocket && _websocket.readyState == 1
+}
+
 
 const joinGroup = (groupName: string) => {
   send(JSON.stringify({
@@ -130,4 +134,16 @@ const joinGroup = (groupName: string) => {
   }))
 }
 
-export { EventName, connect, joinGroup, addEventHandler, removeEventHandler }
+const sendControl = (controlContext: Object) => {
+  send(JSON.stringify(controlContext))
+}
+
+export {
+  EventName,
+  connect,
+  joinGroup,
+  addEventHandler,
+  removeEventHandler,
+  socketReady,
+  sendControl
+}

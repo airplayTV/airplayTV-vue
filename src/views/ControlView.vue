@@ -4,14 +4,19 @@
 
     <div style="padding: 0 10px">
 
+      <n-alert type="warning">
+        <n-text depth="2">
+          房间：
+          <n-ellipsis style="max-width: 150px;">{{ room }}</n-ellipsis>
+        </n-text>
+      </n-alert>
 
       <div class="padding-30px controls">
-        <div class="padding-20px"></div>
 
         <!-- 四个按钮 -->
         <div class="flex-row flex-justify-between">
           <!-- 静音 -->
-          <div @click="sendControl({event:ControlEvent.Mute})">
+          <div @click="sendControlHandler({event:ControlEvent.Mute})">
             <svg class="icon"
                  style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;"
                  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -26,7 +31,7 @@
           </div>
 
           <!-- 全屏 -->
-          <div v-if="isFullscreen" @click="sendControl({event:ControlEvent.FullscreenExit})">
+          <div v-if="isFullscreen" @click="sendControlHandler({event:ControlEvent.FullscreenExit})">
             <svg class="icon"
                  style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;"
                  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -36,7 +41,7 @@
                 fill="#000000" p-id="5041"></path>
             </svg>
           </div>
-          <div v-else @click="sendControl({event:ControlEvent.Fullscreen})">
+          <div v-else @click="sendControlHandler({event:ControlEvent.Fullscreen})">
             <svg class="icon"
                  style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;"
                  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -51,7 +56,7 @@
           </div>
 
           <!-- 二维码 -->
-          <div @click="sendControl({event:ControlEvent.Qrcode})">
+          <div @click="sendControlHandler({event:ControlEvent.Qrcode})">
             <svg class="icon"
                  style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;"
                  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -66,7 +71,7 @@
           </div>
 
           <!-- 信息 -->
-          <div @click="sendControl({event:ControlEvent.Info})">
+          <div @click="sendControlHandler({event:ControlEvent.Info})">
             <svg class="icon"
                  style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;"
                  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -83,7 +88,7 @@
 
         <!-- 声音小 -->
         <div class="flex-row flex-justify-center"
-             @click="sendControl({event:ControlEvent.Volume,value:-1})">
+             @click="sendControlHandler({event:ControlEvent.Volume,value:-1})">
           <svg class="icon"
                style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;"
                viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6000">
@@ -100,7 +105,7 @@
         <div class="flex-row flex-justify-between">
 
           <!-- 后退 -->
-          <div @click="sendControl({event:ControlEvent.Back})">
+          <div @click="sendControlHandler({event:ControlEvent.Back})">
             <svg class="icon"
                  style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;"
                  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -117,7 +122,7 @@
           <!-- 播放/暂停 -->
           <div>
 
-            <div v-if="isPlay" @click="sendControl({event:ControlEvent.Pause})">
+            <div v-if="isPlay" @click="sendControlHandler({event:ControlEvent.Pause})">
               <svg class="icon"
                    style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;"
                    viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -127,7 +132,7 @@
                   fill="#000000" p-id="6936"></path>
               </svg>
             </div>
-            <div v-else @click="sendControl({event:ControlEvent.Play})">
+            <div v-else @click="sendControlHandler({event:ControlEvent.Play})">
               <svg class="icon"
                    style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;"
                    viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -142,7 +147,7 @@
           </div>
 
           <!-- 前进 -->
-          <div @click="sendControl({event:ControlEvent.Forward})">
+          <div @click="sendControlHandler({event:ControlEvent.Forward})">
             <svg class="icon"
                  style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;"
                  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -162,7 +167,7 @@
 
         <!-- 声音大 -->
         <div class="flex-row flex-justify-center"
-             @click="sendControl({event:ControlEvent.Volume,value:1})">
+             @click="sendControlHandler({event:ControlEvent.Volume,value:1})">
           <svg class="icon"
                style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;"
                viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6015">
@@ -186,8 +191,21 @@ import AppHeader from '../components/AppHeader.vue'
 import AppSearchList from '@/components/AppSearchList.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import { defineComponent, onBeforeMount, onMounted, ref } from 'vue'
-import { NEllipsis, NGi, NGrid, NImage, NProgress, NResult, NText } from 'naive-ui'
+import {
+  NAlert,
+  NEllipsis,
+  NGi,
+  NGrid,
+  NImage,
+  NProgress,
+  NResult,
+  NText,
+  useMessage
+} from 'naive-ui'
 import { useRouter } from 'vue-router'
+import { KEY_CLIENT_ID, KEY_ROOM_ID } from '@/helpers/constant.ts'
+import { getStorageSync } from '@/helpers/utils.ts'
+import { sendControl, socketReady } from '@/helpers/websocket.ts'
 
 enum ControlEvent {
   LoadVideo = '/ctl_load_Video',
@@ -210,6 +228,9 @@ const historyList = ref(null)
 
 const isFullscreen = ref(null)
 const isPlay = ref(null)
+const room = ref(null)
+const clientId = ref(null)
+const message = ref(null)
 
 const onMountedHandler = () => {
   // window.onresize = () => {
@@ -223,18 +244,47 @@ const onMountedHandler = () => {
 }
 
 const onBeforeMountHandler = async () => {
-
+  room.value = getStorageSync(KEY_ROOM_ID)
+  clientId.value = getStorageSync(KEY_CLIENT_ID)
 }
 
 const onOpenVideo = () => {
 }
 
-const sendControl = (params) => {
-  console.log('[sendControl]', params)
+const sendControlHandler = (data) => {
+  console.log('[sendControlHandler]', data)
+
+  if (!socketReady()) {
+    message.value.warning('websocket未就绪！')
+    return
+  }
+
+  switch (data.event) {
+    case ControlEvent.Pause:
+      isPlay.value = false
+      break
+    case ControlEvent.Play:
+      isPlay.value = true
+      break
+    case ControlEvent.Fullscreen:
+      isFullscreen.value = true
+      break
+    case ControlEvent.FullscreenExit:
+      isFullscreen.value = false
+      break
+  }
+
+  sendControl({
+    group: room.value,
+    event: data.event,
+    value: data.value,
+    from: clientId.value
+  })
 }
 
 export default defineComponent({
   components: {
+    NAlert,
     NResult,
     NGrid,
     NEllipsis,
@@ -251,6 +301,7 @@ export default defineComponent({
     onBeforeMount(onBeforeMountHandler)
 
     router.value = useRouter()
+    message.value = useMessage()
 
     return {
       cols,
@@ -260,7 +311,8 @@ export default defineComponent({
       isFullscreen,
       isPlay,
       ControlEvent,
-      sendControl,
+      sendControlHandler,
+      room
     }
   }
 })

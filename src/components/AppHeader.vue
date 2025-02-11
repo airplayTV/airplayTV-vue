@@ -4,9 +4,13 @@
       <div class="flex-row flex-align-center">
         <div class="logo" @click="router.push('/')">AirplayTV</div>
         <ul style="">
-          <li>
+          <li v-if="room">
+            <RouterLink to="/control">遥控</RouterLink>
+          </li>
+          <li v-else>
             <RouterLink to="/qr">投射</RouterLink>
           </li>
+
           <li>
             <RouterLink to="/history">历史</RouterLink>
           </li>
@@ -36,13 +40,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, onBeforeMount, onBeforeUpdate, ref } from 'vue'
 import { NButton, NIcon, NInput, NInputGroup, NSelect } from 'naive-ui'
 import { SearchSharp } from 'vicons/ionicons-v5'
 import { useAppStore } from '@/stores/app.ts'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
+import { getStorageSync } from '@/helpers/utils.ts'
+import { KEY_ROOM_ID } from '@/helpers/constant.ts'
 
+const room = ref(null)
 const source = ref(0)
 const keyword = ref(null)
 const showSearch = ref(false)
@@ -57,6 +64,14 @@ const onClickSearch = () => {
   router.value.push(`/video/search?page=1&keyword=` + encodeURIComponent(keyword.value))
 }
 
+const onBeforeMountHandler = () => {
+  room.value = getStorageSync(KEY_ROOM_ID)
+}
+
+const onBeforeUpdateHandler = () => {
+
+}
+
 export default defineComponent({
   components: {
     NSelect,
@@ -64,12 +79,15 @@ export default defineComponent({
     NInput,
     NButton,
     NIcon,
-    SearchSharp,
+    SearchSharp
   },
   setup() {
     const { sourceList } = storeToRefs(useAppStore())
     const { getSourceList, setSourceList } = useAppStore()
     router.value = useRouter()
+
+    onBeforeMount(onBeforeMountHandler)
+    onBeforeUpdate(onBeforeUpdateHandler)
 
     return {
       source,
@@ -81,8 +99,9 @@ export default defineComponent({
       setSourceList,
       router,
       onClickSearch,
+      room
     }
-  },
+  }
 })
 </script>
 
