@@ -17,32 +17,46 @@
         require-mark-placement="right-hanging"
       >
         <n-form-item label="切换源" path="source">
-          <n-select
-            v-model:value="source"
-            placeholder="切换源"
-            @update:value="onUpdateSource"
-            :options="formattedSourceList"
-          />
+          <div class="flex-row flex-1 xxxx">
+            <n-select
+              v-model:value="source"
+              placeholder="切换源"
+              @update:value="onUpdateSource"
+              :options="formattedSourceList"
+            />
+          </div>
+          <div class="flex-row flex-1 xxxx">
+            <n-select
+              v-if="formattedTagList"
+              v-model:value="tag"
+              placeholder="选择类型"
+              @update:value="onUpdateTag"
+              :options="formattedTagList"
+            />
+          </div>
         </n-form-item>
 
-        <n-form-item label="选择类型" path="tag" v-if="formattedTagList">
-          <n-select
-            v-model:value="tag"
-            placeholder="选择类型"
-            @update:value="onUpdateTag"
-            :options="formattedTagList"
-          />
-        </n-form-item>
+        <n-form-item label="加入房间" path="tag" v-if="formattedTagList">
+          <n-space justify="space-between" class="flex-1 flex-align-center">
+            <div>
+              <n-ellipsis v-if="room" style="width: 100px">
+                {{ room }}
+              </n-ellipsis>
+              <n-text v-else depth="3">扫码加入即可投射视频</n-text>
+            </div>
+            <n-space>
+              <n-button v-if="room" secondary type="warning" @click="clearRoomId">
+                退出
+              </n-button>
+              <n-button secondary type="primary" @click="startScanning">
+                扫码加入
+              </n-button>
 
-        <div>
-          <n-space>
-            <n-button strong secondary type="info" @click="startScanning">
-              TV扫码
-            </n-button>
+            </n-space>
           </n-space>
-        </div>
+        </n-form-item>
 
-        <div class="padding-20px"></div>
+        <div class="padding-30px"></div>
 
         <div>
           <n-space justify="end">
@@ -105,6 +119,7 @@ import { defineComponent, onBeforeMount, onBeforeUnmount, onMounted, ref } from 
 import {
   NButton,
   NDivider,
+  NEllipsis,
   NForm,
   NFormItem,
   NInput,
@@ -117,8 +132,13 @@ import {
 import AppHeader from '@/components/AppHeader.vue'
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '@/stores/app.ts'
-import { arrayContainsValue, getStorageSync, setStorageSync } from '@/helpers/utils.ts'
-import { KEY_VIDEO_SOURCE, KEY_VIDEO_TAG } from '@/helpers/constant.ts'
+import {
+  arrayContainsValue,
+  getStorageSync,
+  removeStorageSync,
+  setStorageSync
+} from '@/helpers/utils.ts'
+import { KEY_ROOM_ID, KEY_VIDEO_SOURCE, KEY_VIDEO_TAG } from '@/helpers/constant.ts'
 import { clearHistory } from '@/helpers/db.ts'
 import { addEventsHandler, removeEventsHandler } from '@/helpers/websocket.ts'
 import { Html5Qrcode } from 'html5-qrcode'
@@ -126,6 +146,7 @@ import copy from 'copy-to-clipboard'
 
 const source = ref(null)
 const tag = ref(null)
+const room = ref(null)
 const formattedSourceList = ref(null)
 const formattedTagList = ref(null)
 const showClearHistoryModal = ref(false)
@@ -139,6 +160,7 @@ const showQrReader = ref(false)
 const onBeforeMountHandler = () => {
   source.value = getStorageSync(KEY_VIDEO_SOURCE)
   tag.value = getStorageSync(KEY_VIDEO_TAG)
+  room.value = getStorageSync(KEY_ROOM_ID)
 }
 
 const onBeforeUnmountHandler = () => {
@@ -262,6 +284,11 @@ const copyQrResult = () => {
   message.value.info(`已复制到粘贴板`)
 }
 
+const clearRoomId = () => {
+  removeStorageSync(KEY_ROOM_ID)
+  room.value = null
+}
+
 export default defineComponent({
   components: {
     AppHeader,
@@ -273,6 +300,7 @@ export default defineComponent({
     NDivider,
     NButton,
     NText,
+    NEllipsis,
     NModal
   },
   setup() {
@@ -294,6 +322,7 @@ export default defineComponent({
     return {
       source,
       tag,
+      room,
       formattedSourceList,
       formattedTagList,
       onUpdateSource,
@@ -311,7 +340,8 @@ export default defineComponent({
       showQrReader,
       showQrResultModal,
       copyQrResult,
-      isUrl
+      isUrl,
+      clearRoomId
     }
   }
 })

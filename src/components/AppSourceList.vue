@@ -1,5 +1,15 @@
 <template>
   <div>
+    <div v-if="room" style="margin-top: 8px">
+      <n-alert type="warning" :show-icon="false">
+        <n-text depth="2">
+          房间：
+          <n-ellipsis style="max-width: 150px;">{{ room }}</n-ellipsis>
+          <n-text depth="3">点击播放即投射</n-text>
+        </n-text>
+      </n-alert>
+    </div>
+
     <div v-for="(source, idx) in sourceList" :key="idx">
       <n-h5>
         <n-text>
@@ -14,7 +24,13 @@
             :bordered="false"
             @click="onOpenVideoPlay(vid, item)"
           >
-            {{ item.name }}
+            <div class="xx-uu" style="display: flex;align-items: center ">
+              {{ item.name }}
+              <n-icon v-if="room" size="18" color="#0e7a0d" style="margin-left: 5px">
+                <CastRound />
+              </n-icon>
+            </div>
+
           </n-tag>
         </div>
       </div>
@@ -23,8 +39,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, onBeforeMount, ref } from 'vue'
 import {
+  NAlert,
   NButton,
   NEllipsis,
   NGi,
@@ -44,16 +61,23 @@ import {
   NTag,
   NText
 } from 'naive-ui'
-import { BrokenImageRound } from '@vicons/material'
+import { BrokenImageRound, CastRound } from '@vicons/material'
 import { useRoute, useRouter } from 'vue-router'
-import { getCurrentSource } from '@/helpers/utils.ts'
+import { getCurrentSource, getStorageSync } from '../helpers/utils'
+import { KEY_ROOM_ID } from '../helpers/constant'
+
 
 const video = ref(null)
 const route = ref(null)
 const router = ref(null)
+const room = ref(null)
 
 const onOpenVideoPlay = (vid, source) => {
   router.value.push(`/video/play/${vid}/${source.id}?_source=${getCurrentSource(route.value)}`)
+}
+
+const onBeforeMountHandler = () => {
+  room.value = getStorageSync(KEY_ROOM_ID)
 }
 
 export default defineComponent({
@@ -76,15 +100,21 @@ export default defineComponent({
     NH5,
     NGridItem,
     NText,
-    BrokenImageRound
+    NAlert,
+    BrokenImageRound,
+    CastRound
   },
   props: ['sourceList', 'vid', 'pid'],
   setup() {
     route.value = useRoute()
     router.value = useRouter()
+
+    onBeforeMount(onBeforeMountHandler)
+
     return {
       video,
-      onOpenVideoPlay
+      onOpenVideoPlay,
+      room
     }
   }
 })

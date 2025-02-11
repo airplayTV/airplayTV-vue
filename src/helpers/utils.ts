@@ -47,7 +47,7 @@ const arrayValuePick = (list: [], params: any, calculate: (item: any, v: any) =>
   return result
 }
 
-const getCurrentSource = (route) => {
+const getCurrentSource = (route: any) => {
   // if (route && route._source) {
   //   return route._source
   // }

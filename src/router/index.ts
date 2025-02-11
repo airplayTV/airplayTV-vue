@@ -57,6 +57,11 @@ const router = createRouter({
       name: 'Qr',
       component: () => import('../views/QrView.vue'),
     },
+    {
+      path: '/join',
+      name: 'join',
+      component: () => import('../views/JoinRoomView.vue'),
+    },
   ],
 })
 

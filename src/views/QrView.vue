@@ -34,7 +34,8 @@ const clientId = ref(null)
 
 const generateQrUrl = () => {
   clientId.value = getStorageSync(KEY_CLIENT_ID)
-  const tmpUrl = `${window.location.origin}?room_id=${clientId.value}&t=` + Date.now()
+  const tmpUrl = `${window.location.origin}/join?room_id=${clientId.value}&t=` + Date.now()
+  console.log('[tmpUrl]', tmpUrl)
   QRCode.toDataURL(tmpUrl, {
     errorCorrectionLevel: 'H',
     type: 'image/jpeg',
