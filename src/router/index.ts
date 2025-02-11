@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import VideoListView from '@/views/VideoListView.vue'
 import { useAppStore } from '@/stores/app.ts'
-import { httpSourceList } from '@/helpers/api.ts'
+import { httpSourceList } from '../helpers/api'
 import { storeToRefs } from 'pinia'
 import { arrayContainsValue, getStorageSync, setStorageSync } from '@/helpers/utils.ts'
 import { KEY_VIDEO_SOURCE, KEY_VIDEO_TAG } from '@/helpers/constant.ts'
@@ -40,7 +40,7 @@ const router = createRouter({
     {
       path: '/video/play/:vid/:pid',
       name: 'VideoPlay',
-      component: () => import('../views/VideoPlay.vue'),
+      component: () => import('../views/VideoPlayView.vue'),
     },
     {
       path: '/setting',
@@ -59,8 +59,13 @@ const router = createRouter({
     },
     {
       path: '/join',
-      name: 'join',
+      name: 'Join',
       component: () => import('../views/JoinRoomView.vue'),
+    },
+    {
+      path: '/control',
+      name: 'Control',
+      component: () => import('../views/ControlView.vue'),
     },
   ],
 })

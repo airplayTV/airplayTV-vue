@@ -140,10 +140,11 @@ import {
 } from '@/helpers/utils.ts'
 import { KEY_ROOM_ID, KEY_VIDEO_SOURCE, KEY_VIDEO_TAG } from '@/helpers/constant.ts'
 import { clearHistory } from '@/helpers/db.ts'
-import { addEventsHandler, removeEventsHandler } from '@/helpers/websocket.ts'
 import { Html5Qrcode } from 'html5-qrcode'
 import copy from 'copy-to-clipboard'
+import { useRouter } from 'vue-router'
 
+const router = ref(null)
 const source = ref(null)
 const tag = ref(null)
 const room = ref(null)
@@ -165,16 +166,10 @@ const onBeforeMountHandler = () => {
 
 const onBeforeUnmountHandler = () => {
   console.log('[卸载页面监听ws数据]')
-  removeEventsHandler()
   stopScanning()
 }
 
 const onMountedHandler = () => {
-  addEventsHandler({
-    connect: (data) => {
-      console.log('[设置页面监听ws数据]', data)
-    }
-  })
   handleTagList(source.value)
 }
 
@@ -315,6 +310,8 @@ export default defineComponent({
 
     message.value = useMessage()
 
+    router.value = useRouter()
+
     onBeforeMount(onBeforeMountHandler)
     onBeforeUnmount(onBeforeUnmountHandler)
     onMounted(onMountedHandler)
@@ -341,7 +338,8 @@ export default defineComponent({
       showQrResultModal,
       copyQrResult,
       isUrl,
-      clearRoomId
+      clearRoomId,
+      router
     }
   }
 })
