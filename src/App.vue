@@ -14,9 +14,15 @@ import { useAppStore } from '@/stores/app.ts'
 import { v4 as uuidv4 } from 'uuid'
 import { getStorageSync, setStorageSync } from '@/helpers/utils.ts'
 import { KEY_CLIENT_ID } from '@/helpers/constant.ts'
-import { addEventHandler, connect, EventName, removeEventHandler } from '@/helpers/websocket.ts'
+import {
+  addEventHandler,
+  connect,
+  EventName,
+  joinGroup,
+  removeEventHandler
+} from '@/helpers/websocket.ts'
 
-const _pageKey = '_page_app_'
+const _pageKey = '_key_app_page_app_'
 
 const onBeforeMountHandler = () => {
   const clientId = getStorageSync(KEY_CLIENT_ID)
@@ -26,7 +32,11 @@ const onBeforeMountHandler = () => {
 
   console.log('[client-id]', getStorageSync(KEY_CLIENT_ID))
 
-  addEventHandler(EventName.Open, _pageKey, () => {
+  addEventHandler(EventName.Open, _pageKey, (data: any) => {
+    // 加入房间
+    joinGroup(clientId)
+  })
+  addEventHandler(EventName.Close, _pageKey, () => {
     setTimeout(connect, 3000)
   })
   connect()

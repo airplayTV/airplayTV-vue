@@ -13,6 +13,14 @@ enum EventName {
   LeaveRoom = 'LeaveRoom',
 }
 
+enum DataEventName {
+  EventJoinGroup = 'joinGroup',
+  EventSendToClient = 'sendToClient',
+  EventLeaveGroup = 'leaveGroup',
+  EventSendToGroup = 'sendToGroup',
+  EventListGroupClient = 'listGroupClient',
+}
+
 const connect = () => {
   if (_websocket && _websocket.readyState == 1) {
     return
@@ -114,8 +122,12 @@ const send = (data: any) => {
 }
 
 
-const joinGroup = () => {
-  //
+const joinGroup = (groupName: string) => {
+  send(JSON.stringify({
+    event: DataEventName.EventJoinGroup,
+    data: null,
+    group: groupName
+  }))
 }
 
 export { EventName, connect, joinGroup, addEventHandler, removeEventHandler }
