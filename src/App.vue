@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, onBeforeMount } from 'vue'
+import { defineComponent, onBeforeMount, onBeforeUnmount } from 'vue'
 import {
   NLoadingBarProvider,
   NMessageProvider,
@@ -14,7 +14,9 @@ import { useAppStore } from '@/stores/app.ts'
 import { v4 as uuidv4 } from 'uuid'
 import { getStorageSync, setStorageSync } from '@/helpers/utils.ts'
 import { KEY_CLIENT_ID } from '@/helpers/constant.ts'
-import { connect } from '@/helpers/websocket.ts'
+import { addEventHandler, connect, EventName, removeEventHandler } from '@/helpers/websocket.ts'
+
+const _pageKey = '_page_app_'
 
 const onBeforeMountHandler = () => {
   const clientId = getStorageSync(KEY_CLIENT_ID)
@@ -24,9 +26,14 @@ const onBeforeMountHandler = () => {
 
   console.log('[client-id]', getStorageSync(KEY_CLIENT_ID))
 
+  addEventHandler(EventName.Open, _pageKey, () => {
+    setTimeout(connect, 3000)
+  })
   connect()
+}
 
-
+const onBeforeUnmountHandler = () => {
+  removeEventHandler(_pageKey)
 }
 
 export default defineComponent({
@@ -42,6 +49,7 @@ export default defineComponent({
     const { sourceList } = storeToRefs(useAppStore())
 
     onBeforeMount(onBeforeMountHandler)
+    onBeforeUnmount(onBeforeUnmountHandler)
 
     return {
       sourceList

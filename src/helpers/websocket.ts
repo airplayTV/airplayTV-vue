@@ -2,18 +2,16 @@ import { websocketUrl } from '../config'
 
 let isConnecting = false
 let _websocket: WebSocket
-let _events: EventsType = {
-  connect: () => {
-  },
-  disConnect: () => {
-  }
+let _events: any// {"open":{"key1":fn(), "key2":fn2()}}, 同一类型事件支持注册多个回调，key区分
+enum EventName {
+  Open = 'Open',
+  Connect = 'Connect',
+  Disconnect = 'Disconnect',
+  Close = 'Close',
+  Error = 'Error',
+  JoinRoom = 'JoinRoom',
+  LeaveRoom = 'LeaveRoom',
 }
-
-type EventsType = {
-  connect: () => void;
-  disConnect: () => void;
-}
-
 
 const connect = () => {
   if (_websocket && _websocket.readyState == 1) {
@@ -22,19 +20,19 @@ const connect = () => {
   _websocket = new WebSocket(websocketUrl)
 
   _websocket.onopen = function(event) {
-    console.log('[onOpen]', event)
-
+    // console.log('[onOpen]', event)
+    delegateEventCallback(EventName.Open, event)
   }
   _websocket.onmessage = function(msg) {
     try {
       const data = JSON.parse(msg.data)
-      console.log('[onMessage]', data)
+      // console.log('[onMessage]', data)
       switch (data.event) {
         case 'connect':
-          delegateFunctionCall(_events.connect, data)
+          delegateEventCallback(EventName.Connect, data)
           break
         case 'disConnect':
-          delegateFunctionCall(_events.disConnect, data)
+          delegateEventCallback(EventName.Disconnect, data)
           break
       }
     } catch (e) {
@@ -43,11 +41,12 @@ const connect = () => {
 
   }
   _websocket.onclose = function(event) {
-    console.log('[onClose]', event)
-    setTimeout(connect, 3000)
+    // console.log('[onClose]', event)
+    delegateEventCallback(EventName.Close, event)
   }
   _websocket.onerror = function(event) {
-    console.log('[onError]', event)
+    // console.log('[onError]', event)
+    delegateEventCallback(EventName.Error, event)
   }
 }
 
@@ -57,24 +56,43 @@ const delegateFunctionCall = (fn: any, data: any) => {
   }
 }
 
-const addEventsHandler = (events: any) => {
-  console.log('[addEventsHandler]', events)
-
-  const { connect, disConnect } = events
-  if (connect) {
-    _events.connect = connect
+const delegateEventCallback = (eventName: EventName, data: any) => {
+  if (!_events[eventName]) {
+    return
   }
-  if (disConnect) {
-    _events.disConnect = disConnect
+  for (const _key in _events[eventName]) {
+    _events[eventName][_key](data)
   }
 }
 
-const removeEventsHandler = () => {
-  _events = {
-    connect: () => {
-    },
-    disConnect: () => {
-    }
+const addEventHandler = (eventName: EventName, key: string, callback: any) => {
+  _addEventHandler(eventName, key, callback)
+}
+
+const removeEventHandler = (key: string) => {
+  _events = _events.map((events: any, eventName: EventName) => {
+    return events.filter((e: any, _key: string) => {
+      return _key == key
+    })
+  })
+}
+
+const _addEventHandler = (eventName: EventName, key: string, callback: any) => {
+  if (key.length <= 0) {
+    console.warn(`注册事件key必须为常规字符串：${key}`)
+    return
+  }
+  if (typeof callback != 'function') {
+    console.warn(`注册事件回调必须为可调用方法，事件名：${eventName}，key: ${key}`)
+  }
+  if (!_events) {
+    _events = {}
+  }
+  if (!_events[eventName]) {
+    _events[eventName] = {}
+  }
+  if (!_events[eventName][key]) {
+    _events[eventName][key] = callback
   }
 }
 
@@ -98,4 +116,4 @@ const joinGroup = () => {
   //
 }
 
-export { connect, joinGroup, addEventsHandler, removeEventsHandler }
+export { EventName, connect, joinGroup, addEventHandler, removeEventHandler }
