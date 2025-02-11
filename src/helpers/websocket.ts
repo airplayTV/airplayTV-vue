@@ -1,4 +1,4 @@
-import { websocketUrl } from '@/config.ts'
+import { websocketUrl } from '../config'
 
 let isConnecting = false
 let _websocket: WebSocket
