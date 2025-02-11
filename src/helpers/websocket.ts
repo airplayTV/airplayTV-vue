@@ -22,22 +22,16 @@ const connect = () => {
   _websocket = new WebSocket(websocketUrl)
 
   _websocket.onopen = function(event) {
-    console.log('[onopen]', event)
+    console.log('[onOpen]', event)
 
   }
   _websocket.onmessage = function(msg) {
     try {
       const data = JSON.parse(msg.data)
-      console.log('[onmessage]', data)
+      console.log('[onMessage]', data)
       switch (data.event) {
         case 'connect':
-          console.log('[....connect]', data)
           delegateFunctionCall(_events.connect, data)
-
-          setTimeout(() => {
-            delegateFunctionCall(_events.connect, data)
-          }, 3000)
-
           break
         case 'disConnect':
           delegateFunctionCall(_events.disConnect, data)
@@ -49,11 +43,11 @@ const connect = () => {
 
   }
   _websocket.onclose = function(event) {
-    console.log('[onclose]', event)
+    console.log('[onClose]', event)
     setTimeout(connect, 3000)
   }
   _websocket.onerror = function(event) {
-    console.log('[onerror]', event)
+    console.log('[onError]', event)
   }
 }
 

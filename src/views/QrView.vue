@@ -48,9 +48,6 @@ const generateQrUrl = () => {
 }
 
 const onMountedHandler = () => {
-
-  console.log('[]AAAA', JSON.parse(JSON.stringify(window.location.origin)))
-
   generateQrUrl()
 }
 
