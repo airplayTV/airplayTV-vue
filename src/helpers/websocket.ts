@@ -1,4 +1,4 @@
-import { websocketUrl } from '../config'
+import { socketUrl } from '../config'
 
 let isConnecting = false
 let _websocket: WebSocket
@@ -17,7 +17,7 @@ const connect = () => {
   if (_websocket && _websocket.readyState == 1) {
     return
   }
-  _websocket = new WebSocket(websocketUrl)
+  _websocket = new WebSocket(socketUrl)
 
   _websocket.onopen = function(event) {
     // console.log('[onOpen]', event)
@@ -70,11 +70,13 @@ const addEventHandler = (eventName: EventName, key: string, callback: any) => {
 }
 
 const removeEventHandler = (key: string) => {
-  _events = _events.map((events: any, eventName: EventName) => {
-    return events.filter((e: any, _key: string) => {
-      return _key == key
-    })
-  })
+  for (const eventName in _events) {
+    for (const _key in _events[eventName]) {
+      if (key == _key) {
+        delete _events[eventName][_key]
+      }
+    }
+  }
 }
 
 const _addEventHandler = (eventName: EventName, key: string, callback: any) => {
