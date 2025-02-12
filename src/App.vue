@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, onBeforeMount, onBeforeUnmount } from 'vue'
+import { defineComponent, onBeforeMount, onBeforeUnmount, ref } from 'vue'
 import {
   NLoadingBarProvider,
   NMessageProvider,
@@ -22,8 +22,10 @@ import {
   joinGroup,
   removeEventHandler
 } from '@/helpers/websocket.ts'
+import { useRouter } from 'vue-router'
 
 const _pageKey = '_key_app_page_app_'
+const router = ref(null)
 
 const onBeforeMountHandler = () => {
   const clientId = getStorageSync(KEY_CLIENT_ID)
@@ -35,12 +37,10 @@ const onBeforeMountHandler = () => {
 
   addEventHandler(EventName.Message, _pageKey, (data: any) => {
     console.log('[onMessage]', data)
-    switch (data.event){
+    switch (data.event) {
       case ControlEvent.LoadVideo:
-        // navigateToUrl(`/video/play?airplay=1&vid=${data.vid}&pid=${data.pid}&_t=${Date.now()}&name=${encodeURIComponent(data.name)}`)
-        router.value.push(`/video/play/${data.vid}/${data.pid}?_source=${getCurrentSource(route.value)}`)
-        break;
-
+        router.value.push(`/video/play/${data.vid}/${data.pid}?_source=${data.source}&t=${Math.random()}`)
+        break
     }
   })
   addEventHandler(EventName.Open, _pageKey, (data: any) => {
@@ -68,6 +68,8 @@ export default defineComponent({
   },
   setup() {
     const { sourceList } = storeToRefs(useAppStore())
+
+    router.value = useRouter()
 
     onBeforeMount(onBeforeMountHandler)
     onBeforeUnmount(onBeforeUnmountHandler)

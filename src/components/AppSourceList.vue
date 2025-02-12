@@ -59,25 +59,45 @@ import {
   NPagination,
   NSelect,
   NTag,
-  NText
+  NText,
+  useMessage
 } from 'naive-ui'
 import { BrokenImageRound, CastRound } from '@vicons/material'
 import { useRoute, useRouter } from 'vue-router'
 import { getCurrentSource, getStorageSync } from '../helpers/utils'
-import { KEY_ROOM_ID } from '../helpers/constant'
+import { KEY_CLIENT_ID, KEY_ROOM_ID } from '../helpers/constant'
+import { ControlEvent, sendControl } from '@/helpers/websocket.ts'
 
 
 const video = ref(null)
 const route = ref(null)
 const router = ref(null)
 const room = ref(null)
+const clientId = ref(null)
+const message = ref(null)
 
 const onOpenVideoPlay = (vid, source) => {
-  router.value.push(`/video/play/${vid}/${source.id}?_source=${getCurrentSource(route.value)}`)
+  if (!room.value) {
+    router.value.push(`/video/play/${vid}/${source.id}?_source=${getCurrentSource(route.value)}`)
+  } else {
+    // 投射播放
+    sendControl(room.value, {
+      event: ControlEvent.LoadVideo,
+      group: room.value,
+      vid: vid,
+      pid: source.id,
+      // name: source.name,
+      source: getCurrentSource(route.value)
+    })
+    // message.value.info('已发送投射播放请求')
+    router.value.push('/control')
+  }
+
 }
 
 const onBeforeMountHandler = () => {
   room.value = getStorageSync(KEY_ROOM_ID)
+  clientId.value = getStorageSync(KEY_CLIENT_ID)
 }
 
 export default defineComponent({
@@ -108,6 +128,7 @@ export default defineComponent({
   setup() {
     route.value = useRoute()
     router.value = useRouter()
+    message.value = useMessage()
 
     onBeforeMount(onBeforeMountHandler)
 
