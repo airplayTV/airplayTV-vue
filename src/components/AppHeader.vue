@@ -3,7 +3,7 @@
     <div class="flex-row flex-align-center flex-justify-between">
       <div class="flex-row flex-align-center">
         <div class="logo" @click="router.push('/')">AirplayTV</div>
-        <ul style="">
+        <ul class="links">
           <li v-if="room">
             <RouterLink to="/control">遥控</RouterLink>
           </li>
@@ -14,14 +14,14 @@
           <li>
             <RouterLink to="/history">历史</RouterLink>
           </li>
-          <li class="">
+          <li>
             <RouterLink to="/setting">设置</RouterLink>
           </li>
         </ul>
       </div>
       <div class="flex-row flex-align-center">
         <div class="xxx" @click="onToggleSearchBox">
-          <n-icon color="#18A058" size="20">
+          <n-icon color="#000000" size="20">
             <SearchSharp />
           </n-icon>
         </div>
@@ -42,7 +42,7 @@
 <script lang="ts">
 import { defineComponent, onBeforeMount, onBeforeUpdate, ref } from 'vue'
 import { NButton, NIcon, NInput, NInputGroup, NSelect } from 'naive-ui'
-import { SearchSharp } from 'vicons/ionicons-v5'
+import { SearchSharp } from '@vicons/material'
 import { useAppStore } from '@/stores/app.ts'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
@@ -112,8 +112,7 @@ ul {
 
 ul li {
   display: inline; /* 或使用 inline-block */
-  padding: 2px 5px;
-  color: #343434;
+  //color: #343434;
 }
 
 ul li.active {
@@ -124,5 +123,19 @@ ul li.active {
   margin-right: 10px;
   font-size: 18px;
   font-weight: bold;
+  color: #18a058;
+}
+
+.links {
+  a {
+    padding: 3px 0;
+    margin: 0 6px;
+    color: rgba(0, 0, 0, 0.8);
+    text-decoration: none;
+  }
+  .router-link-active {
+    color: #18a058;
+    border-bottom: 2px solid #18a058;
+  }
 }
 </style>

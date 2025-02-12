@@ -77,10 +77,10 @@ const resetSearchEvent = (keyword) => {
   )
 
   searchEventSource.value.addEventListener('update', (e) => {
-    console.log('[JSON]', e)
     try {
       const resp = JSON.parse(e.data)
       let d = resp.data.data
+      console.log('[d]', resp.source, resp.data)
       if (resp.data.code == 200) {
         d.msg = ''
       } else {

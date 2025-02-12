@@ -13,6 +13,8 @@
         </div>
       </div>
     </div>
+
+    <AppFooter />
   </div>
 </template>
 
@@ -24,6 +26,7 @@ import { NEllipsis, NImage, NText } from 'naive-ui'
 import { useRoute, useRouter } from 'vue-router'
 import { getStorageSync } from '@/helpers/utils.ts'
 import { KEY_CLIENT_ID } from '@/helpers/constant.ts'
+import AppFooter from '@/components/AppFooter.vue'
 
 const route = ref(null)
 const router = ref(null)
@@ -54,6 +57,7 @@ const onMountedHandler = () => {
 
 export default defineComponent({
   components: {
+    AppFooter,
     NImage,
     NText,
     NEllipsis,

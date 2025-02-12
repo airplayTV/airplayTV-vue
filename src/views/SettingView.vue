@@ -76,6 +76,8 @@
       </n-form>
     </div>
 
+    <AppFooter />
+
     <n-modal
       v-model:show="showClearHistoryModal"
       preset="dialog"
@@ -154,6 +156,7 @@ import { clearHistory } from '@/helpers/db.ts'
 import { Html5Qrcode } from 'html5-qrcode'
 import copy from 'copy-to-clipboard'
 import { useRoute, useRouter } from 'vue-router'
+import AppFooter from '@/components/AppFooter.vue'
 
 const route = ref(null)
 const router = ref(null)
@@ -313,6 +316,7 @@ const clearRoomId = () => {
 
 export default defineComponent({
   components: {
+    AppFooter,
     AppHeader,
     NForm,
     NInput,
