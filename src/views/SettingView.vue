@@ -1,8 +1,10 @@
 <template>
   <div>
+    <!--
     <div class="fixed-qr-reader-content" v-show="showQrReader">
       <div id="qr-reader" class="qr-reader"></div>
     </div>
+    -->
 
     <AppHeader />
 
@@ -15,7 +17,7 @@
         label-width="auto"
         require-mark-placement="right-hanging"
       >
-        <n-form-item label="切换源" path="source">
+        <n-form-item label="换源" path="source">
           <div class="flex-row flex-1 xxxx">
             <n-select
               v-model:value="source"
@@ -35,7 +37,7 @@
           </div>
         </n-form-item>
 
-        <n-form-item label="加入房间" path="tag" v-if="formattedTagList">
+        <n-form-item label="房间" path="tag" v-if="formattedTagList">
           <n-space justify="space-between" class="flex-1 flex-align-center">
             <div>
               <n-ellipsis v-if="room" style="width: 100px">
@@ -44,11 +46,18 @@
               <n-text v-else depth="3">扫码加入即可投射视频</n-text>
             </div>
             <n-space>
-              <n-button v-if="room" secondary type="warning" @click="clearRoomId"> 退出 </n-button>
-              <n-button secondary type="primary" @click="startScanning"> 扫码加入 </n-button>
+              <n-button v-if="room" secondary type="warning" @click="clearRoomId"> 退出</n-button>
+              <n-button secondary type="primary" @click="startScanning"> 扫码加入</n-button>
             </n-space>
           </n-space>
         </n-form-item>
+
+        <div class="fixed-qr-reader-content" v-show="showQrReader">
+          <div id="qr-reader" class="qr-reader"></div>
+          <div class="text-align-center padding-10px">
+            <n-tag :bordered="false" type="warning" @click="stopScanning">停止扫码</n-tag>
+          </div>
+        </div>
 
         <div class="padding-30px"></div>
 
@@ -91,7 +100,7 @@
       </div>
 
       <n-space justify="end">
-        <n-button strong secondary type="info" @click="copyQrResult"> 复制内容 </n-button>
+        <n-button strong secondary type="info" @click="copyQrResult"> 复制内容</n-button>
       </n-space>
     </n-modal>
   </div>
@@ -109,6 +118,7 @@ import {
   NModal,
   NSelect,
   NSpace,
+  NTag,
   NText,
   useMessage,
 } from 'naive-ui'
@@ -221,14 +231,10 @@ const startScanning = () => {
         qrResult.value = decodedText // 解析的二维码内容
 
         stopScanning()
-        showQrReader.value = false
 
         showQrResultModal.value = true
       },
-      (errorMessage) => {
-        // showQrReader.value = false
-        // message.value.info(`扫描失败：${errorMessage}`)
-      },
+      (errorMessage) => {},
     )
     .catch((err) => {
       showQrReader.value = false
@@ -237,6 +243,7 @@ const startScanning = () => {
 }
 
 const stopScanning = () => {
+  showQrReader.value = false
   if (html5QrCode.value) {
     html5QrCode.value
       .stop()
@@ -284,6 +291,7 @@ export default defineComponent({
     NText,
     NEllipsis,
     NModal,
+    NTag,
   },
   setup() {
     const { sourceList } = storeToRefs(useAppStore())
@@ -335,12 +343,10 @@ export default defineComponent({
 <style scoped lang="scss">
 .fixed-qr-reader-content {
   width: 100%;
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  z-index: 99;
+  min-height: 200px;
   display: flex;
-  //background-color: rgba(0, 0, 0, 0.54);
+  flex-direction: column;
+  //background-color: rgba(0, 0, 0, 0.1);
 
   .qr-reader {
     width: 100%;

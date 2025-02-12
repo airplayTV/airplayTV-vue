@@ -276,7 +276,6 @@ const getArtInstance = (art) => {
     console.info('play')
     handlerTimeUpdate()
   })
-
 }
 
 const handlerTimeUpdate = () => {
