@@ -3,17 +3,15 @@
     <AppHeader />
 
     <div style="padding: 0 10px">
-
       <div class="flex-row flex-column flex-justify-center flex-align-center">
         <n-image width="320" height="320" :src="qrCodeUrl" :key="qrCodeUrl" class="thumb" />
         <div>
           <n-text>
             房间号：
-            <n-ellipsis style="width: 150px;">{{ clientId }}</n-ellipsis>
+            <n-ellipsis style="width: 150px">{{ clientId }}</n-ellipsis>
           </n-text>
         </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -40,12 +38,14 @@ const generateQrUrl = () => {
     errorCorrectionLevel: 'H',
     type: 'image/jpeg',
     quality: 0.3,
-    width: 300
-  }).then(url => {
-    qrCodeUrl.value = url
-  }).catch(err => {
-    console.error(err)
+    width: 300,
   })
+    .then((url) => {
+      qrCodeUrl.value = url
+    })
+    .catch((err) => {
+      console.error(err)
+    })
 }
 
 const onMountedHandler = () => {
@@ -57,26 +57,23 @@ export default defineComponent({
     NImage,
     NText,
     NEllipsis,
-    AppHeader
+    AppHeader,
   },
   setup() {
-
     route.value = useRoute()
     router.value = useRouter()
 
     onMounted(onMountedHandler)
     return {
       qrCodeUrl,
-      clientId
+      clientId,
     }
-  }
+  },
 })
-
 </script>
 <style scoped>
 .thumb {
   border-radius: 4px;
   background-color: #f2f2f2;
 }
-
 </style>

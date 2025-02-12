@@ -1,6 +1,5 @@
 <template>
   <div>
-
     <div class="fixed-qr-reader-content" v-show="showQrReader">
       <div id="qr-reader" class="qr-reader"></div>
     </div>
@@ -45,13 +44,8 @@
               <n-text v-else depth="3">扫码加入即可投射视频</n-text>
             </div>
             <n-space>
-              <n-button v-if="room" secondary type="warning" @click="clearRoomId">
-                退出
-              </n-button>
-              <n-button secondary type="primary" @click="startScanning">
-                扫码加入
-              </n-button>
-
+              <n-button v-if="room" secondary type="warning" @click="clearRoomId"> 退出 </n-button>
+              <n-button secondary type="primary" @click="startScanning"> 扫码加入 </n-button>
             </n-space>
           </n-space>
         </n-form-item>
@@ -60,7 +54,7 @@
 
         <div>
           <n-space justify="end">
-            <n-button strong secondary type="warning" @click="showClearHistoryModal=true">
+            <n-button strong secondary type="warning" @click="showClearHistoryModal = true">
               清空历史
             </n-button>
             <n-button strong secondary type="warning" @click="showClearStorageModal = true">
@@ -89,28 +83,17 @@
       negative-text="关闭"
       @positive-click="onClearLocalStorage"
     />
-    <n-modal
-      v-model:show="showQrResultModal"
-      preset="card"
-      title="提示"
-      style="margin: 0 16px"
-    >
+    <n-modal v-model:show="showQrResultModal" preset="card" title="提示" style="margin: 0 16px">
       <div>
         解码内容：
         <a :href="qrResult" v-if="isUrl(qrResult)">{{ qrResult }}</a>
         <n-text v-else>{{ qrResult }}</n-text>
       </div>
 
-
       <n-space justify="end">
-        <n-button strong secondary type="info" @click="copyQrResult">
-          复制内容
-        </n-button>
-
+        <n-button strong secondary type="info" @click="copyQrResult"> 复制内容 </n-button>
       </n-space>
-
     </n-modal>
-
   </div>
 </template>
 
@@ -127,7 +110,7 @@ import {
   NSelect,
   NSpace,
   NText,
-  useMessage
+  useMessage,
 } from 'naive-ui'
 import AppHeader from '@/components/AppHeader.vue'
 import { storeToRefs } from 'pinia'
@@ -136,7 +119,7 @@ import {
   arrayContainsValue,
   getStorageSync,
   removeStorageSync,
-  setStorageSync
+  setStorageSync,
 } from '@/helpers/utils.ts'
 import { KEY_ROOM_ID, KEY_VIDEO_SOURCE, KEY_VIDEO_TAG } from '@/helpers/constant.ts'
 import { clearHistory } from '@/helpers/db.ts'
@@ -181,7 +164,7 @@ const handleTagList = (source) => {
         return {
           label: _tag.name,
           value: _tag.value,
-          data: _tag
+          data: _tag,
         }
       })
 
@@ -230,35 +213,39 @@ const startScanning = () => {
   showQrReader.value = true
   //
   html5QrCode.value = new Html5Qrcode('qr-reader')
-  html5QrCode.value.start(
-    { facingMode: 'environment' }, // 使用后置摄像头
-    { fps: 10, qrbox: 250 },
-    (decodedText) => {
-      qrResult.value = decodedText // 解析的二维码内容
+  html5QrCode.value
+    .start(
+      { facingMode: 'environment' }, // 使用后置摄像头
+      { fps: 10, qrbox: 250 },
+      (decodedText) => {
+        qrResult.value = decodedText // 解析的二维码内容
 
-      stopScanning()
+        stopScanning()
+        showQrReader.value = false
+
+        showQrResultModal.value = true
+      },
+      (errorMessage) => {
+        // showQrReader.value = false
+        // message.value.info(`扫描失败：${errorMessage}`)
+      },
+    )
+    .catch((err) => {
       showQrReader.value = false
-
-      showQrResultModal.value = true
-    },
-    (errorMessage) => {
-      // showQrReader.value = false
-      // message.value.info(`扫描失败：${errorMessage}`)
-    }
-  ).catch(err => {
-    showQrReader.value = false
-    message.value.info(`启动扫码失败：${err}`)
-  })
-
+      message.value.info(`启动扫码失败：${err}`)
+    })
 }
 
 const stopScanning = () => {
   if (html5QrCode.value) {
-    html5QrCode.value.stop().then((ignore) => {
-      // alert('扫描停止')
-    }).catch((err) => {
-      // alert('停止扫描失败:', err)
-    })
+    html5QrCode.value
+      .stop()
+      .then((ignore) => {
+        // alert('扫描停止')
+      })
+      .catch((err) => {
+        // alert('停止扫描失败:', err)
+      })
   }
 }
 
@@ -273,7 +260,7 @@ const copyQrResult = () => {
   }
   copy(qrResult.value, {
     debug: true,
-    message: 'Press #{key} to copy'
+    message: 'Press #{key} to copy',
   })
   showQrResultModal.value = false
   message.value.info(`已复制到粘贴板`)
@@ -296,7 +283,7 @@ export default defineComponent({
     NButton,
     NText,
     NEllipsis,
-    NModal
+    NModal,
   },
   setup() {
     const { sourceList } = storeToRefs(useAppStore())
@@ -304,7 +291,7 @@ export default defineComponent({
       return {
         label: item.name,
         value: item.name,
-        data: item
+        data: item,
       }
     })
 
@@ -339,9 +326,9 @@ export default defineComponent({
       copyQrResult,
       isUrl,
       clearRoomId,
-      router
+      router,
     }
-  }
+  },
 })
 </script>
 
@@ -357,7 +344,7 @@ export default defineComponent({
 
   .qr-reader {
     width: 100%;
-    height: 100%
+    height: 100%;
   }
 }
 </style>

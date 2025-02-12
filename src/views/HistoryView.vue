@@ -17,7 +17,14 @@
                 :style="{ width: `${video.percent}%` }"
               ></div>
             </div>
-            <n-image width="175" height="230" :src="video.thumb" :key="video.thumb" class="thumb" preview-disabled />
+            <n-image
+              width="175"
+              height="230"
+              :src="video.thumb"
+              :key="video.thumb"
+              class="thumb"
+              preview-disabled
+            />
           </div>
 
           <div class="name text-align-center">
@@ -35,7 +42,6 @@
         <n-result status="404" title="暂无数据" description=""></n-result>
         <div class="padding-30px"></div>
       </div>
-
     </div>
 
     <AppFooter />
@@ -107,7 +113,7 @@ export default defineComponent({
     AppSearchList,
     AppFooter,
     NProgress,
-    NText
+    NText,
   },
   setup() {
     onMounted(onMountedHandler)
@@ -118,9 +124,9 @@ export default defineComponent({
     return {
       cols,
       historyList,
-      onOpenVideo
+      onOpenVideo,
     }
-  }
+  },
 })
 </script>
 

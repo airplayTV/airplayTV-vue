@@ -12,14 +12,11 @@ onMounted(() => {
     const { _column, _windowWidth } = computeWindowWidthColumn()
     windowWidth.value = _windowWidth
     cols.value = _column
-
   }
   const { _column, _windowWidth } = computeWindowWidthColumn()
   windowWidth.value = _windowWidth
   cols.value = _column
-
 })
-
 </script>
 
 <template>

@@ -2,7 +2,7 @@ import { socketUrl } from '../config'
 
 let isConnecting = false
 let _websocket: WebSocket
-let _events: any// {"open":{"key1":fn(), "key2":fn2()}}, 同一类型事件支持注册多个回调，key区分
+let _events: any // {"open":{"key1":fn(), "key2":fn2()}}, 同一类型事件支持注册多个回调，key区分
 enum EventName {
   Open = 'Open',
   Connect = 'Connect',
@@ -42,11 +42,11 @@ const connect = () => {
   }
   _websocket = new WebSocket(socketUrl)
 
-  _websocket.onopen = function(event) {
+  _websocket.onopen = function (event) {
     // console.log('[onOpen]', event)
     delegateEventCallback(EventName.Open, event)
   }
-  _websocket.onmessage = function(msg) {
+  _websocket.onmessage = function (msg) {
     try {
       const data = JSON.parse(msg.data)
       // console.log('[onMessage]', data)
@@ -60,13 +60,12 @@ const connect = () => {
     } catch (e) {
       console.log('[JSON.parse.Error]', e)
     }
-
   }
-  _websocket.onclose = function(event) {
+  _websocket.onclose = function (event) {
     // console.log('[onClose]', event)
     delegateEventCallback(EventName.Close, event)
   }
-  _websocket.onerror = function(event) {
+  _websocket.onerror = function (event) {
     // console.log('[onError]', event)
     delegateEventCallback(EventName.Error, event)
   }
@@ -122,14 +121,14 @@ const _addEventHandler = (eventName: EventName, key: string, callback: any) => {
 
 const send = (data: any) => {
   switch (_websocket.readyState) {
-    case 0:// WebSocket.CONNECTING 套接字已创建，但连接尚未打开。
+    case 0: // WebSocket.CONNECTING 套接字已创建，但连接尚未打开。
       break
-    case 1:// WebSocket.OPEN 连接已打开，准备进行通信。
+    case 1: // WebSocket.OPEN 连接已打开，准备进行通信。
       _websocket.send(data)
       break
-    case 2:// WebSocket.CLOSING 连接正在关闭中。
+    case 2: // WebSocket.CLOSING 连接正在关闭中。
       break
-    case 3:// WebSocket.CLOSED 连接已关闭或无法打开。
+    case 3: // WebSocket.CLOSED 连接已关闭或无法打开。
       connect()
       break
   }
@@ -139,21 +138,24 @@ const socketReady = () => {
   return _websocket && _websocket.readyState == 1
 }
 
-
 const joinGroup = (groupName: string) => {
-  send(JSON.stringify({
-    event: DataEventName.EventJoinGroup,
-    data: null,
-    group: groupName
-  }))
+  send(
+    JSON.stringify({
+      event: DataEventName.EventJoinGroup,
+      data: null,
+      group: groupName,
+    }),
+  )
 }
 
 const sendControl = (groupName: string, controlContext: Object) => {
-  send(JSON.stringify({
-    group: groupName,
-    event: DataEventName.EventSendToGroup,
-    data: controlContext,
-  }))
+  send(
+    JSON.stringify({
+      group: groupName,
+      event: DataEventName.EventSendToGroup,
+      data: controlContext,
+    }),
+  )
 }
 
 export {
@@ -164,5 +166,5 @@ export {
   removeEventHandler,
   socketReady,
   sendControl,
-  ControlEvent
+  ControlEvent,
 }

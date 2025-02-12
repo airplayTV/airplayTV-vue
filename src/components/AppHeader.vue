@@ -68,9 +68,7 @@ const onBeforeMountHandler = () => {
   room.value = getStorageSync(KEY_ROOM_ID)
 }
 
-const onBeforeUpdateHandler = () => {
-
-}
+const onBeforeUpdateHandler = () => {}
 
 export default defineComponent({
   components: {
@@ -79,7 +77,7 @@ export default defineComponent({
     NInput,
     NButton,
     NIcon,
-    SearchSharp
+    SearchSharp,
   },
   setup() {
     const { sourceList } = storeToRefs(useAppStore())
@@ -99,9 +97,9 @@ export default defineComponent({
       setSourceList,
       router,
       onClickSearch,
-      room
+      room,
     }
-  }
+  },
 })
 </script>
 

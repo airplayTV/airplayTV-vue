@@ -17,7 +17,6 @@
 
       <div style="color: dimgray; word-wrap: break-word" v-if="source">
         <div style="padding: 8px 0">
-
           <n-text depth="2">{{ source.url }}</n-text>
         </div>
 
@@ -52,7 +51,7 @@ import {
   onMounted,
   onUpdated,
   ref,
-  watch
+  watch,
 } from 'vue'
 import { useRoute } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
@@ -65,7 +64,7 @@ import {
   NText,
   useLoadingBar,
   useMessage,
-  useNotification
+  useNotification,
 } from 'naive-ui'
 import AppSourceList from '@/components/AppSourceList.vue'
 import AppArtplayer from '@/components/AppArtplayer.vue'
@@ -79,7 +78,7 @@ import {
   addEventHandler,
   ControlEvent,
   EventName,
-  removeEventHandler
+  removeEventHandler,
 } from '@/helpers/websocket.ts'
 
 const timer = ref(null)
@@ -99,13 +98,12 @@ const artInstance = ref({})
 const artOption = ref({})
 const artStyle = ref({
   width: '100%',
-  height: '180px'
+  height: '180px',
 })
 
 const _pageKey = '_key_app_page_video_play_'
 
 const onBeforeMountHandler = () => {
-
   addControlEventHandler()
 
   checkUpdateVideo(route.value.params)
@@ -142,8 +140,7 @@ const onMountedHandler = () => {
 const onBeforeUpdateHandler = () => {
   checkUpdateVideo({ params: route.value.params, query: route.value.query })
 }
-const onUpdatedHandler = () => {
-}
+const onUpdatedHandler = () => {}
 
 const computePlayerHeight = () => {
   let pH = 180
@@ -169,16 +166,16 @@ const getHlsOptions = () => {
         quality: {
           getName: (level) => level.height + 'P',
           title: 'Quality',
-          auto: 'Auto'
+          auto: 'Auto',
         },
         audio: {
           control: true,
           setting: true,
           getName: (track) => track.name,
           title: 'Audio',
-          auto: 'Auto'
-        }
-      })
+          auto: 'Auto',
+        },
+      }),
     ],
     customType: {
       m3u8: function playM3u8(video, url, art) {
@@ -194,8 +191,8 @@ const getHlsOptions = () => {
         } else {
           art.notice.show = 'Unsupported playback format: m3u8'
         }
-      }
-    }
+      },
+    },
   }
 }
 
@@ -207,9 +204,9 @@ const getControls = () => {
         html: `<svg style="flex: 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24"><path d="M6 14c-.55 0-1 .45-1 1v3c0 .55.45 1 1 1h3c.55 0 1-.45 1-1s-.45-1-1-1H7v-2c0-.55-.45-1-1-1zm0-4c.55 0 1-.45 1-1V7h2c.55 0 1-.45 1-1s-.45-1-1-1H6c-.55 0-1 .45-1 1v3c0 .55.45 1 1 1zm11 7h-2c-.55 0-1 .45-1 1s.45 1 1 1h3c.55 0 1-.45 1-1v-3c0-.55-.45-1-1-1s-1 .45-1 1v2zM14 6c0 .55.45 1 1 1h2v2c0 .55.45 1 1 1s1-.45 1-1V6c0-.55-.45-1-1-1h-3c-.55 0-1 .45-1 1z" fill="currentColor"></path></svg>`,
         click: () => {
           artInstance.value.fullscreen = !artInstance.value.fullscreen
-        }
-      }
-    ]
+        },
+      },
+    ],
   }
 }
 
@@ -224,14 +221,14 @@ const loadVideoSource = (vid, pid) => {
           fullscreen: true,
           fullscreenWeb: true,
 
-          ...getHlsOptions()
+          ...getHlsOptions(),
           // ...getControls()
         }
       } else {
         artOption.value = {
           url: resp.data.url,
           fullscreen: true,
-          fullscreenWeb: true
+          fullscreenWeb: true,
           // ...getControls()
         }
       }
@@ -264,7 +261,11 @@ const getArtInstance = (art) => {
   artInstance.value = art
   art.on('ready', async () => {
     const _findHistory = await findHistory(getCurrentSource(route.value), vid.value, pid.value)
-    if (_findHistory && _findHistory.lastTime && _findHistory.duration - _findHistory.lastTime >= 60) {
+    if (
+      _findHistory &&
+      _findHistory.lastTime &&
+      _findHistory.duration - _findHistory.lastTime >= 60
+    ) {
       art.seek = _findHistory.lastTime
       message.value.info('跳转到最新进度播放')
     }
@@ -307,12 +308,12 @@ const addHistoryWarp = async () => {
       type: source.value.type,
       duration: artInstance.value.duration,
       lastTime: artInstance.value.currentTime,
-      updated_at: Date.now()
+      updated_at: Date.now(),
     })
   } else {
     await updateHistory(find.id, {
       lastTime: artInstance.value.currentTime,
-      updated_at: Date.now()
+      updated_at: Date.now(),
     })
   }
 }
@@ -376,7 +377,7 @@ export default defineComponent({
     AppArtplayer,
     NText,
     NCollapseItem,
-    NCollapse
+    NCollapse,
   },
   setup() {
     route.value = useRoute()
@@ -403,9 +404,9 @@ export default defineComponent({
       artStyle,
       getArtInstance,
       vid,
-      pid
+      pid,
     }
-  }
+  },
 })
 </script>
 

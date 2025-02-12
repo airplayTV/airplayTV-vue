@@ -79,5 +79,5 @@ export {
   removeStorageSync,
   arrayContainsValue,
   getCurrentSource,
-  computeWindowWidthColumn
+  computeWindowWidthColumn,
 }

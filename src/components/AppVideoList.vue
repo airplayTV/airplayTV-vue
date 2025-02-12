@@ -9,7 +9,8 @@
             :src="video.thumb"
             :key="video.thumb"
             class="thumb"
-            preview-disabled />
+            preview-disabled
+          />
         </div>
 
         <div class="name text-align-center">
@@ -41,7 +42,7 @@ import {
   NInputGroup,
   NPagination,
   NSelect,
-  useLoadingBar
+  useLoadingBar,
 } from 'naive-ui'
 import { httpVideoList } from '../helpers/api'
 import { BrokenImageRound } from '@vicons/material'
@@ -98,7 +99,7 @@ export default defineComponent({
     NImage,
     NEllipsis,
     NPagination,
-    BrokenImageRound
+    BrokenImageRound,
   },
   props: ['cols'],
   setup() {
@@ -113,9 +114,9 @@ export default defineComponent({
       pages,
       page,
       onUpdatePage,
-      onOpenVideo
+      onOpenVideo,
     }
-  }
+  },
 })
 </script>
 

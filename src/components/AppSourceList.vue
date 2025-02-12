@@ -4,7 +4,7 @@
       <n-alert type="warning" :show-icon="false">
         <n-text depth="2">
           房间：
-          <n-ellipsis style="max-width: 150px;">{{ room }}</n-ellipsis>
+          <n-ellipsis style="max-width: 150px">{{ room }}</n-ellipsis>
           <n-text depth="3">点击播放即投射</n-text>
         </n-text>
       </n-alert>
@@ -24,13 +24,12 @@
             :bordered="false"
             @click="onOpenVideoPlay(vid, item)"
           >
-            <div class="xx-uu" style="display: flex;align-items: center ">
+            <div class="xx-uu" style="display: flex; align-items: center">
               {{ item.name }}
               <n-icon v-if="room" size="18" color="#0e7a0d" style="margin-left: 5px">
                 <CastRound />
               </n-icon>
             </div>
-
           </n-tag>
         </div>
       </div>
@@ -60,14 +59,13 @@ import {
   NSelect,
   NTag,
   NText,
-  useMessage
+  useMessage,
 } from 'naive-ui'
 import { BrokenImageRound, CastRound } from '@vicons/material'
 import { useRoute, useRouter } from 'vue-router'
 import { getCurrentSource, getStorageSync } from '../helpers/utils'
 import { KEY_CLIENT_ID, KEY_ROOM_ID } from '../helpers/constant'
 import { ControlEvent, sendControl } from '@/helpers/websocket.ts'
-
 
 const video = ref(null)
 const route = ref(null)
@@ -87,12 +85,11 @@ const onOpenVideoPlay = (vid, source) => {
       vid: vid,
       pid: source.id,
       // name: source.name,
-      source: getCurrentSource(route.value)
+      source: getCurrentSource(route.value),
     })
     // message.value.info('已发送投射播放请求')
     router.value.push('/control')
   }
-
 }
 
 const onBeforeMountHandler = () => {
@@ -122,7 +119,7 @@ export default defineComponent({
     NText,
     NAlert,
     BrokenImageRound,
-    CastRound
+    CastRound,
   },
   props: ['sourceList', 'vid', 'pid'],
   setup() {
@@ -135,9 +132,9 @@ export default defineComponent({
     return {
       video,
       onOpenVideoPlay,
-      room
+      room,
     }
-  }
+  },
 })
 </script>
 

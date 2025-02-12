@@ -35,7 +35,7 @@ import {
   NPagination,
   NSelect,
   NText,
-  useLoadingBar
+  useLoadingBar,
 } from 'naive-ui'
 import { BrokenImageRound } from '@vicons/material'
 import { useRoute } from 'vue-router'
@@ -78,8 +78,7 @@ const videoSourceList = computed(() => {
 const onBeforeUpdateHandler = () => {
   doRequest()
 }
-const onUpdatedHandler = () => {
-}
+const onUpdatedHandler = () => {}
 
 const doRequest = () => {
   const _k = `${route.value.params.id},${route.value.query._source}`
@@ -105,7 +104,7 @@ export default defineComponent({
     NH2,
     NText,
     NPagination,
-    BrokenImageRound
+    BrokenImageRound,
   },
   setup() {
     // const { sourceList } = storeToRefs(useAppStore())
@@ -119,9 +118,9 @@ export default defineComponent({
     route.value = useRoute()
     return {
       video,
-      videoSourceList
+      videoSourceList,
     }
-  }
+  },
 })
 </script>
 

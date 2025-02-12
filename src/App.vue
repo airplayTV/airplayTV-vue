@@ -6,7 +6,7 @@ import {
   NNotificationProvider,
   NSkeleton,
   NSpace,
-  NSpin
+  NSpin,
 } from 'naive-ui'
 // import { useAppStore } from '@/stores/app.ts'
 import { storeToRefs } from 'pinia'
@@ -20,7 +20,7 @@ import {
   ControlEvent,
   EventName,
   joinGroup,
-  removeEventHandler
+  removeEventHandler,
 } from '@/helpers/websocket.ts'
 import { useRouter } from 'vue-router'
 
@@ -39,7 +39,9 @@ const onBeforeMountHandler = () => {
     console.log('[onMessage]', data)
     switch (data.event) {
       case ControlEvent.LoadVideo:
-        router.value.push(`/video/play/${data.vid}/${data.pid}?_source=${data.source}&t=${Math.random()}`)
+        router.value.push(
+          `/video/play/${data.vid}/${data.pid}?_source=${data.source}&t=${Math.random()}`,
+        )
         break
     }
   })
@@ -64,7 +66,7 @@ export default defineComponent({
     NSpin,
     NLoadingBarProvider,
     NNotificationProvider,
-    NMessageProvider
+    NMessageProvider,
   },
   setup() {
     const { sourceList } = storeToRefs(useAppStore())
@@ -75,9 +77,9 @@ export default defineComponent({
     onBeforeUnmount(onBeforeUnmountHandler)
 
     return {
-      sourceList
+      sourceList,
     }
-  }
+  },
 })
 </script>
 
