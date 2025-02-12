@@ -221,13 +221,18 @@ const loadVideoSource = (vid, pid) => {
       if (resp.data.type === 'hls') {
         artOption.value = {
           url: resp.data.url,
-          ...getHlsOptions(),
-          ...getControls()
+          fullscreen: true,
+          fullscreenWeb: true,
+
+          ...getHlsOptions()
+          // ...getControls()
         }
       } else {
         artOption.value = {
           url: resp.data.url,
-          ...getControls()
+          fullscreen: true,
+          fullscreenWeb: true
+          // ...getControls()
         }
       }
     })
@@ -333,8 +338,6 @@ const addControlEventHandler = () => {
         artInstance.value.fullscreen = false
         break
       case ControlEvent.Qrcode:
-        // this.dplayer.player.notice('显示二维码【暂未实现】', showTime)
-        // showToast('需要显示二维码')
         break
       case ControlEvent.Info:
         console.log('[player]')
