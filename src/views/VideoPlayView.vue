@@ -277,12 +277,6 @@ const getArtInstance = (art) => {
     handlerTimeUpdate()
   })
 
-  // art.on('video:timeupdate', (currentTime) => {
-  //   console.log('pppp',currentTime);
-  // });
-  // art.on('video:durationchange', (duration) => {
-  //   console.log('pppp', duration);
-  // });
 }
 
 const handlerTimeUpdate = () => {
@@ -327,7 +321,6 @@ const onBeforeUnmountHandler = () => {
 
 const addControlEventHandler = () => {
   addEventHandler(EventName.Message, _pageKey, (data: any) => {
-    console.log('[onMessage]', data)
     switch (data.event) {
       case ControlEvent.Mute:
         artInstance.value.muted = !artInstance.value.muted
@@ -341,7 +334,7 @@ const addControlEventHandler = () => {
       case ControlEvent.Qrcode:
         break
       case ControlEvent.Info:
-        console.log('[player]')
+        // console.log('[info]')
         break
       case ControlEvent.Volume:
         if (data.value <= 0) {

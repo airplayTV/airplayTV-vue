@@ -36,7 +36,6 @@ const onBeforeMountHandler = () => {
   console.log('[client-id]', getStorageSync(KEY_CLIENT_ID))
 
   addEventHandler(EventName.Message, _pageKey, (data: any) => {
-    console.log('[onMessage]', data)
     switch (data.event) {
       case ControlEvent.LoadVideo:
         router.value.push(
