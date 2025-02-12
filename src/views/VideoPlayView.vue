@@ -177,6 +177,7 @@ const getHlsOptions = () => {
         },
       }),
     ],
+    type: 'm3u8',
     customType: {
       m3u8: function playM3u8(video, url, art) {
         if (Hls.isSupported()) {
@@ -325,15 +326,15 @@ const addControlEventHandler = () => {
         artInstance.value.muted = !artInstance.value.muted
         break
       case ControlEvent.Fullscreen:
-        artInstance.value.fullscreen = true
+        artInstance.value.fullscreen = !artInstance.value.fullscreen
         break
       case ControlEvent.FullscreenExit:
-        artInstance.value.fullscreen = false
+        artInstance.value.fullscreen = !artInstance.value.fullscreen
         break
       case ControlEvent.Qrcode:
         break
       case ControlEvent.Info:
-        // console.log('[info]')
+        artInstance.value.controls.show = true
         break
       case ControlEvent.Volume:
         if (data.value <= 0) {
