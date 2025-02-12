@@ -6,7 +6,7 @@
     </div>
     -->
 
-    <AppHeader />
+    <AppHeader :key="pageViewKey" />
 
     <div style="padding: 0 10px">
       <div class="padding-10px"></div>
@@ -46,7 +46,9 @@
               <n-text v-else depth="3">扫码加入即可投射视频</n-text>
             </div>
             <n-space>
-              <n-button v-if="room" secondary type="warning" @click="clearRoomId"> 退出</n-button>
+              <n-button v-if="room" secondary type="warning" @click="showClearRoomId = true">
+                退出
+              </n-button>
               <n-button secondary type="primary" @click="startScanning"> 扫码加入</n-button>
             </n-space>
           </n-space>
@@ -92,6 +94,15 @@
       negative-text="关闭"
       @positive-click="onClearLocalStorage"
     />
+    <n-modal
+      v-model:show="showClearRoomId"
+      preset="dialog"
+      title="提示"
+      content="确定退出房间？"
+      positive-text="确认"
+      negative-text="关闭"
+      @positive-click="clearRoomId"
+    />
     <n-modal v-model:show="showQrResultModal" preset="card" title="提示" style="margin: 0 16px">
       <div>
         解码内容：
@@ -107,7 +118,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onBeforeMount, onBeforeUnmount, onMounted, ref } from 'vue'
+import {
+  defineComponent,
+  onBeforeMount,
+  onBeforeUnmount,
+  onBeforeUpdate,
+  onMounted,
+  ref,
+} from 'vue'
 import {
   NButton,
   NDivider,
@@ -135,8 +153,9 @@ import { KEY_ROOM_ID, KEY_VIDEO_SOURCE, KEY_VIDEO_TAG } from '@/helpers/constant
 import { clearHistory } from '@/helpers/db.ts'
 import { Html5Qrcode } from 'html5-qrcode'
 import copy from 'copy-to-clipboard'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
+const route = ref(null)
 const router = ref(null)
 const source = ref(null)
 const tag = ref(null)
@@ -145,11 +164,13 @@ const formattedSourceList = ref(null)
 const formattedTagList = ref(null)
 const showClearHistoryModal = ref(false)
 const showClearStorageModal = ref(false)
+const showClearRoomId = ref(false)
 const showQrResultModal = ref(false)
 const message = ref(null)
 const qrResult = ref(null)
 const html5QrCode = ref(null)
 const showQrReader = ref(false)
+const pageViewKey = ref(null)
 
 const onBeforeMountHandler = () => {
   source.value = getStorageSync(KEY_VIDEO_SOURCE)
@@ -164,6 +185,17 @@ const onBeforeUnmountHandler = () => {
 
 const onMountedHandler = () => {
   handleTagList(source.value)
+}
+
+const onBeforeUpdateHandler = () => {
+  checkUpdateView()
+}
+
+const checkUpdateView = () => {
+  const _id = JSON.stringify({ params: route.value.params, query: route.value.query })
+  if (_id != pageViewKey.value) {
+    pageViewKey.value = _id
+  }
 }
 
 const handleTagList = (source) => {
@@ -276,6 +308,7 @@ const copyQrResult = () => {
 const clearRoomId = () => {
   removeStorageSync(KEY_ROOM_ID)
   room.value = null
+  router.value.replace(`${router.value.currentRoute.path}?t=${Math.random()}`)
 }
 
 export default defineComponent({
@@ -305,11 +338,13 @@ export default defineComponent({
 
     message.value = useMessage()
 
+    route.value = useRoute()
     router.value = useRouter()
 
     onBeforeMount(onBeforeMountHandler)
     onBeforeUnmount(onBeforeUnmountHandler)
     onMounted(onMountedHandler)
+    onBeforeUpdate(onBeforeUpdateHandler)
 
     return {
       source,
@@ -325,6 +360,7 @@ export default defineComponent({
       onClearLocalStorage,
       showClearHistoryModal,
       showClearStorageModal,
+      showClearRoomId,
       qrResult,
       html5QrCode,
       startScanning,
@@ -335,6 +371,7 @@ export default defineComponent({
       isUrl,
       clearRoomId,
       router,
+      pageViewKey,
     }
   },
 })
