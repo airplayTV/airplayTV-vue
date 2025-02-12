@@ -8,6 +8,7 @@ enum EventName {
   Connect = 'Connect',
   Disconnect = 'Disconnect',
   Close = 'Close',
+  Message = 'Message',
   Error = 'Error',
   JoinRoom = 'JoinRoom',
   LeaveRoom = 'LeaveRoom',
@@ -19,6 +20,20 @@ enum DataEventName {
   EventLeaveGroup = 'leaveGroup',
   EventSendToGroup = 'sendToGroup',
   EventListGroupClient = 'listGroupClient',
+}
+
+enum ControlEvent {
+  LoadVideo = '/ctl_load_Video',
+  Mute = '/ctl_mute',
+  Fullscreen = '/ctl_fullscreen',
+  FullscreenExit = '/ctl_fullscreen_exit',
+  Qrcode = '/ctl_qrCode',
+  Info = '/ctl_info',
+  Volume = '/ctl_volume',
+  Back = '/ctl_back',
+  Play = '/ctl_play',
+  Pause = '/ctl_pause',
+  Forward = '/ctl_forward',
 }
 
 const connect = () => {
@@ -39,9 +54,8 @@ const connect = () => {
         case 'connect':
           delegateEventCallback(EventName.Connect, data)
           break
-        case 'disConnect':
-          delegateEventCallback(EventName.Disconnect, data)
-          break
+        default:
+          delegateEventCallback(EventName.Message, data)
       }
     } catch (e) {
       console.log('[JSON.parse.Error]', e)
@@ -149,5 +163,6 @@ export {
   addEventHandler,
   removeEventHandler,
   socketReady,
-  sendControl
+  sendControl,
+  ControlEvent
 }

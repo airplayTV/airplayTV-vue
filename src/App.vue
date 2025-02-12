@@ -12,11 +12,12 @@ import {
 import { storeToRefs } from 'pinia'
 import { useAppStore } from '@/stores/app.ts'
 import { v4 as uuidv4 } from 'uuid'
-import { getStorageSync, setStorageSync } from '@/helpers/utils.ts'
+import { getCurrentSource, getStorageSync, setStorageSync } from '@/helpers/utils.ts'
 import { KEY_CLIENT_ID } from '@/helpers/constant.ts'
 import {
   addEventHandler,
   connect,
+  ControlEvent,
   EventName,
   joinGroup,
   removeEventHandler
@@ -32,6 +33,16 @@ const onBeforeMountHandler = () => {
 
   console.log('[client-id]', getStorageSync(KEY_CLIENT_ID))
 
+  addEventHandler(EventName.Message, _pageKey, (data: any) => {
+    console.log('[onMessage]', data)
+    switch (data.event){
+      case ControlEvent.LoadVideo:
+        // navigateToUrl(`/video/play?airplay=1&vid=${data.vid}&pid=${data.pid}&_t=${Date.now()}&name=${encodeURIComponent(data.name)}`)
+        router.value.push(`/video/play/${data.vid}/${data.pid}?_source=${getCurrentSource(route.value)}`)
+        break;
+
+    }
+  })
   addEventHandler(EventName.Open, _pageKey, (data: any) => {
     // 加入房间
     joinGroup(clientId)

@@ -205,21 +205,7 @@ import {
 import { useRouter } from 'vue-router'
 import { KEY_CLIENT_ID, KEY_ROOM_ID } from '@/helpers/constant.ts'
 import { getStorageSync } from '@/helpers/utils.ts'
-import { sendControl, socketReady } from '@/helpers/websocket.ts'
-
-enum ControlEvent {
-  LoadVideo = '/ctl_load_Video',
-  Mute = '/ctl_mute',
-  Fullscreen = '/ctl_fullscreen',
-  FullscreenExit = '/ctl_fullscreen_exit',
-  Qrcode = '/ctl_qrCode',
-  Info = '/ctl_info',
-  Volume = '/ctl_volume',
-  Back = '/ctl_back',
-  Play = '/ctl_play',
-  Pause = '/ctl_pause',
-  Forward = '/ctl_forward',
-}
+import { ControlEvent, sendControl, socketReady } from '@/helpers/websocket.ts'
 
 const router = ref(null)
 const windowWidth = ref(0)

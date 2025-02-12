@@ -75,6 +75,12 @@ import artplayerPluginHlsControl from 'artplayer-plugin-hls-control'
 import AppFooter from '@/components/AppFooter.vue'
 import { addHistory, findHistory, updateHistory } from '@/helpers/db.ts'
 import { getCurrentSource } from '@/helpers/utils.ts'
+import {
+  addEventHandler,
+  ControlEvent,
+  EventName,
+  removeEventHandler
+} from "@/helpers/websocket.ts";
 
 const timer = ref(null)
 const updateCount = ref(0)
@@ -96,7 +102,12 @@ const artStyle = ref({
   height: '180px'
 })
 
+const _pageKey = '_key_app_page_video_play_'
+
 const onBeforeMountHandler = () => {
+
+  addControlEventHandler()
+
   checkUpdateVideo(route.value.params)
 }
 
@@ -305,6 +316,77 @@ const onBeforeUnmountHandler = () => {
   if (timer.value) {
     clearInterval(timer.value)
   }
+  removeEventHandler(_pageKey)
+}
+
+const addControlEventHandler = () => {
+  addEventHandler(EventName.Message, _pageKey, (data: any) => {
+    console.log('[onMessage]', data)
+    switch (data.event) {
+      case ControlEvent.Mute:
+        this.dplayer.player.volume(0, true, false)
+        this.dplayer.player.notice('静音', showTime);
+        break;
+      case ControlEvent.Fullscreen:
+        this.dplayer.player.fullScreen.request('web');
+        this.dplayer.player.notice('进入全屏', showTime);
+        break;
+      case ControlEvent.FullscreenExit:
+        this.dplayer.player.fullScreen.cancel('web');
+        this.dplayer.player.notice('退出全屏', showTime);
+        break;
+      case ControlEvent.Qrcode:
+        this.dplayer.player.notice('显示二维码【暂未实现】', showTime);
+        // showToast('需要显示二维码')
+        break;
+      case ControlEvent.Info:
+        console.log('[player]', this.dplayer.player)
+        console.log('[videoSource]', this.dplayer.player.videoSource)
+        console.log('[video]', this.dplayer.player.video)
+        const infoShowTime = 1000 * 10;
+
+        if (this.dplayer.player.videoSource) {
+          this.dplayer.player.notice('上次进度：' + this.dplayer.player.videoSource.url, infoShowTime);
+        }
+        if (this.dplayer.player.video) {
+          this.dplayer.player.notice('当前进度：' + secondsToHuman(this.dplayer.player.video.currentTime), infoShowTime);
+          this.dplayer.player.notice('视频时长：' + secondsToHuman(this.dplayer.player.video.duration), infoShowTime);
+        }
+        if (this.videoSource) {
+          this.dplayer.player.notice('视频名称：' + this.videoSource.name, infoShowTime);
+          this.dplayer.player.notice('视频地址：' + this.videoSource.url, infoShowTime);
+        }
+        break;
+      case ControlEvent.Volume:
+        if (data.value <= 0) {
+          const newVol = (document.querySelector(".dplayer-video").volume * 100 - 3) / 100;
+          this.dplayer.player.volume(newVol, true, false);
+          this.dplayer.player.notice('音量-3', showTime);
+        }
+        if (data.value > 0) {
+          const newVol = (document.querySelector(".dplayer-video").volume * 100 + 3) / 100;
+          this.dplayer.player.volume(newVol, true, false);
+          this.dplayer.player.notice('音量+3', showTime);
+        }
+        break;
+      case ControlEvent.Back:
+        this.dplayer.player.video.currentTime = this.dplayer.player.video.currentTime - 10;
+        this.dplayer.player.notice('后退10秒', showTime);
+        break;
+      case ControlEvent.Play:
+        this.dplayer.player.video.play();
+        this.dplayer.player.notice('播放', showTime);
+        break;
+      case ControlEvent.Pause:
+        this.dplayer.player.video.pause();
+        this.dplayer.player.notice('暂停', showTime);
+        break;
+      case ControlEvent.Forward:
+        this.dplayer.player.video.currentTime = this.dplayer.player.video.currentTime + 10;
+        this.dplayer.player.notice('前进10秒', showTime);
+        break;
+    }
+  })
 }
 
 export default defineComponent({
