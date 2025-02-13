@@ -18,7 +18,7 @@
           label-width="auto"
           require-mark-placement="right-hanging"
         >
-          <n-form-item label="换源" path="source">
+          <n-form-item label="换源：" path="source">
             <div class="flex-row flex-1 xxxx">
               <n-select
                 v-model:value="source"
@@ -38,7 +38,7 @@
             </div>
           </n-form-item>
 
-          <n-form-item label="房间" path="tag" v-if="formattedTagList">
+          <n-form-item label="房间：" path="tag" v-if="formattedTagList">
             <n-space justify="space-between" class="flex-1 flex-align-center">
               <div>
                 <n-ellipsis v-if="room" style="width: 100px">
@@ -62,10 +62,8 @@
             </div>
           </div>
 
-          <div class="padding-30px"></div>
-
-          <div>
-            <n-space justify="end">
+          <n-form-item label="缓存：" path="source">
+            <n-space justify="end" class="flex-1">
               <n-button strong secondary type="warning" @click="showClearHistoryModal = true">
                 清空历史
               </n-button>
@@ -73,7 +71,7 @@
                 清空缓存
               </n-button>
             </n-space>
-          </div>
+          </n-form-item>
         </n-form>
       </div>
     </div>
