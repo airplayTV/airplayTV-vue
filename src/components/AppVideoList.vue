@@ -1,31 +1,35 @@
 <template>
-  <div>
-    <n-grid x-gap="12" y-gap="1" :cols="cols">
-      <n-gi v-for="(video, idx) in videoList" :key="idx" @click="onOpenVideo(video)">
-        <div class="flex-row flex-justify-center flex-align-center">
-          <n-image
-            width="175"
-            height="230"
-            :src="video.thumb"
-            :key="video.thumb"
-            class="thumb"
-            preview-disabled
-          />
-        </div>
+  <div class="flex-1 flex-column flex-justify-between">
+    <div v-if="noVideoListMsg">
+      <div class="padding-30px"></div>
+      <n-result status="404" title="暂无数据" :description="noVideoListMsg"></n-result>
+    </div>
+    <div v-else>
+      <n-grid x-gap="12" y-gap="1" :cols="cols">
+        <n-gi v-for="(video, idx) in videoList" :key="idx" @click="onOpenVideo(video)">
+          <div class="flex-row flex-justify-center flex-align-center">
+            <n-image
+              width="175"
+              height="230"
+              :src="video.thumb"
+              :key="video.thumb"
+              class="thumb"
+              preview-disabled
+            />
+          </div>
 
-        <div class="name text-align-center">
-          <n-ellipsis :line-clamp="1">
-            {{ video.name }}
-          </n-ellipsis>
-        </div>
-      </n-gi>
-    </n-grid>
+          <div class="name text-align-center">
+            <n-ellipsis :line-clamp="1">
+              {{ video.name }}
+            </n-ellipsis>
+          </div>
+        </n-gi>
+      </n-grid>
+    </div>
 
     <div class="flex-row flex-justify-center">
       <n-pagination v-model:page="page" :page-count="pages" simple @update:page="onUpdatePage" />
     </div>
-
-    <div class="padding-10px"></div>
   </div>
 </template>
 
@@ -41,6 +45,7 @@ import {
   NInput,
   NInputGroup,
   NPagination,
+  NResult,
   NSelect,
   useLoadingBar,
 } from 'naive-ui'
@@ -56,17 +61,28 @@ const page = ref(0)
 const loadingBar = ref(null)
 const router = ref(null)
 const route = ref(null)
+const noVideoListMsg = ref(false)
 
 const loadVideoList = (tag: string | number, _page: number) => {
   loadingBar.value?.start()
+  videoList.value = []
+  pages.value = 0
+  page.value = 0
+  noVideoListMsg.value = null
+
   httpVideoList(tag, _page, getCurrentSource(route.value))
     .then((resp) => {
       videoList.value = resp.data.list
       pages.value = resp.data.pages
       page.value = resp.data.page
+
+      if (!resp.data.list || resp.data.list.length === 0) {
+        noVideoListMsg.value = '暂无数据'
+      }
     })
     .catch((err) => {
       console.log('[httpVideoList.Error]', err)
+      noVideoListMsg.value = err
     })
     .finally(() => {
       loadingBar.value?.finish()
@@ -89,6 +105,7 @@ const onOpenVideo = (video) => {
 
 export default defineComponent({
   components: {
+    NResult,
     NSelect,
     NInputGroup,
     NInput,
@@ -115,6 +132,7 @@ export default defineComponent({
       page,
       onUpdatePage,
       onOpenVideo,
+      noVideoListMsg,
     }
   },
 })

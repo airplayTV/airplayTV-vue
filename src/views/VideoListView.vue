@@ -21,9 +21,9 @@ onMounted(() => {
 
 <template>
   <div class="min-height-100vh flex-column flex-justify-between">
-    <div>
+    <div class="flex-1 flex-column flex-justify-between">
       <AppHeader />
-      <div style="padding: 0 10px">
+      <div style="padding: 0 10px" class="flex-1 flex-column flex-justify-between">
         <AppVideoList :cols="cols" />
       </div>
     </div>
