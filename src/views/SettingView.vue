@@ -1,79 +1,81 @@
 <template>
-  <div>
+  <div class="min-height-100vh flex-column flex-justify-between">
     <!--
     <div class="fixed-qr-reader-content" v-show="showQrReader">
       <div id="qr-reader" class="qr-reader"></div>
     </div>
     -->
 
-    <AppHeader :key="pageViewKey" />
+    <div>
+      <AppHeader :key="pageViewKey" />
 
-    <div style="padding: 0 10px">
-      <div class="padding-10px"></div>
+      <div style="padding: 0 10px">
+        <div class="padding-10px"></div>
 
-      <n-form
-        ref="formRef"
-        label-placement="left"
-        label-width="auto"
-        require-mark-placement="right-hanging"
-      >
-        <n-form-item label="换源" path="source">
-          <div class="flex-row flex-1 xxxx">
-            <n-select
-              v-model:value="source"
-              placeholder="切换源"
-              @update:value="onUpdateSource"
-              :options="formattedSourceList"
-            />
-          </div>
-          <div class="flex-row flex-1 xxxx">
-            <n-select
-              v-if="formattedTagList"
-              v-model:value="tag"
-              placeholder="选择类型"
-              @update:value="onUpdateTag"
-              :options="formattedTagList"
-            />
-          </div>
-        </n-form-item>
-
-        <n-form-item label="房间" path="tag" v-if="formattedTagList">
-          <n-space justify="space-between" class="flex-1 flex-align-center">
-            <div>
-              <n-ellipsis v-if="room" style="width: 100px">
-                {{ room }}
-              </n-ellipsis>
-              <n-text v-else depth="3">扫码加入即可投射视频</n-text>
+        <n-form
+          ref="formRef"
+          label-placement="left"
+          label-width="auto"
+          require-mark-placement="right-hanging"
+        >
+          <n-form-item label="换源" path="source">
+            <div class="flex-row flex-1 xxxx">
+              <n-select
+                v-model:value="source"
+                placeholder="切换源"
+                @update:value="onUpdateSource"
+                :options="formattedSourceList"
+              />
             </div>
-            <n-space>
-              <n-button v-if="room" secondary type="warning" @click="showClearRoomId = true">
-                退出
-              </n-button>
-              <n-button secondary type="primary" @click="startScanning"> 扫码加入</n-button>
+            <div class="flex-row flex-1 xxxx">
+              <n-select
+                v-if="formattedTagList"
+                v-model:value="tag"
+                placeholder="选择类型"
+                @update:value="onUpdateTag"
+                :options="formattedTagList"
+              />
+            </div>
+          </n-form-item>
+
+          <n-form-item label="房间" path="tag" v-if="formattedTagList">
+            <n-space justify="space-between" class="flex-1 flex-align-center">
+              <div>
+                <n-ellipsis v-if="room" style="width: 100px">
+                  {{ room }}
+                </n-ellipsis>
+                <n-text v-else depth="3">扫码加入即可投射视频</n-text>
+              </div>
+              <n-space>
+                <n-button v-if="room" secondary type="warning" @click="showClearRoomId = true">
+                  退出
+                </n-button>
+                <n-button secondary type="primary" @click="startScanning"> 扫码加入</n-button>
+              </n-space>
             </n-space>
-          </n-space>
-        </n-form-item>
+          </n-form-item>
 
-        <div class="fixed-qr-reader-content" v-show="showQrReader">
-          <div id="qr-reader" class="qr-reader"></div>
-          <div class="text-align-center padding-10px">
-            <n-tag :bordered="false" type="warning" @click="stopScanning">停止扫码</n-tag>
+          <div class="fixed-qr-reader-content" v-show="showQrReader">
+            <div id="qr-reader" class="qr-reader"></div>
+            <div class="text-align-center padding-10px">
+              <n-tag :bordered="false" type="warning" @click="stopScanning">停止扫码</n-tag>
+            </div>
           </div>
-        </div>
 
-        <div class="padding-30px"></div>
+          <div class="padding-30px"></div>
 
-        <div>
-          <n-space justify="end">
-            <n-button strong secondary type="warning" @click="showClearHistoryModal = true">
-              清空历史
-            </n-button>
-            <n-button strong secondary type="warning" @click="showClearStorageModal = true">
-              清空缓存
-            </n-button>
-          </n-space>
-        </div>
-      </n-form>
+          <div>
+            <n-space justify="end">
+              <n-button strong secondary type="warning" @click="showClearHistoryModal = true">
+                清空历史
+              </n-button>
+              <n-button strong secondary type="warning" @click="showClearStorageModal = true">
+                清空缓存
+              </n-button>
+            </n-space>
+          </div>
+        </n-form>
+      </div>
     </div>
 
     <AppFooter />

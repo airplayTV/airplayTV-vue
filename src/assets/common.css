@@ -99,3 +99,7 @@
 .line-height-180 {
   line-height: 180%;
 }
+
+.min-height-100vh {
+  min-height: 100vh;
+}

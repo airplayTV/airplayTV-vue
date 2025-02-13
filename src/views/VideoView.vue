@@ -6,13 +6,15 @@ import AppFooter from '@/components/AppFooter.vue'
 </script>
 
 <template>
-  <div>
-    <AppHeader />
+  <div class="min-height-100vh flex-column flex-justify-between">
+    <div>
+      <AppHeader />
 
-    <div style="padding: 0 10px">
-      <AppVideo />
+      <div style="padding: 0 10px">
+        <AppVideo />
+      </div>
     </div>
-  </div>
 
-  <AppFooter />
+    <AppFooter />
+  </div>
 </template>

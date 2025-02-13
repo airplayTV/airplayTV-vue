@@ -1,46 +1,48 @@
 <template>
-  <div>
-    <AppHeader />
+  <div class="min-height-100vh flex-column flex-justify-between">
+    <div>
+      <AppHeader />
 
-    <div style="padding: 0 10px">
-      <n-grid x-gap="12" y-gap="1" :cols="cols">
-        <n-gi v-for="(video, idx) in historyList" :key="idx" @click="onOpenVideo(video)">
-          <div class="flex-row flex-justify-center flex-align-center thumb-warp">
-            <div class="update-time">
-              <div class="time">
-                <div>{{ video.source }}</div>
-                <div>{{ video.updated_time }}</div>
+      <div style="padding: 0 10px">
+        <n-grid x-gap="12" y-gap="1" :cols="cols">
+          <n-gi v-for="(video, idx) in historyList" :key="idx" @click="onOpenVideo(video)">
+            <div class="flex-row flex-justify-center flex-align-center thumb-warp">
+              <div class="update-time">
+                <div class="time">
+                  <div>{{ video.source }}</div>
+                  <div>{{ video.updated_time }}</div>
+                </div>
+                <div
+                  class="progress"
+                  style="width: 50%"
+                  :style="{ width: `${video.percent}%` }"
+                ></div>
               </div>
-              <div
-                class="progress"
-                style="width: 50%"
-                :style="{ width: `${video.percent}%` }"
-              ></div>
+              <n-image
+                width="175"
+                height="230"
+                :src="video.thumb"
+                :key="video.thumb"
+                class="thumb"
+                preview-disabled
+              />
             </div>
-            <n-image
-              width="175"
-              height="230"
-              :src="video.thumb"
-              :key="video.thumb"
-              class="thumb"
-              preview-disabled
-            />
-          </div>
 
-          <div class="name text-align-center">
-            <div>
-              <n-ellipsis :line-clamp="1">
-                {{ video.name }}
-              </n-ellipsis>
+            <div class="name text-align-center">
+              <div>
+                <n-ellipsis :line-clamp="1">
+                  {{ video.name }}
+                </n-ellipsis>
+              </div>
             </div>
-          </div>
-        </n-gi>
-      </n-grid>
+          </n-gi>
+        </n-grid>
 
-      <div v-if="!historyList || historyList.length == 0">
-        <div class="padding-30px"></div>
-        <n-result status="404" title="暂无数据" description=""></n-result>
-        <div class="padding-30px"></div>
+        <div v-if="!historyList || historyList.length == 0">
+          <div class="padding-30px"></div>
+          <n-result status="404" title="暂无数据" description=""></n-result>
+          <div class="padding-30px"></div>
+        </div>
       </div>
     </div>
 

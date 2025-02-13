@@ -1,29 +1,31 @@
 <template>
-  <div>
-    <AppHeader />
-    <div style="padding: 0 10px">
-      <n-tabs type="line" animated placement="top">
-        <n-tab-pane
-          v-for="(item, sourceName) in videoSearchResultMap"
-          :key="sourceName"
-          :name="sourceName"
-          :tab="computedTabName(sourceName)"
-        >
-          <AppSearchList
-            :cols="cols"
-            :video-list="videoSearchResultMap[sourceName].list"
-            :page="videoSearchResultMap[sourceName].page"
-            :pages="videoSearchResultMap[sourceName].pages"
-            :source="sourceName"
-            @on-update-page="onUpdatePage"
-          />
+  <div class="min-height-100vh flex-column flex-justify-between">
+    <div>
+      <AppHeader />
+      <div style="padding: 0 10px">
+        <n-tabs type="line" animated placement="top">
+          <n-tab-pane
+            v-for="(item, sourceName) in videoSearchResultMap"
+            :key="sourceName"
+            :name="sourceName"
+            :tab="computedTabName(sourceName)"
+          >
+            <AppSearchList
+              :cols="cols"
+              :video-list="videoSearchResultMap[sourceName].list"
+              :page="videoSearchResultMap[sourceName].page"
+              :pages="videoSearchResultMap[sourceName].pages"
+              :source="sourceName"
+              @on-update-page="onUpdatePage"
+            />
 
-          <div v-if="computedTabMsg(sourceName)">
-            <div class="padding-30px"></div>
-            <n-result status="404" title="暂无数据" :description="item.msg"></n-result>
-          </div>
-        </n-tab-pane>
-      </n-tabs>
+            <div v-if="computedTabMsg(sourceName)">
+              <div class="padding-30px"></div>
+              <n-result status="404" title="暂无数据" :description="item.msg"></n-result>
+            </div>
+          </n-tab-pane>
+        </n-tabs>
+      </div>
     </div>
 
     <AppFooter />

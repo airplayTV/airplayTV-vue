@@ -1,40 +1,42 @@
 <template>
-  <div>
-    <AppHeader />
+  <div class="min-height-100vh flex-column flex-justify-between">
+    <div>
+      <AppHeader />
 
-    <div style="padding: 0 10px" v-if="video">
-      <n-h2 class="text-align-center">{{ video.name }}</n-h2>
+      <div style="padding: 0 10px" v-if="video">
+        <n-h2 class="text-align-center">{{ video.name }}</n-h2>
 
-      <!--<video :src="video.url" style="width: 100%" />-->
-      <div style="border-radius: 4px; display: flex; min-height: 180px">
-        <AppArtplayer
-          :key="artOption"
-          :option="artOption"
-          :style="artStyle"
-          @get-instance="getArtInstance"
-        />
-      </div>
-
-      <div style="color: dimgray; word-wrap: break-word" v-if="source">
-        <div style="padding: 8px 0">
-          <n-text depth="2">{{ source.url }}</n-text>
+        <!--<video :src="video.url" style="width: 100%" />-->
+        <div style="border-radius: 4px; display: flex; min-height: 180px">
+          <AppArtplayer
+            :key="artOption"
+            :option="artOption"
+            :style="artStyle"
+            @get-instance="getArtInstance"
+          />
         </div>
 
-        <n-ellipsis :line-clamp="5">
-          <b>
-            <n-text depth="2">简介：</n-text>
-          </b>
-          <n-text depth="3">
-            {{ video.intro }}
-          </n-text>
-        </n-ellipsis>
-      </div>
+        <div style="color: dimgray; word-wrap: break-word" v-if="source">
+          <div style="padding: 8px 0">
+            <n-text depth="2">{{ source.url }}</n-text>
+          </div>
 
-      <n-collapse accordion default-expanded-names="1">
-        <n-collapse-item title="选集" name="1">
-          <AppSourceList v-if="video" :vid="vid" :pid="pid" :source-list="videoSourceList" />
-        </n-collapse-item>
-      </n-collapse>
+          <n-ellipsis :line-clamp="5">
+            <b>
+              <n-text depth="2">简介：</n-text>
+            </b>
+            <n-text depth="3">
+              {{ video.intro }}
+            </n-text>
+          </n-ellipsis>
+        </div>
+
+        <n-collapse accordion default-expanded-names="1">
+          <n-collapse-item title="选集" name="1">
+            <AppSourceList v-if="video" :vid="vid" :pid="pid" :source-list="videoSourceList" />
+          </n-collapse-item>
+        </n-collapse>
+      </div>
     </div>
 
     <AppFooter />

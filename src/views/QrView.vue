@@ -1,15 +1,17 @@
 <template>
-  <div>
-    <AppHeader />
+  <div class="min-height-100vh flex-column flex-justify-between">
+    <div>
+      <AppHeader />
 
-    <div style="padding: 0 10px">
-      <div class="flex-row flex-column flex-justify-center flex-align-center">
-        <n-image width="320" height="320" :src="qrCodeUrl" :key="qrCodeUrl" class="thumb" />
-        <div>
-          <n-text>
-            房间号：
-            <n-ellipsis style="width: 150px">{{ clientId }}</n-ellipsis>
-          </n-text>
+      <div style="padding: 0 10px">
+        <div class="flex-row flex-column flex-justify-center flex-align-center">
+          <n-image width="320" height="320" :src="qrCodeUrl" :key="qrCodeUrl" class="thumb" />
+          <div>
+            <n-text>
+              房间号：
+              <n-ellipsis style="width: 150px">{{ clientId }}</n-ellipsis>
+            </n-text>
+          </div>
         </div>
       </div>
     </div>

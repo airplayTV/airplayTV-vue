@@ -20,10 +20,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <AppHeader />
-    <div style="padding: 0 10px">
-      <AppVideoList :cols="cols" />
+  <div class="min-height-100vh flex-column flex-justify-between">
+    <div>
+      <AppHeader />
+      <div style="padding: 0 10px">
+        <AppVideoList :cols="cols" />
+      </div>
     </div>
 
     <AppFooter />

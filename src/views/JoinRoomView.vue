@@ -1,17 +1,19 @@
 <template>
-  <div>
-    <AppHeader />
+  <div class="min-height-100vh flex-column flex-justify-between">
+    <div>
+      <AppHeader />
 
-    <div style="padding: 30px 10px">
-      <n-text v-if="tmpRoom" style="line-height: 180%">
-        <div>加入房间：{{ tmpRoom }}</div>
-        <n-text depth="3">即将跳转到首页...</n-text>
-      </n-text>
-      <n-text v-else depth="3">没有可加入的房间</n-text>
+      <div style="padding: 30px 10px">
+        <n-text v-if="tmpRoom" style="line-height: 180%">
+          <div>加入房间：{{ tmpRoom }}</div>
+          <n-text depth="3">即将跳转到首页...</n-text>
+        </n-text>
+        <n-text v-else depth="3">没有可加入的房间</n-text>
+      </div>
     </div>
-  </div>
 
-  <AppFooter />
+    <AppFooter />
+  </div>
 </template>
 
 <script lang="ts">
