@@ -326,10 +326,10 @@ const addControlEventHandler = () => {
         artInstance.value.muted = !artInstance.value.muted
         break
       case ControlEvent.Fullscreen:
-        artInstance.value.fullscreen = !artInstance.value.fullscreen
+        artInstance.value.fullscreen = true
         break
       case ControlEvent.FullscreenExit:
-        artInstance.value.fullscreen = !artInstance.value.fullscreen
+        artInstance.value.fullscreen = false
         break
       case ControlEvent.Qrcode:
         break
