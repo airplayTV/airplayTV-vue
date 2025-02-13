@@ -112,7 +112,6 @@ ul {
 
 ul li {
   display: inline; /* 或使用 inline-block */
-  //color: #343434;
 }
 
 ul li.active {

@@ -32,6 +32,5 @@ export default defineComponent({
   color: #5e5b5b;
   padding: 2px 0;
   margin-right: 4px;
-  //border-bottom: 1px dashed #999999;
 }
 </style>
