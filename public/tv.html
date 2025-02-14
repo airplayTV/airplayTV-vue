@@ -100,21 +100,21 @@
 
 </div>
 
-<!--<script src="vue@2.6.js"></script>-->
-<!--<script src="qrcode.min.js"></script>&lt;!&ndash; qrcode &ndash;&gt;-->
-<!--<script src="artplayer.js"></script>-->
-<!--<script src="hls.min.js"></script>-->
-<!--<script src="artplayer-plugin-hls-control.min.js"></script>-->
-<!--<script src="md5.min.js"></script>-->
+<script src="/js/vue.min.js"></script>
+<script src="/js/qrcode.min.js"></script><!-- qrcode -->
+<script src="/js/artplayer.min.js"></script>
+<script src="/js/hls.min.js"></script>
+<script src="/js/artplayer-plugin-hls-control.min.js"></script>
+<script src="/js/md5.min.js"></script>
 
 
-<script src="https://cdn.staticfile.net/vue/2.6.1/vue.min.js"></script>
-<script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/qrcodejs/1.0.0/qrcode.min.js"></script><!-- qrcode -->
-<script src="https://cdn.staticfile.net/artplayer/5.1.1/artplayer.min.js"></script>
-<script src="https://cdn.staticfile.net/hls.js/1.5.1/hls.min.js"></script>
-<script
-  src="https://cdn.jsdelivr.net/npm/artplayer-plugin-hls-control@1.0.1/dist/artplayer-plugin-hls-control.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js"></script>
+<!--<script src="https://cdn.staticfile.net/vue/2.6.1/vue.min.js"></script>-->
+<!--<script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/qrcodejs/1.0.0/qrcode.min.js"></script>&lt;!&ndash; qrcode &ndash;&gt;-->
+<!--<script src="https://cdn.staticfile.net/artplayer/5.1.1/artplayer.min.js"></script>-->
+<!--<script src="https://cdn.staticfile.net/hls.js/1.5.1/hls.min.js"></script>-->
+<!--<script-->
+<!--  src="https://cdn.jsdelivr.net/npm/artplayer-plugin-hls-control@1.0.1/dist/artplayer-plugin-hls-control.min.js"></script>-->
+<!--<script src="https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js"></script>-->
 
 
 <script type="text/javascript">
@@ -133,18 +133,12 @@
       _source: ''//源
     },
     beforeMount() {
-    },
-    mounted() {
-      this.generateQrCode()
-
       this.clientId = this.getStorage('tv_client_id')
       console.log('[this.clientId]', this.clientId)
       this.initSocket()
-
-      // this.showType = 2
-      // const v =  { "event": "/ctl_load_Video", "group": "b32def03b6924e2c87d1fd09ddf7fd55", "pid": "bXZfMjAxODItbm1fMQ==", "source": "厂长资源", "vid": "20182" }
-      // this.fetchVideoSource(v.vid,v.pid,v.source )
-
+    },
+    mounted() {
+      this.generateQrCode()
     },
     beforeUnmount() {
       if (this.artInstance && this.artInstance.destroy) {
@@ -257,6 +251,9 @@
           }
         }
 
+        if (this.artInstance && this.artInstance.destroy) {
+          this.artInstance.destroy(false)
+        }
         this.artInstance = new Artplayer({
           ...artOption,
           container: this.$refs.artRef
@@ -330,10 +327,13 @@
       fetchVideoSource(vid, pid, source) {
         this.videoSource = null
         this._source = source
+        if (this.timer) {
+          clearInterval(this.timer)
+        }
+
         fetch(`${apiUrl}/api/video/source?vid=${vid}&pid=${pid}&_source=${source}`).then(resp => {
           return resp.json()
         }).then(resp => {
-          console.log('[resp2]', resp)
           if (resp.code === 200 && resp.data.url) {
             this.videoSource = resp.data
             this.showType = 2
@@ -387,12 +387,13 @@
           clearInterval(this.timer)
         }
         this.timer = setInterval(() => {
-          console.log('[intval]')
           const key = this.getVideoKey()
           if (!key) {
             return
           }
-          this.setStorage(key, this.artInstance.currentTime)
+          if (this.artInstance && this.artInstance.currentTime > 5) {
+            this.setStorage(key, this.artInstance.currentTime)
+          }
         }, 5000)
       }
     }
