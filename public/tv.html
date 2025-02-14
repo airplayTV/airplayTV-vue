@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="referrer" content="no-referrer">
+  <title>AirplayTV</title>
+  <style type="text/css">
+
+      .container {
+          max-width: 1200px;
+          margin: 0 auto;
+          font-family: v-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+          font-size: 14px;
+      }
+
+      .logo-text {
+          font-size: 22px;
+          font-weight: 600;
+          color: #18a058;
+      }
+
+      .qrcode {
+          width: 300px;
+          height: 300px;
+      }
+
+
+      .flex-column {
+          display: flex;
+          flex-direction: column;
+      }
+
+      .flex-1 {
+          flex: 1;
+      }
+
+      .flex-justify-between {
+          justify-content: space-between;
+      }
+
+      .flex-justify-center {
+          justify-content: center;
+      }
+
+      .flex-align-center {
+          align-items: center;
+      }
+
+      .text-align-center {
+          text-align: center;
+      }
+
+      .padding-10px {
+          padding: 10px;
+      }
+
+      .padding-20px {
+          padding: 20px;
+      }
+
+      .padding-30px {
+          padding: 30px;
+      }
+
+      .room {
+          color: rgb(51, 54, 57);
+      }
+
+  </style>
+</head>
+<body>
+
+<div id="app" class="container">
+  <div class="header">
+    <span class="logo-text">AirplayTV</span>
+  </div>
+
+  <div class="main">
+
+    <div v-show="showType===1" class="flex-column flex-justify-center flex-align-center">
+      <div class="padding-20px"></div>
+
+      <div id="qrcode" class="qrcode"></div>
+
+      <div class="padding-20px room" v-if="clientId">房间号：{{ clientId }}</div>
+    </div>
+
+    <div v-show="showType===2" class="flex-column flex-justify-center flex-align-center">
+
+      <div v-if="videoSource" class="padding-20px" style="font-size: 22px">{{ videoSource.name }}</div>
+      <div ref="artRef" style="width: 100%;height: 600px"></div>
+    </div>
+
+  </div>
+
+  <div class="footer"></div>
+
+</div>
+
+<!--<script src="vue@2.6.js"></script>-->
+<!--<script src="qrcode.min.js"></script>&lt;!&ndash; qrcode &ndash;&gt;-->
+<!--<script src="artplayer.js"></script>-->
+<!--<script src="hls.min.js"></script>-->
+<!--<script src="artplayer-plugin-hls-control.min.js"></script>-->
+<!--<script src="md5.min.js"></script>-->
+
+
+<script src="https://cdn.staticfile.net/vue/2.6.1/vue.min.js"></script>
+<script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/qrcodejs/1.0.0/qrcode.min.js"></script><!-- qrcode -->
+<script src="https://cdn.staticfile.net/artplayer/5.1.1/artplayer.min.js"></script>
+<script src="https://cdn.staticfile.net/hls.js/1.5.1/hls.min.js"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/artplayer-plugin-hls-control@1.0.1/dist/artplayer-plugin-hls-control.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js"></script>
+
+
+<script type="text/javascript">
+  const apiUrl = 'https://airplay-api.artools.cc'
+  const socketUrl = 'wss://airplay-api.artools.cc/api/wss'
+
+  new Vue({
+    el: '#app',
+    data: {
+      clientId: '',
+      appWebSocket: null,
+      showType: 1,// 1.显示二维码，2.显示播放器
+      artInstance: null,
+      timer: null,
+      videoSource: null,
+      _source: ''//源
+    },
+    beforeMount() {
+    },
+    mounted() {
+      this.generateQrCode()
+
+      this.clientId = this.getStorage('tv_client_id')
+      console.log('[this.clientId]', this.clientId)
+      this.initSocket()
+
+      // this.showType = 2
+      // const v =  { "event": "/ctl_load_Video", "group": "b32def03b6924e2c87d1fd09ddf7fd55", "pid": "bXZfMjAxODItbm1fMQ==", "source": "厂长资源", "vid": "20182" }
+      // this.fetchVideoSource(v.vid,v.pid,v.source )
+
+    },
+    beforeUnmount() {
+      if (this.artInstance && this.artInstance.destroy) {
+        this.artInstance.destroy(false)
+      }
+    },
+    methods: {
+      getStorage(key) {
+        return this.parseJson(localStorage.getItem(key))
+      },
+      setStorage(key, value) {
+        localStorage.setItem(key, JSON.stringify(value))
+      },
+      parseJson(text) {
+        try {
+          return JSON.parse(text)
+        } catch (e) {
+          return null
+        }
+      },
+      generateQrCode() {
+        const tmpUrl = `${window.location.origin}/join?room_id=${this.clientId}&t=` + Date.now()
+        console.log('[tmpUrl]', tmpUrl)
+        new QRCode('qrcode', {
+          text: tmpUrl,
+          width: '300',
+          height: '300',
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        })
+      },
+      onConnectHandler(data) {
+        if (!this.clientId) {
+          this.clientId = data.client_id
+          this.setStorage('tv_client_id', this.clientId)
+        }
+      },
+      reconnectSocket() {
+        setTimeout(() => {
+          this.initSocket()
+        }, 3000)
+      },
+      initSocket() {
+        this.appWebSocket = new WebSocket(socketUrl)
+
+        this.appWebSocket.onopen = (event) => {
+          this.joinGroup()
+        }
+        this.appWebSocket.onmessage = (msg) => {
+          try {
+            const data = JSON.parse(msg.data)
+            console.log('[onMessage]', data)
+            switch (data.event) {
+              case 'connect':
+                this.onConnectHandler(data)
+                break
+              default:
+                this.handlePlayerEvent(data)
+                break
+            }
+          } catch (e) {
+            console.log('[JSON.parse.Error]', e)
+          }
+        }
+        this.appWebSocket.onclose = (event) => {
+          console.log('[onClose]', event)
+          setTimeout(() => {
+            this.initSocket()
+          }, 3000)
+        }
+        this.appWebSocket.onerror = (event) => {
+          console.log('[onError]', event)
+        }
+      },
+      sendWebSocket(data) {
+        if (!this.appWebSocket) {
+          return
+        }
+        switch (this.appWebSocket.readyState) {
+          case 0: // WebSocket.CONNECTING 套接字已创建，但连接尚未打开。
+            break
+          case 1: // WebSocket.OPEN 连接已打开，准备进行通信。
+            this.appWebSocket.send(data)
+            break
+          case 2: // WebSocket.CLOSING 连接正在关闭中。
+            break
+          case 3: // WebSocket.CLOSED 连接已关闭或无法打开。
+            this.initSocket()
+            break
+        }
+      },
+      joinGroup() {
+        this.sendWebSocket(JSON.stringify({
+          event: 'joinGroup',
+          data: null,
+          group: this.clientId
+        }))
+      },
+      initArtplayer(source) {
+        let artOption = {
+          url: source.url,
+          fullscreen: true,
+          fullscreenWeb: true
+        }
+        if (source.type === 'hls') {
+          artOption = {
+            ...artOption,
+            ...this.getHlsOptions()
+          }
+        }
+
+        this.artInstance = new Artplayer({
+          ...artOption,
+          container: this.$refs.artRef
+        })
+
+        this.artInstance.on('ready', async () => {
+          const lastTime = this.getStorage(this.getVideoKey())
+          if (lastTime && this.artInstance.duration - lastTime >= 60) {
+            this.artInstance.seek = lastTime
+          }
+          this.artInstance.play()
+        })
+
+        this.artInstance.on('play', () => {
+          console.info('play')
+          this.handlerTimeUpdate()
+        })
+      },
+      getVideoKey() {
+        if (!this.videoSource) {
+          return ''
+        }
+        return md5.hmac('1234556', `${this.videoSource.id},${this.videoSource.vid},${this._source}`)
+      },
+      handlePlayerEvent(data) {
+        if (data.event !== '/ctl_load_Video' && !this.artInstance) {
+          console.log('[NoPlayerWhileSendControlCommand]')
+          return
+        }
+
+        switch (data.event) {
+          case '/ctl_load_Video':
+            this.fetchVideoSource(data.vid, data.pid, data.source)
+            break
+          case '/ctl_mute':
+            this.artInstance.muted = !this.artInstance.muted
+            break
+          case '/ctl_fullscreen':
+            this.artInstance.fullscreen = true
+            break
+          case '/ctl_fullscreen_exit':
+            this.artInstance.fullscreen = false
+            break
+          case '/ctl_qrCode':
+            break
+          case '/ctl_info':
+            this.artInstance.controls.show = true
+            break
+          case '/ctl_volume':
+            if (data.value <= 0) {
+              this.artInstance.volume -= 0.1
+            }
+            if (data.value > 0) {
+              this.artInstance.volume += 0.1
+            }
+            break
+          case '/ctl_back':
+            this.artInstance.backward = 15
+            break
+          case '/ctl_play':
+            this.artInstance.play()
+            break
+          case '/ctl_pause':
+            this.artInstance.pause()
+            break
+          case '/ctl_forward':
+            this.artInstance.forward = 15
+            break
+        }
+      },
+      fetchVideoSource(vid, pid, source) {
+        this.videoSource = null
+        this._source = source
+        fetch(`${apiUrl}/api/video/source?vid=${vid}&pid=${pid}&_source=${source}`).then(resp => {
+          return resp.json()
+        }).then(resp => {
+          console.log('[resp2]', resp)
+          if (resp.code === 200 && resp.data.url) {
+            this.videoSource = resp.data
+            this.showType = 2
+            this.initArtplayer(resp.data)
+          }
+        }).catch(err => {
+          console.log('[fetchVideoSource.Error]', err)
+          this.showType = 1
+        })
+      },
+      getHlsOptions() {
+        return {
+          plugins: [
+            // https://artplayer.org/?libs=https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js%0A./uncompiled/artplayer-plugin-hls-control/index.js&example=hls.control
+            artplayerPluginHlsControl({
+              quality: {
+                getName: (level) => level.height + 'P',
+                title: 'Quality',
+                auto: 'Auto'
+              },
+              audio: {
+                control: true,
+                setting: true,
+                getName: (track) => track.name,
+                title: 'Audio',
+                auto: 'Auto'
+              }
+            })
+          ],
+          type: 'm3u8',
+          customType: {
+            m3u8: function playM3u8(video, url, art) {
+              if (Hls.isSupported()) {
+                if (art.hls) art.hls.destroy()
+                const hls = new Hls()
+                hls.loadSource(url)
+                hls.attachMedia(video)
+                art.hls = hls
+                art.on('destroy', () => hls.destroy())
+              } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url
+              } else {
+                art.notice.show = 'Unsupported playback format: m3u8'
+              }
+            }
+          }
+        }
+      },
+      handlerTimeUpdate() {
+        if (this.timer) {
+          clearInterval(this.timer)
+        }
+        this.timer = setInterval(() => {
+          console.log('[intval]')
+          const key = this.getVideoKey()
+          if (!key) {
+            return
+          }
+          this.setStorage(key, this.artInstance.currentTime)
+        }, 5000)
+      }
+    }
+  })
+</script>
+
+</body>
+</html>
