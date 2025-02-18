@@ -1,7 +1,14 @@
 <template>
   <div v-if="video" class="flex-column">
     <div class="flex-column flex-align-center">
-      <n-image width="200" height="280" :src="video.thumb" :key="video.thumb" class="thumb" />
+      <n-image
+        width="200"
+        height="280"
+        object-fit="cover"
+        :src="video.thumb"
+        :key="video.thumb"
+        class="thumb"
+      />
     </div>
 
     <n-h2>{{ video.name }}</n-h2>

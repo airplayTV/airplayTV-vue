@@ -24,6 +24,7 @@
                 :src="video.thumb"
                 :key="video.thumb"
                 class="thumb"
+                object-fit="cover"
                 preview-disabled
               />
             </div>
