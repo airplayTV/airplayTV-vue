@@ -59,7 +59,7 @@ const getCurrentSource = (route: any) => {
 
 const computeWindowWidthColumn = () => {
   let column = 0
-  if (window.innerWidth <= 370) {
+  if (window.innerWidth <= 350) {
     column = 1
   } else if (window.innerWidth <= 370 + 200) {
     column = 2
@@ -67,8 +67,10 @@ const computeWindowWidthColumn = () => {
     column = 3
   } else if (window.innerWidth <= 370 + 200 * 3) {
     column = 4
-  } else {
+  } else if (window.innerWidth <= 370 + 200 * 4) {
     column = 5
+  } else {
+    column = 6
   }
   return { _column: column, _windowWidth: window.innerWidth }
 }
@@ -79,5 +81,5 @@ export {
   removeStorageSync,
   arrayContainsValue,
   getCurrentSource,
-  computeWindowWidthColumn,
+  computeWindowWidthColumn
 }
