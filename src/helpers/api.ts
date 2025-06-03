@@ -12,8 +12,8 @@ const httpVideo = (id: string | number, _source: string) => {
   return httpInstance.get(`/api/video/detail?id=${id}&_source=${_source}`)
 }
 
-const httpVideoSource = (vid: string | number, pid: string | number, _source: string) => {
-  return httpInstance.get(`/api/video/source?vid=${vid}&pid=${pid}&_source=${_source}`)
+const httpVideoSource = (vid: string | number, pid: string | number, _source: string, _m3u8p: boolean) => {
+  return httpInstance.get(`/api/video/source?vid=${vid}&pid=${pid}&_source=${_source}&_m3u8p=${_m3u8p}`)
 }
 
 const httpVideoSearch = (query: string) => {

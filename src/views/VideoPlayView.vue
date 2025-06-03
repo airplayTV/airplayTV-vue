@@ -82,6 +82,8 @@ import {
   EventName,
   removeEventHandler,
 } from '@/helpers/websocket.ts'
+import axios from 'axios'
+import { apiUrl } from '@/config.ts'
 
 const timer = ref(null)
 const updateCount = ref(0)
@@ -213,10 +215,29 @@ const getControls = () => {
   }
 }
 
-const loadVideoSource = (vid, pid) => {
+const checkSourceUrl = (url, errorCallback = null) => {
+  const http = axios.create({ baseURL: apiUrl, timeout: 1000 * 20 })
+  http.head(url).then(resp => {
+    // console.log('[resp]', resp)
+  }).catch(err => {
+    console.log('[axios.Error]', err)
+    if (err.code === 'ERR_NETWORK') {
+      if (typeof errorCallback === 'function') {
+        errorCallback()
+      }
+    }
+  })
+}
+
+const loadVideoSource = (vid, pid, count = 0) => {
   loadingBar.value!.start()
-  httpVideoSource(vid, pid, getCurrentSource(route.value))
+  httpVideoSource(vid, pid, getCurrentSource(route.value), count !== 0)
     .then((resp) => {
+      if (count <= 1) {
+        checkSourceUrl(resp.data.url, () => {
+          loadVideoSource(vid, pid, ++count)
+        })
+      }
       source.value = resp.data
       if (resp.data.type === 'hls') {
         artOption.value = {
