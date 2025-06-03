@@ -217,11 +217,12 @@ const getControls = () => {
 
 const checkSourceUrl = (url, errorCallback = null) => {
   const http = axios.create({ baseURL: apiUrl, timeout: 1000 * 20 })
-  http.head(url).then(resp => {
-    // console.log('[resp]', resp)
+  http.get(url).then(resp => {
+    console.log('[resp+++]', resp)
   }).catch(err => {
-    console.log('[axios.Error]', err)
+    // console.log('[axios.Error]', err)
     if (err.code === 'ERR_NETWORK') {
+      console.log('[axios.Error2020]', err.code, err)
       if (typeof errorCallback === 'function') {
         errorCallback()
       }

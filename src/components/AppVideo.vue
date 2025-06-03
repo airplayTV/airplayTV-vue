@@ -60,6 +60,7 @@ const loadingBar = ref(null)
 const route = ref(null)
 
 const loadVideo = (id: string | number) => {
+  video.value = null
   loadingBar.value!.start()
   httpVideo(id, getCurrentSource(route.value))
     .then((resp) => {
