@@ -128,6 +128,8 @@ const checkUpdateVideo = (params) => {
     }
     video.value = null
     source.value = null
+    artInstance.value = null
+    artOption.value = null
 
     loadVideoSource(route.value.params.vid, route.value.params.pid)
     loadVideo(route.value.params.vid)
