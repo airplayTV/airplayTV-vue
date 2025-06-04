@@ -24,6 +24,10 @@ const httpVideoSearchSSE = (keyword: string, page: string | number) => {
   return httpInstance.get(`/api/sse/video/search?keyword=${keyword}&page=${page}`)
 }
 
+const httpPlayUrlNetworkCheck = (url: string) => {
+  return httpInstance.get(`/api/m3u8/network-check?url=${url}`)
+}
+
 export {
   httpSourceList,
   httpVideoList,
@@ -31,4 +35,5 @@ export {
   httpVideoSource,
   httpVideoSearch,
   httpVideoSearchSSE,
+  httpPlayUrlNetworkCheck,
 }

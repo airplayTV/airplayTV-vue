@@ -57,7 +57,7 @@ import {
 } from 'vue'
 import { useRoute } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
-import { httpVideo, httpVideoSource } from '../helpers/api'
+import { httpPlayUrlNetworkCheck, httpVideo, httpVideoSource } from '../helpers/api'
 import {
   NCollapse,
   NCollapseItem,
@@ -206,12 +206,12 @@ const getControls = () => {
     controls: [
       {
         position: 'right',
-        html: `<svg style="flex: 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24"><path d="M6 14c-.55 0-1 .45-1 1v3c0 .55.45 1 1 1h3c.55 0 1-.45 1-1s-.45-1-1-1H7v-2c0-.55-.45-1-1-1zm0-4c.55 0 1-.45 1-1V7h2c.55 0 1-.45 1-1s-.45-1-1-1H6c-.55 0-1 .45-1 1v3c0 .55.45 1 1 1zm11 7h-2c-.55 0-1 .45-1 1s.45 1 1 1h3c.55 0 1-.45 1-1v-3c0-.55-.45-1-1-1s-1 .45-1 1v2zM14 6c0 .55.45 1 1 1h2v2c0 .55.45 1 1 1s1-.45 1-1V6c0-.55-.45-1-1-1h-3c-.55 0-1 .45-1 1z" fill="currentColor"></path></svg>`,
+        html: `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M200-160v-240h120v240H200Zm240 0v-440h120v440H440Zm240 0v-640h120v640H680Z"/></svg>`,
         click: () => {
-          artInstance.value.fullscreen = !artInstance.value.fullscreen
-        },
-      },
-    ],
+          networkCheck(artOption.value.url)
+        }
+      }
+    ]
   }
 }
 
@@ -247,13 +247,13 @@ const loadVideoSource = (vid, pid, count = 0) => {
           fullscreenWeb: true,
 
           ...getHlsOptions(),
-          // ...getControls()
+          ...getControls()
         }
       } else {
         artOption.value = {
           url: resp.data.url,
           fullscreen: true,
-          fullscreenWeb: true,
+          fullscreenWeb: true
           // ...getControls()
         }
       }
@@ -264,6 +264,34 @@ const loadVideoSource = (vid, pid, count = 0) => {
     .finally(() => {
       loadingBar.value!.finish()
     })
+}
+const networkCheck = (playUrl) => {
+  httpPlayUrlNetworkCheck(playUrl).then(resp => {
+    console.log('[httpPlayUrlNetworkCheck.resp]', resp.data.resolved)
+    const resolved = resp.data.resolved.map(item => {
+      return `<div><span class="sp1">${item.addr}</span>(<span class="sp2">${item.ip}</span>) <span class="sp3">${item.url}</span></div>`
+    })
+
+    artInstance.value.layers.add({
+      name: 'network',
+      html: resolved.join(''),
+      style: {
+        position: 'absolute',
+        bottom: '70px',
+        left: '20px',
+        lineHeight: '150%'
+      }
+    })
+
+    setTimeout(() => {
+      // Delete the layer by name
+      artInstance.value.layers.remove('network')
+    }, 3000)
+
+  }).catch(err => {
+    // console.log('[httpPlayUrlNetworkCheck.Error]', err)
+    artInstance.value.notice.show = '网络检测失败：' + err
+  })
 }
 
 const loadVideo = (vid) => {
@@ -301,6 +329,9 @@ const getArtInstance = (art) => {
     console.info('play')
     handlerTimeUpdate()
   })
+
+  networkCheck(artOption.value.url)
+
 }
 
 const handlerTimeUpdate = () => {
