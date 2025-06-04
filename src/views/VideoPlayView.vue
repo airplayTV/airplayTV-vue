@@ -286,7 +286,7 @@ const networkCheck = (playUrl) => {
     setTimeout(() => {
       // Delete the layer by name
       artInstance.value.layers.remove('network')
-    }, 3000)
+    }, 4000)
 
   }).catch(err => {
     // console.log('[httpPlayUrlNetworkCheck.Error]', err)
