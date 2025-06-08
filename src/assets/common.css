@@ -1,0 +1,105 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.padding-10px {
+  padding: 10px;
+}
+
+.padding-20px {
+  padding: 20px;
+}
+
+.padding-30px {
+  padding: 30px;
+}
+
+.padding-no-bottom {
+  padding-bottom: 0;
+}
+
+/*.flex {*/
+/*    display: flex;*/
+/*    flex-wrap: wrap;*/
+/*    flex-direction: row;*/
+/*}*/
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.flex-justify-between {
+  justify-content: space-between;
+}
+
+.flex-justify-center {
+  justify-content: center;
+}
+
+.flex-align-center {
+  align-items: center;
+}
+
+.text-align-center {
+  text-align: center;
+}
+
+.text-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.text-ellipsis-5 {
+  display: -webkit-box;
+  overflow: hidden;
+  white-space: normal !important;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+}
+
+.hidden {
+  display: none;
+}
+
+.color-grey {
+  color: #999999;
+}
+
+.color-primary {
+  color: #18a058;
+}
+
+.empty-box {
+  display: flex;
+  min-height: 400px;
+  align-items: center;
+  justify-content: center;
+}
+
+.line-height-150 {
+  line-height: 150%;
+}
+
+.line-height-180 {
+  line-height: 180%;
+}
+
+.min-height-100vh {
+  min-height: 100vh;
+}
