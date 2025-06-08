@@ -1,18 +1,22 @@
 <script setup>
 import AppHeader from '../components/AppHeader.vue'
 import AppVideoList from '@/components/AppVideoList.vue'
-import {onMounted, ref} from 'vue'
+import {onBeforeUpdate, onMounted, ref} from 'vue'
 import AppFooter from '@/components/AppFooter.vue'
 import {computeWindowWidthColumn, getStorageSync, setStorageSync} from '@/helpers/utils'
 import {storeToRefs} from 'pinia'
 import {useAppStore} from '@/stores/app'
 import {KEY_VIDEO_SOURCE, KEY_VIDEO_TAG} from '@/helpers/constant'
 import {NSpace, NTag} from 'naive-ui'
+import {useRoute} from "vue-router";
+
+const route = useRoute()
 
 const windowWidth = ref(0)
 const cols = ref(2)
 const tagList = ref([])
 const tag = ref(null)
+const _pageKey = ref('')
 
 onMounted(() => {
   window.onresize = () => {
@@ -50,6 +54,12 @@ const onUpdateTag = (value) => {
   tag.value = value
 }
 
+const onBeforeUpdateHandler = () => {
+  _pageKey.value = route.fullPath
+}
+
+onBeforeUpdate(onBeforeUpdateHandler)
+
 </script>
 
 <template>
@@ -65,7 +75,7 @@ const onUpdateTag = (value) => {
         </n-space>
       </div>
       <div style="padding: 0 10px" class="flex-1 flex-column flex-justify-between">
-        <AppVideoList :cols="cols" :key="tag" />
+        <AppVideoList :cols="cols" :key="_pageKey" />
       </div>
     </div>
 

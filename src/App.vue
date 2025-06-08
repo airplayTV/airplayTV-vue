@@ -17,10 +17,11 @@ import {
   joinGroup,
   removeEventHandler,
 } from '@/helpers/websocket'
-import {useRouter} from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 
 const _pageKey = '_key_app_page_app_'
 const router = ref(null)
+const route = ref(null)
 
 const onBeforeMountHandler = () => {
   const clientId = getStorageSync(KEY_CLIENT_ID)
@@ -66,6 +67,7 @@ export default defineComponent({
     const { sourceList } = storeToRefs(useAppStore())
 
     router.value = useRouter()
+    route.value = useRoute()
 
     onBeforeMount(onBeforeMountHandler)
     onBeforeUnmount(onBeforeUnmountHandler)
