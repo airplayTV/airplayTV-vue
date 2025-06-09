@@ -418,69 +418,6 @@ const sendControlHandler = (data) => {
 onMounted(onMountedHandler)
 onBeforeMount(onBeforeMountHandler)
 
-// export default defineComponent({
-//   methods: {
-//     ControlEventMute() {
-//       return ControlEventMute
-//     },
-//     ControlEventFullscreenExit() {
-//       return ControlEventFullscreenExit
-//     },
-//     ControlEventFullscreen() {
-//       return ControlEventFullscreen
-//     },
-//     ControlEventQrcode() {
-//       return ControlEventQrcode
-//     },
-//     ControlEventInfo() {
-//       return ControlEventInfo
-//     },
-//     ControlEventBack() {
-//       return ControlEventBack
-//     },
-//     ControlEventPause() {
-//       return ControlEventPause
-//     },
-//     ControlEventPlay() {
-//       return ControlEventPlay
-//     },
-//     ControlEventForward() {
-//       return ControlEventForward
-//     },
-//
-//   },
-//   components: {
-//     NAlert,
-//     NResult,
-//     NGrid,
-//     NEllipsis,
-//     NImage,
-//     NGi,
-//     AppHeader,
-//     AppSearchList,
-//     AppFooter,
-//     NProgress,
-//     NText,
-//   },
-//   setup() {
-//     onMounted(onMountedHandler)
-//     onBeforeMount(onBeforeMountHandler)
-//
-//     router.value = useRouter()
-//     message.value = useMessage()
-//
-//     return {
-//       cols,
-//       historyList,
-//       onOpenVideo,
-//
-//       isFullscreen,
-//       isPlay,
-//       sendControlHandler,
-//       room,
-//     }
-//   },
-// })
 </script>
 
 <style scoped lang="scss">
