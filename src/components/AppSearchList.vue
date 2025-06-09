@@ -4,13 +4,13 @@
       <n-gi v-for="(video, idx) in videoList" :key="idx" @click="onOpenVideo(video)">
         <div class="flex-row flex-justify-center flex-align-center">
           <n-image
-            width="175"
-            height="230"
-            :src="video.thumb"
-            :key="video.thumb"
-            class="thumb"
-            object-fit="cover"
-            preview-disabled
+              width="175"
+              height="230"
+              :src="video.thumb"
+              :key="video.thumb"
+              class="thumb"
+              object-fit="cover"
+              preview-disabled
           />
         </div>
 
@@ -24,10 +24,10 @@
 
     <div class="flex-row flex-justify-center" v-if="page > 0">
       <n-pagination
-        v-model:page="pageModel"
-        :page-count="pages"
-        simple
-        @update:page="$emit('onUpdatePage', { source, page: pageModel })"
+          v-model:page="pageModel"
+          :page-count="pages"
+          simple
+          @update:page="$emit('onUpdatePage', { source, page: pageModel })"
       />
     </div>
 
@@ -36,23 +36,10 @@
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue'
-import {
-  NButton,
-  NEllipsis,
-  NGi,
-  NGrid,
-  NIcon,
-  NImage,
-  NInput,
-  NInputGroup,
-  NPagination,
-  NSelect,
-} from 'naive-ui'
-import { BrokenImageRound } from '@vicons/material'
-import { useRouter } from 'vue-router'
-import { getStorageSync } from '@/helpers/utils'
-import { KEY_VIDEO_SOURCE } from '@/helpers/constant'
+import {defineComponent, ref} from 'vue'
+import {NButton, NEllipsis, NGi, NGrid, NIcon, NImage, NInput, NInputGroup, NPagination, NSelect,} from 'naive-ui'
+import {BrokenImageRound} from '@vicons/material'
+import {useRouter} from 'vue-router'
 
 const router = ref(null)
 const pageModel = ref(null)

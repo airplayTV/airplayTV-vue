@@ -21,13 +21,13 @@
 </template>
 
 <script>
-import { defineComponent, onMounted, ref } from 'vue'
+import {defineComponent, onMounted, ref} from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
 import QRCode from 'qrcode'
-import { NEllipsis, NImage, NText } from 'naive-ui'
-import { useRoute, useRouter } from 'vue-router'
-import { getStorageSync } from '@/helpers/utils'
-import { KEY_CLIENT_ID } from '@/helpers/constant'
+import {NEllipsis, NImage, NText} from 'naive-ui'
+import {useRoute, useRouter} from 'vue-router'
+import {getStorageSync} from '@/helpers/utils'
+import {KEY_CLIENT_ID} from '@/helpers/constant'
 import AppFooter from '@/components/AppFooter.vue'
 
 const route = ref(null)
@@ -44,13 +44,11 @@ const generateQrUrl = () => {
     type: 'image/jpeg',
     quality: 0.3,
     width: 300,
+  }).then((url) => {
+    qrCodeUrl.value = url
+  }).catch((err) => {
+    console.error(err)
   })
-    .then((url) => {
-      qrCodeUrl.value = url
-    })
-    .catch((err) => {
-      console.error(err)
-    })
 }
 
 const onMountedHandler = () => {

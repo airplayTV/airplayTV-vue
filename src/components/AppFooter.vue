@@ -13,10 +13,10 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
-import { NIcon } from 'naive-ui'
+import {defineComponent} from 'vue'
+import {NIcon} from 'naive-ui'
 import ExternalLink from '@vicons/tabler/ExternalLink'
-import { SearchSharp } from '@vicons/material'
+import {SearchSharp} from '@vicons/material'
 
 export default defineComponent({
   components: { SearchSharp, NIcon, ExternalLink },

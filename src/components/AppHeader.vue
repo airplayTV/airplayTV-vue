@@ -40,14 +40,14 @@
 </template>
 
 <script>
-import { defineComponent, onBeforeMount, onBeforeUpdate, ref } from 'vue'
-import { NButton, NIcon, NInput, NInputGroup, NSelect } from 'naive-ui'
-import { SearchSharp } from '@vicons/material'
-import { useAppStore } from '@/stores/app'
-import { storeToRefs } from 'pinia'
-import { useRouter } from 'vue-router'
-import { getStorageSync } from '@/helpers/utils'
-import { KEY_ROOM_ID } from '@/helpers/constant'
+import {defineComponent, onBeforeMount, onBeforeUpdate, onUpdated, ref} from 'vue'
+import {NButton, NIcon, NInput, NInputGroup, NSelect} from 'naive-ui'
+import {SearchSharp} from '@vicons/material'
+import {useAppStore} from '@/stores/app'
+import {storeToRefs} from 'pinia'
+import {useRouter} from 'vue-router'
+import {getStorageSync} from '@/helpers/utils'
+import {KEY_ROOM_ID} from '@/helpers/constant'
 
 const room = ref(null)
 const source = ref(0)
@@ -68,7 +68,8 @@ const onBeforeMountHandler = () => {
   room.value = getStorageSync(KEY_ROOM_ID)
 }
 
-const onBeforeUpdateHandler = () => {}
+const onBeforeUpdateHandler = () => {
+}
 
 export default defineComponent({
   components: {
@@ -132,6 +133,7 @@ ul li.active {
     color: rgba(0, 0, 0, 0.8);
     text-decoration: none;
   }
+
   .router-link-active {
     color: #18a058;
     border-bottom: 2px solid #18a058;

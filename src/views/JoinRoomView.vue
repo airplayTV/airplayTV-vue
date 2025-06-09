@@ -17,13 +17,13 @@
 </template>
 
 <script>
-import { defineComponent, onBeforeMount, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { setStorageSync } from '@/helpers/utils'
-import { KEY_ROOM_ID } from '@/helpers/constant'
+import {defineComponent, onBeforeMount, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {setStorageSync} from '@/helpers/utils'
+import {KEY_ROOM_ID} from '@/helpers/constant'
 import AppFooter from '@/components/AppFooter.vue'
 import AppHeader from '@/components/AppHeader.vue'
-import { NText } from 'naive-ui'
+import {NText} from 'naive-ui'
 
 const route = ref(null)
 const router = ref(null)

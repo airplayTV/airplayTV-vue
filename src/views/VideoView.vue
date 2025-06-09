@@ -1,6 +1,5 @@
 <script setup>
 import AppHeader from '../components/AppHeader.vue'
-import AppVideoList from '@/components/AppVideoList.vue'
 import AppVideo from '@/components/AppVideo.vue'
 import AppFooter from '@/components/AppFooter.vue'
 </script>

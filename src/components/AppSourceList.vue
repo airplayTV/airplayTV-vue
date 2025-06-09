@@ -144,7 +144,7 @@ export default defineComponent({
 }
 
 .source-item {
-//margin-right: 10px;
+  //margin-right: 10px;
 
   .active {
     background-color: #18a058;
