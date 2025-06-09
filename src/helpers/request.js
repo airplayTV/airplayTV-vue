@@ -1,7 +1,7 @@
 import axios from 'axios'
-import { apiUrl } from '../config'
-import { getStorageSync } from '@/helpers/utils'
-import { KEY_VIDEO_SOURCE } from '@/helpers/constant'
+import {apiUrl} from '../config'
+import {useAppStore} from "@/stores/app.js";
+
 
 const httpInstance = axios.create({
   baseURL: apiUrl,
@@ -11,9 +11,11 @@ const httpInstance = axios.create({
 
 httpInstance.interceptors.request.use(
   (config) => {
+    const appStore = useAppStore()
+
     const url = new URL(config.url, apiUrl)
     if (!url.searchParams.get('_source')) {
-      url.searchParams.append('_source', getStorageSync(KEY_VIDEO_SOURCE))
+      url.searchParams.append('_source', appStore.source)
     }
     config.url = url.pathname + url.search
     return config
@@ -39,4 +41,4 @@ httpInstance.interceptors.response.use(
   },
 )
 
-export { httpInstance }
+export {httpInstance}

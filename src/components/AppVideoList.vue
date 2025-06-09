@@ -76,13 +76,13 @@ const loadVideoList = (tag, _page) => {
 
 const onBeforeMountHandler = () => {
   const q = route.query
-  if (+q.page) {
+  if (q.hasOwnProperty('page')) {
     page.value = +q.page
   }
-  if (q._source) {
+  if (q.hasOwnProperty('_source')) {
     appStore.setSource(q._source)
   }
-  if (q.tag) {
+  if (q.hasOwnProperty('tag')) {
     appStore.setTags(q.tag)
   }
 

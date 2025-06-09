@@ -162,10 +162,11 @@ const qrResult = ref(null)
 const html5QrCode = ref(null)
 const showQrReader = ref(false)
 const pageViewKey = ref(null)
+const appStore = useAppStore()
 
 const onBeforeMountHandler = () => {
-  source.value = getStorageSync(KEY_VIDEO_SOURCE)
-  tag.value = getStorageSync(KEY_VIDEO_TAG)
+  source.value = appStore.source
+  tag.value = appStore.tags
   room.value = getStorageSync(KEY_ROOM_ID)
 }
 
@@ -207,6 +208,7 @@ const handleTagList = (source) => {
       if (!findTag) {
         setStorageSync(KEY_VIDEO_TAG, formattedTagList.value[0]?.value)
         tag.value = formattedTagList.value[0]?.value
+        appStore.setTags(tag.value)
       }
     }
   })
@@ -216,7 +218,7 @@ const onUpdateSource = (value) => {
   console.log('[onUpdateSource]', value)
   setStorageSync(KEY_VIDEO_SOURCE, value)
   source.value = value
-  // router.push('/')
+  appStore.setSource(value)
 
   handleTagList(source.value)
 }
@@ -224,6 +226,7 @@ const onUpdateSource = (value) => {
 const onUpdateTag = (value) => {
   console.log('[onUpdateTag]', value)
   setStorageSync(KEY_VIDEO_TAG, value)
+  appStore.setTags(value)
 }
 
 const onClearVideoHistoryHandler = async () => {
@@ -376,7 +379,7 @@ export default defineComponent({
   min-height: 200px;
   display: flex;
   flex-direction: column;
-//background-color: rgba(0, 0, 0, 0.1);
+  //background-color: rgba(0, 0, 0, 0.1);
 
   .qr-reader {
     width: 100%;

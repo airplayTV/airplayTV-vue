@@ -3,20 +3,22 @@ import AppHeader from '../components/AppHeader.vue'
 import AppVideoList from '@/components/AppVideoList.vue'
 import {onBeforeUpdate, onMounted, ref} from 'vue'
 import AppFooter from '@/components/AppFooter.vue'
-import {computeWindowWidthColumn, getStorageSync, setStorageSync} from '@/helpers/utils'
+import {computeWindowWidthColumn, setStorageSync} from '@/helpers/utils'
 import {storeToRefs} from 'pinia'
 import {useAppStore} from '@/stores/app'
-import {KEY_VIDEO_SOURCE, KEY_VIDEO_TAG} from '@/helpers/constant'
+import {KEY_VIDEO_TAG} from '@/helpers/constant'
 import {NSpace, NTag} from 'naive-ui'
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 
 const route = useRoute()
+const router = useRouter()
 
 const windowWidth = ref(0)
 const cols = ref(2)
 const tagList = ref([])
 const tag = ref(null)
 const _pageKey = ref('')
+const appStore = useAppStore()
 
 onMounted(() => {
   window.onresize = () => {
@@ -33,8 +35,8 @@ onMounted(() => {
 
 const loadTagList = () => {
   const { sourceList } = storeToRefs(useAppStore())
-  const tmpSource = getStorageSync(KEY_VIDEO_SOURCE)
-  tag.value = getStorageSync(KEY_VIDEO_TAG)
+  const tmpSource = appStore.source
+  tag.value = appStore.tags
 
   sourceList.value.filter((item) => {
     if (item.name === tmpSource) {
@@ -50,12 +52,21 @@ const loadTagList = () => {
 
 const onUpdateTag = (value) => {
   console.log('[onUpdateTag]', value)
+  updateTagVal(value)
+  router.push(`/?page=1&tag=${appStore.tags}&_source=${appStore.source}`)
+}
+
+const updateTagVal = (value) => {
   setStorageSync(KEY_VIDEO_TAG, value)
+  appStore.setTags(value)
   tag.value = value
 }
 
 const onBeforeUpdateHandler = () => {
   _pageKey.value = route.fullPath
+  if (route.query.hasOwnProperty('tag')) {
+    updateTagVal(route.query.tag)
+  }
 }
 
 onBeforeUpdate(onBeforeUpdateHandler)
@@ -67,7 +78,7 @@ onBeforeUpdate(onBeforeUpdateHandler)
     <div class="flex-1 flex-column flex-justify-between">
       <AppHeader />
       <div class="tags-container">
-        <n-space>
+        <n-space :key="_pageKey">
           <n-tag v-for="(item,idx) in tagList" :key="idx" @click="onUpdateTag(item.value)"
                  :type="tag===item.value?'success':''">
             {{ item.label }}

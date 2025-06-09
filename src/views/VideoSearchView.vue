@@ -41,8 +41,7 @@ import {NResult, NTabPane, NTabs, useLoadingBar} from 'naive-ui'
 import AppSearchList from '@/components/AppSearchList.vue'
 import {useRoute} from 'vue-router'
 import {apiUrl} from '@/config'
-import {computeWindowWidthColumn, getStorageSync} from '@/helpers/utils'
-import {KEY_VIDEO_SOURCE} from '@/helpers/constant'
+import {computeWindowWidthColumn} from '@/helpers/utils'
 import {httpVideoSearch} from '@/helpers/api'
 import AppFooter from '@/components/AppFooter.vue'
 
@@ -54,6 +53,7 @@ const videoSearchResultMap = ref({})
 const searchEventSource = ref(null)
 const loadingBar = ref(null)
 const keyword = ref(null)
+const appStore = useAppStore()
 
 const onMountedHandler = () => {
   window.onresize = () => {
@@ -73,9 +73,8 @@ const onBeforeMountHandler = () => {
 const resetSearchEvent = (keyword) => {
   loadingBar.value?.start()
 
-  const source = getStorageSync(KEY_VIDEO_SOURCE)
   searchEventSource.value = new EventSource(
-      `${apiUrl}/api/sse/video/search?_source=${source}&keyword=${keyword}&page=1`,
+      `${apiUrl}/api/sse/video/search?_source=${appStore.source}&keyword=${keyword}&page=1`,
   )
 
   searchEventSource.value.addEventListener('update', (e) => {
