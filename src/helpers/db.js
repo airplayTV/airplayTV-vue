@@ -25,21 +25,39 @@ db.version(1).stores({
 const addHistory = async (history) => {
   return await db.history.add(history)
 }
+
 const updateHistory = async (key, updates) => {
   return await db.history.update(key, updates)
 }
+
 const deleteHistory = async (key) => {
   return await db.history.delete(key)
 }
+
 const clearHistory = async () => {
   return await db.history.clear()
 }
+
 const listHistory = async () => {
   // 倒序取出100
   return await db.history.orderBy('updated_at').desc().limit(100).toArray()
 }
+
 const findHistory = async (source, vid, pid) => {
   return await db.history.where({ source: source, vid: vid, pid: pid }).first()
 }
 
-export { db, addHistory, updateHistory, deleteHistory, clearHistory, listHistory, findHistory }
+const deleteVideoHistory = async (source, vid, pid) => {
+  return await db.history.where({ source: source, vid: vid, pid: pid }).delete()
+}
+
+export {
+  db,
+  addHistory,
+  updateHistory,
+  deleteVideoHistory,
+  deleteHistory,
+  clearHistory,
+  listHistory,
+  findHistory,
+}

@@ -5,27 +5,36 @@
 
       <div style="padding: 0 10px">
         <n-grid x-gap="12" y-gap="1" :cols="cols">
-          <n-gi v-for="(video, idx) in historyList" :key="idx" @click="onOpenVideo(video)">
+          <n-gi v-for="(video, idx) in historyList" :key="idx">
             <div class="flex-row flex-justify-center flex-align-center thumb-warp">
-              <div class="update-time">
+              <div class="close flex-row flex-justify-between">
+                <div></div>
+                <div class="close-box flex-column flex-justify-center flex-align-center">
+                  <n-icon color="#ffffff" size="22" @click="onOpenClearHistoryTips(video)">
+                    <CloseRound />
+                  </n-icon>
+                </div>
+              </div>
+              <div class="update-time" @click="onOpenVideo(video)">
                 <div class="time">
                   <div>{{ video.source }}</div>
                   <div>{{ video.updated_time }}</div>
                 </div>
                 <div
-                  class="progress"
-                  style="width: 50%"
-                  :style="{ width: `${video.percent}%` }"
+                    class="progress"
+                    style="width: 50%"
+                    :style="{ width: `${video.percent}%` }"
                 ></div>
               </div>
               <n-image
-                width="175"
-                height="230"
-                :src="video.thumb"
-                :key="video.thumb"
-                class="thumb"
-                object-fit="cover"
-                preview-disabled
+                  @click="onOpenVideo(video)"
+                  width="175"
+                  height="230"
+                  :src="video.thumb"
+                  :key="video.thumb"
+                  class="thumb"
+                  object-fit="cover"
+                  preview-disabled
               />
             </div>
 
@@ -48,24 +57,37 @@
     </div>
 
     <AppFooter />
+
+    <n-modal
+        v-model:show="showClearHistoryModal"
+        preset="dialog"
+        title="提示"
+        content="确定删除该播放记录？"
+        positive-text="确认"
+        negative-text="关闭"
+        @positive-click="removeHistory"
+    />
+
   </div>
 </template>
 
-<script >
-import AppHeader from '../components/AppHeader.vue'
-import AppSearchList from '@/components/AppSearchList.vue'
-import AppFooter from '@/components/AppFooter.vue'
-import { defineComponent, onBeforeMount, onMounted, ref } from 'vue'
-import { computeWindowWidthColumn } from '@/helpers/utils'
-import { listHistory } from '@/helpers/db'
-import { NEllipsis, NGi, NGrid, NImage, NProgress, NResult, NText } from 'naive-ui'
-import { useRouter } from 'vue-router'
-import { format } from 'fecha'
+<script setup>
+import {onBeforeMount, onMounted, ref} from 'vue'
+import {computeWindowWidthColumn} from '@/helpers/utils'
+import {deleteVideoHistory, listHistory} from '@/helpers/db'
+import {NEllipsis, NGi, NGrid, NIcon, NImage, NModal, NResult} from 'naive-ui'
+import {useRouter} from 'vue-router'
+import {format} from 'fecha'
+import AppHeader from "@/components/AppHeader.vue";
+import AppFooter from "@/components/AppFooter.vue";
+import {CloseRound} from '@vicons/material'
 
-const router = ref(null)
+const router = useRouter()
 const windowWidth = ref(0)
 const cols = ref(2)
 const historyList = ref(null)
+const showClearHistoryModal = ref(false)
+const selectedHistory = ref(null)
 
 const onMountedHandler = () => {
   window.onresize = () => {
@@ -78,7 +100,11 @@ const onMountedHandler = () => {
   cols.value = _column
 }
 
-const onBeforeMountHandler = async () => {
+const onBeforeMountHandler = () => {
+  loadHistoryList()
+}
+
+const loadHistoryList = async () => {
   const findList = await listHistory()
   historyList.value = findList.map((item) => {
     // item.updated_time = (new Date(item.updated_at)).toLocaleString()
@@ -94,7 +120,6 @@ const onBeforeMountHandler = async () => {
 
     return item
   })
-  // historyList.value
   console.log('[historyList]', historyList.value)
 }
 
@@ -102,35 +127,25 @@ const onOpenVideo = (video) => {
   console.log('[]', router)
   console.log('[]', video)
   // router.value.push(`/video/detail/${video.vid}?_source=${video._source}`)
-  router.value.push(`/video/play/${video.vid}/${video.pid}?_source=${video.source}`)
+  router.push(`/video/play/${video.vid}/${video.pid}?_source=${video.source}`)
 }
 
-export default defineComponent({
-  components: {
-    NResult,
-    NGrid,
-    NEllipsis,
-    NImage,
-    NGi,
-    AppHeader,
-    AppSearchList,
-    AppFooter,
-    NProgress,
-    NText,
-  },
-  setup() {
-    onMounted(onMountedHandler)
-    onBeforeMount(onBeforeMountHandler)
+const removeHistory = async () => {
+  if (selectedHistory.value) {
+    console.log('[removeHistory]', selectedHistory.value)
+    await deleteVideoHistory(selectedHistory.value.source, selectedHistory.value.vid, selectedHistory.value.pid)
+    await loadHistoryList()
+  }
+}
 
-    router.value = useRouter()
+const onOpenClearHistoryTips = (video) => {
+  selectedHistory.value = video
+  showClearHistoryModal.value = true
+}
 
-    return {
-      cols,
-      historyList,
-      onOpenVideo,
-    }
-  },
-})
+onMounted(onMountedHandler)
+onBeforeMount(onBeforeMountHandler)
+
 </script>
 
 <style scoped lang="scss">
@@ -145,6 +160,21 @@ export default defineComponent({
 
 .thumb-warp {
   position: relative;
+
+  .close {
+    width: 175px;
+    position: absolute;
+    z-index: 9;
+    top: 0;
+  }
+
+  .close-box {
+    width: 28px;
+    height: 28px;
+    //border-top-right-radius: 3px;
+    background-color: rgba(0, 0, 0, 0.47);
+    //background-color: rgba(44, 62, 80, 0.8);
+  }
 
   .update-time {
     width: 175px; /** width+padding总宽等于图片设置的宽度 **/
