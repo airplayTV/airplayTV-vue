@@ -15,7 +15,7 @@
           <!-- 四个按钮 -->
           <div class="flex-row flex-justify-between">
             <!-- 静音 -->
-            <div @click="sendControlHandler({ event: ControlEventMute() })">
+            <div @click="sendControlHandler({ event: ControlEventMute })">
               <svg
                   class="icon"
                   style="
@@ -46,7 +46,7 @@
             <!-- 全屏 -->
             <div
                 v-if="isFullscreen"
-                @click="sendControlHandler({ event: ControlEventFullscreenExit() })"
+                @click="sendControlHandler({ event: ControlEventFullscreenExit })"
             >
               <svg
                   class="icon"
@@ -69,7 +69,7 @@
                 ></path>
               </svg>
             </div>
-            <div v-else @click="sendControlHandler({ event: ControlEventFullscreen() })">
+            <div v-else @click="sendControlHandler({ event: ControlEventFullscreen })">
               <svg
                   class="icon"
                   style="
@@ -98,7 +98,7 @@
             </div>
 
             <!-- 二维码 -->
-            <div @click="sendControlHandler({ event: ControlEventQrcode() })">
+            <div @click="sendControlHandler({ event: ControlEventQrcode })">
               <svg
                   class="icon"
                   style="
@@ -127,7 +127,7 @@
             </div>
 
             <!-- 信息 -->
-            <div @click="sendControlHandler({ event: ControlEventInfo() })">
+            <div @click="sendControlHandler({ event: ControlEventInfo })">
               <svg
                   class="icon"
                   style="
@@ -187,7 +187,7 @@
           <!-- 三个按钮 -->
           <div class="flex-row flex-justify-between">
             <!-- 后退 -->
-            <div @click="sendControlHandler({ event: ControlEventBack() })">
+            <div @click="sendControlHandler({ event: ControlEventBack })">
               <svg
                   class="icon"
                   style="
@@ -217,7 +217,7 @@
 
             <!-- 播放/暂停 -->
             <div>
-              <div v-if="isPlay" @click="sendControlHandler({ event: ControlEventPause() })">
+              <div v-if="isPlay" @click="sendControlHandler({ event: ControlEventPause })">
                 <svg
                     class="icon"
                     style="
@@ -239,7 +239,7 @@
                   ></path>
                 </svg>
               </div>
-              <div v-else @click="sendControlHandler({ event: ControlEventPlay() })">
+              <div v-else @click="sendControlHandler({ event: ControlEventPlay })">
                 <svg
                     class="icon"
                     style="
@@ -264,7 +264,7 @@
             </div>
 
             <!-- 前进 -->
-            <div @click="sendControlHandler({ event: ControlEventForward() })">
+            <div @click="sendControlHandler({ event: ControlEventForward })">
               <svg
                   class="icon"
                   style="
@@ -299,7 +299,7 @@
           <!-- 声音大 -->
           <div
               class="flex-row flex-justify-center"
-              @click="sendControlHandler({ event: ControlEventVolume(), value: 1 })"
+              @click="sendControlHandler({ event: ControlEventVolume, value: 1 })"
           >
             <svg
                 class="icon"
@@ -330,12 +330,11 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import AppHeader from '../components/AppHeader.vue'
-import AppSearchList from '@/components/AppSearchList.vue'
 import AppFooter from '@/components/AppFooter.vue'
-import {defineComponent, onBeforeMount, onMounted, ref} from 'vue'
-import {NAlert, NEllipsis, NGi, NGrid, NImage, NProgress, NResult, NText, useMessage,} from 'naive-ui'
+import {onBeforeMount, onMounted, ref} from 'vue'
+import {NAlert, NEllipsis, NText, useMessage,} from 'naive-ui'
 import {useRouter} from 'vue-router'
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from '@/helpers/constant'
 import {getStorageSync} from '@/helpers/utils'
@@ -354,7 +353,7 @@ import {
   socketReady
 } from '@/helpers/websocket'
 
-const router = ref(null)
+const router = useRouter()
 const windowWidth = ref(0)
 const cols = ref(2)
 const historyList = ref(null)
@@ -363,7 +362,7 @@ const isFullscreen = ref(null)
 const isPlay = ref(null)
 const room = ref(null)
 const clientId = ref(null)
-const message = ref(null)
+const message = useMessage()
 
 const onMountedHandler = () => {
   // window.onresize = () => {
@@ -415,71 +414,73 @@ const sendControlHandler = (data) => {
   })
 }
 
-export default defineComponent({
-  methods: {
-    ControlEventMute() {
-      return ControlEventMute
-    },
-    ControlEventFullscreenExit() {
-      return ControlEventFullscreenExit
-    },
-    ControlEventFullscreen() {
-      return ControlEventFullscreen
-    },
-    ControlEventQrcode() {
-      return ControlEventQrcode
-    },
-    ControlEventInfo() {
-      return ControlEventInfo
-    },
-    ControlEventBack() {
-      return ControlEventBack
-    },
-    ControlEventPause() {
-      return ControlEventPause
-    },
-    ControlEventPlay() {
-      return ControlEventPlay
-    },
-    ControlEventForward() {
-      return ControlEventForward
-    },
-    ControlEventVolume() {
-      return ControlEventVolume
-    }
-  },
-  components: {
-    NAlert,
-    NResult,
-    NGrid,
-    NEllipsis,
-    NImage,
-    NGi,
-    AppHeader,
-    AppSearchList,
-    AppFooter,
-    NProgress,
-    NText,
-  },
-  setup() {
-    onMounted(onMountedHandler)
-    onBeforeMount(onBeforeMountHandler)
 
-    router.value = useRouter()
-    message.value = useMessage()
+onMounted(onMountedHandler)
+onBeforeMount(onBeforeMountHandler)
 
-    return {
-      cols,
-      historyList,
-      onOpenVideo,
-
-      isFullscreen,
-      isPlay,
-      sendControlHandler,
-      room,
-    }
-  },
-})
+// export default defineComponent({
+//   methods: {
+//     ControlEventMute() {
+//       return ControlEventMute
+//     },
+//     ControlEventFullscreenExit() {
+//       return ControlEventFullscreenExit
+//     },
+//     ControlEventFullscreen() {
+//       return ControlEventFullscreen
+//     },
+//     ControlEventQrcode() {
+//       return ControlEventQrcode
+//     },
+//     ControlEventInfo() {
+//       return ControlEventInfo
+//     },
+//     ControlEventBack() {
+//       return ControlEventBack
+//     },
+//     ControlEventPause() {
+//       return ControlEventPause
+//     },
+//     ControlEventPlay() {
+//       return ControlEventPlay
+//     },
+//     ControlEventForward() {
+//       return ControlEventForward
+//     },
+//
+//   },
+//   components: {
+//     NAlert,
+//     NResult,
+//     NGrid,
+//     NEllipsis,
+//     NImage,
+//     NGi,
+//     AppHeader,
+//     AppSearchList,
+//     AppFooter,
+//     NProgress,
+//     NText,
+//   },
+//   setup() {
+//     onMounted(onMountedHandler)
+//     onBeforeMount(onBeforeMountHandler)
+//
+//     router.value = useRouter()
+//     message.value = useMessage()
+//
+//     return {
+//       cols,
+//       historyList,
+//       onOpenVideo,
+//
+//       isFullscreen,
+//       isPlay,
+//       sendControlHandler,
+//       room,
+//     }
+//   },
+// })
 </script>
 
 <style scoped lang="scss">

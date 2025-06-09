@@ -13,10 +13,10 @@ const EventNameError = 'Error'
 const EventNameJoinRoom = 'JoinRoom'
 const EventNameLeaveRoom = 'LeaveRoom'
 
-const DataEventJoinGroup = 'joinGroup'
+const DataEventJoinGroup = 'join-group'
 const DataEventSendToClient = 'sendToClient'
 const DataEventLeaveGroup = 'leaveGroup'
-const DataEventSendToGroup = 'sendToGroup'
+const DataEventSendToGroup = 'send-to-group'
 const DataEventListGroupClient = 'listGroupClient'
 
 const ControlEventLoadVideo = '/ctl_load_Video'
@@ -137,8 +137,9 @@ const joinGroup = (groupName) => {
     send(
         JSON.stringify({
             event: DataEventJoinGroup,
-            data: null,
-            group: groupName,
+            data: {
+                group: groupName
+            },
         }),
     )
 }
