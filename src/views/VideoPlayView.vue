@@ -9,11 +9,17 @@
         <!--<video :src="video.url" style="width: 100%" />-->
         <div style="border-radius: 4px; display: flex; min-height: 180px">
           <AppArtplayer
+              v-if="playType===0"
               :key="artOption"
               :option="artOption"
               :style="artStyle"
               @get-instance="getArtInstance"
           />
+          <iframe
+              v-if="playType===1"
+              style="border:none;"
+              :style="{height: artStyle.height, width : artStyle.width}"
+              :src="artOption.url" />
         </div>
 
         <div style="color: dimgray; word-wrap: break-word" v-if="source">
@@ -43,22 +49,12 @@
   </div>
 </template>
 
-<script>
-import {
-  computed,
-  defineComponent,
-  onBeforeMount,
-  onBeforeUnmount,
-  onBeforeUpdate,
-  onMounted,
-  onUpdated,
-  ref,
-  watch,
-} from 'vue'
+<script setup>
+import {computed, onBeforeMount, onBeforeUnmount, onBeforeUpdate, onMounted, onUpdated, ref, watch,} from 'vue'
 import {useRoute} from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import {httpPlayUrlNetworkCheck, httpVideo, httpVideoSource} from '../helpers/api'
-import {NCollapse, NCollapseItem, NEllipsis, NH2, NText, useLoadingBar, useMessage, useNotification,} from 'naive-ui'
+import {NCollapse, NCollapseItem, NEllipsis, NH2, NText, useLoadingBar, useMessage,} from 'naive-ui'
 import AppSourceList from '@/components/AppSourceList.vue'
 import AppArtplayer from '@/components/AppArtplayer.vue'
 import {formatVideoSourceMap} from '@/helpers/app'
@@ -85,19 +81,18 @@ import {
 import axios from 'axios'
 import {apiUrl} from '@/config'
 
+const route = useRoute()
+const loadingBar = useLoadingBar()
+const message = useMessage()
+
 const timer = ref(null)
-const updateCount = ref(0)
-const route = ref(null)
 const vid = ref(null)
 const pid = ref(null)
-const loadingBar = ref(null)
 const tmpQuery = ref(null)
-const notification = ref(null)
-const message = ref(null)
+const playType = ref(0)
 
 const source = ref(null)
 const video = ref(null)
-const artRef = ref(null)
 const artInstance = ref({})
 const artOption = ref({})
 const artStyle = ref({
@@ -110,15 +105,15 @@ const _pageKey = '_key_app_page_video_play_'
 const onBeforeMountHandler = () => {
   addControlEventHandler()
 
-  checkUpdateVideo(route.value.params)
+  checkUpdateVideo(route.params)
 }
 
 const checkUpdateVideo = (params) => {
   // tmpQuery
   const v = JSON.stringify(params)
 
-  vid.value = route.value.params.vid
-  pid.value = route.value.params.pid
+  vid.value = route.params.vid
+  pid.value = route.params.pid
 
   if (v !== tmpQuery.value) {
     tmpQuery.value = v
@@ -131,8 +126,8 @@ const checkUpdateVideo = (params) => {
     artInstance.value = null
     artOption.value = null
 
-    loadVideoSource(route.value.params.vid, route.value.params.pid)
-    loadVideo(route.value.params.vid)
+    loadVideoSource(route.params.vid, route.params.pid)
+    loadVideo(route.params.vid)
   }
 }
 
@@ -144,7 +139,7 @@ const onMountedHandler = () => {
 }
 
 const onBeforeUpdateHandler = () => {
-  checkUpdateVideo({ params: route.value.params, query: route.value.query })
+  checkUpdateVideo({ params: route.params, query: route.query })
 }
 const onUpdatedHandler = () => {
 }
@@ -234,8 +229,8 @@ const checkSourceUrl = (url, errorCallback = null) => {
 }
 
 const loadVideoSource = (vid, pid, count = 0) => {
-  loadingBar.value.start()
-  httpVideoSource(vid, pid, getCurrentSource(route.value), count !== 0)
+  loadingBar.start()
+  httpVideoSource(vid, pid, getCurrentSource(route), count !== 0)
       .then((resp) => {
         if (count <= 1) {
           checkSourceUrl(resp.data.url, () => {
@@ -265,7 +260,7 @@ const loadVideoSource = (vid, pid, count = 0) => {
         console.log('[httpVideoSource.Error]', err)
       })
       .finally(() => {
-        loadingBar.value.finish()
+        loadingBar.finish()
       })
 }
 const networkCheck = (playUrl) => {
@@ -298,7 +293,7 @@ const networkCheck = (playUrl) => {
 }
 
 const loadVideo = (vid) => {
-  httpVideo(vid, getCurrentSource(route.value))
+  httpVideo(vid, getCurrentSource(route))
       .then((resp) => {
         video.value = resp.data
       })
@@ -316,14 +311,14 @@ const getArtInstance = (art) => {
   console.info('[art]', art)
   artInstance.value = art
   art.on('ready', async () => {
-    const _findHistory = await findHistory(getCurrentSource(route.value), vid.value, pid.value)
+    const _findHistory = await findHistory(getCurrentSource(route), vid.value, pid.value)
     if (
         _findHistory &&
         _findHistory.lastTime &&
         _findHistory.duration - _findHistory.lastTime >= 60
     ) {
       art.seek = _findHistory.lastTime
-      message.value.info('跳转到最新进度播放')
+      message.info('跳转到最新进度播放')
     }
     art.play()
   })
@@ -331,6 +326,11 @@ const getArtInstance = (art) => {
   art.on('play', () => {
     console.info('play')
     handlerTimeUpdate()
+  })
+  art.on('error', (error, reconnectTime) => {
+    if (reconnectTime >= Artplayer.RECONNECT_TIME_MAX) {
+      playType.value++
+    }
   })
 
   if (artOption.value && artOption.value.url) {
@@ -349,7 +349,7 @@ const handlerTimeUpdate = () => {
 }
 
 const addHistoryWarp = async () => {
-  const _source = getCurrentSource(route.value)
+  const _source = getCurrentSource(route)
   const find = await findHistory(_source, vid.value, pid.value)
   if (!find) {
     await addHistory({
@@ -420,47 +420,16 @@ const addControlEventHandler = () => {
   })
 }
 
-export default defineComponent({
-  components: {
-    NEllipsis,
-    AppFooter,
-    NH2,
-    AppSourceList,
-    AppHeader,
-    AppArtplayer,
-    NText,
-    NCollapseItem,
-    NCollapse,
-  },
-  setup() {
-    route.value = useRoute()
-    loadingBar.value = useLoadingBar()
+onBeforeMount(onBeforeMountHandler)
+onMounted(onMountedHandler)
+onBeforeUpdate(onBeforeUpdateHandler)
+onUpdated(onUpdatedHandler)
+onBeforeUnmount(onBeforeUnmountHandler)
 
-    notification.value = useNotification()
-    message.value = useMessage()
-
-    onBeforeMount(onBeforeMountHandler)
-    onMounted(onMountedHandler)
-    onBeforeUpdate(onBeforeUpdateHandler)
-    onUpdated(onUpdatedHandler)
-    onBeforeUnmount(onBeforeUnmountHandler)
-
-    watch(route, (newValue) => {
-      console.log('[route]', newValue)
-    })
-
-    return {
-      source,
-      video,
-      videoSourceList,
-      artOption,
-      artStyle,
-      getArtInstance,
-      vid,
-      pid,
-    }
-  },
+watch(route, (newValue) => {
+  console.log('[route]', newValue)
 })
+
 </script>
 
 <style scoped>
