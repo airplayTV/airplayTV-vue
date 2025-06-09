@@ -34,109 +34,73 @@
   </div>
 </template>
 
-<script>
-import {defineComponent, onBeforeMount, ref} from 'vue'
-import {
-  NButton,
-  NEllipsis,
-  NGi,
-  NGrid,
-  NIcon,
-  NImage,
-  NInput,
-  NInputGroup,
-  NPagination,
-  NResult,
-  NSelect,
-  useLoadingBar,
-} from 'naive-ui'
+<script setup>
+import {onBeforeMount, ref} from 'vue'
+import {NEllipsis, NGi, NGrid, NImage, NPagination, NResult, useLoadingBar,} from 'naive-ui'
 import {httpVideoList} from '../helpers/api'
-import {BrokenImageRound} from '@vicons/material'
-import {getCurrentSource, getStorageSync} from '../helpers/utils'
-import {KEY_VIDEO_SOURCE, KEY_VIDEO_TAG} from '../helpers/constant'
+import {getCurrentSource} from '../helpers/utils'
 import {useRoute, useRouter} from 'vue-router'
+import {useAppStore} from "@/stores/app.js";
 
 const videoList = ref([])
 const pages = ref(0)
-const page = ref(0)
-const loadingBar = ref(null)
-const router = ref(null)
-const route = ref(null)
+const page = ref(1)
+const loadingBar = useLoadingBar()
+const router = useRouter()
+const route = useRoute()
 const noVideoListMsg = ref(false)
+const appStore = useAppStore()
 
 const loadVideoList = (tag, _page) => {
-  loadingBar.value?.start()
+  loadingBar.start()
   videoList.value = []
   pages.value = 0
   page.value = 0
   noVideoListMsg.value = null
 
-  httpVideoList(tag, _page, getCurrentSource(route.value))
-      .then((resp) => {
-        videoList.value = resp.data.list
-        pages.value = resp.data.pages
-        page.value = resp.data.page
+  httpVideoList(tag, _page, getCurrentSource(route)).then((resp) => {
+    videoList.value = resp.data.list
+    pages.value = resp.data.pages
+    page.value = resp.data.page
 
-        if (!resp.data.list || resp.data.list.length === 0) {
-          noVideoListMsg.value = '暂无数据'
-        }
-      })
-      .catch((err) => {
-        console.log('[httpVideoList.Error]', err)
-        noVideoListMsg.value = err
-      })
-      .finally(() => {
-        loadingBar.value?.finish()
-      })
+    if (!resp.data.list || resp.data.list.length === 0) {
+      noVideoListMsg.value = '暂无数据'
+    }
+  }).catch((err) => {
+    console.log('[httpVideoList.Error]', err)
+    noVideoListMsg.value = err
+  }).finally(() => {
+    loadingBar.finish()
+  })
 }
 
 const onBeforeMountHandler = () => {
-  loadVideoList(getStorageSync(KEY_VIDEO_TAG), 1)
+  const q = route.query
+  if (+q.page) {
+    page.value = +q.page
+  }
+  if (q._source) {
+    appStore.setSource(q._source)
+  }
+  if (q.tag) {
+    appStore.setTags(q.tag)
+  }
+
+  loadVideoList(appStore.tags, page.value)
 }
 
 const onUpdatePage = (data) => {
-  console.log('[onUpdatePage]', data)
-  loadVideoList(getStorageSync(KEY_VIDEO_TAG), data)
+  router.push(`/?page=${data}&tag=${appStore.tags}&_source=${appStore.source}`)
 }
 
 const onOpenVideo = (video) => {
-  const source = getStorageSync(KEY_VIDEO_SOURCE)
-  router.value.push(`/video/detail/${video.id}?_source=${source}`)
+  router.push(`/video/detail/${video.id}?_source=${appStore.source}`)
 }
 
-export default defineComponent({
-  components: {
-    NResult,
-    NSelect,
-    NInputGroup,
-    NInput,
-    NButton,
-    NIcon,
-    NGrid,
-    NGi,
-    NImage,
-    NEllipsis,
-    NPagination,
-    BrokenImageRound,
-  },
-  props: ['cols'],
-  setup() {
-    // const { sourceList } = storeToRefs(useAppStore())
-    // const { getSourceList, setSourceList } = useAppStore()
-    onBeforeMount(onBeforeMountHandler)
-    loadingBar.value = useLoadingBar()
-    router.value = useRouter()
-    route.value = useRoute()
-    return {
-      videoList,
-      pages,
-      page,
-      onUpdatePage,
-      onOpenVideo,
-      noVideoListMsg,
-    }
-  },
-})
+defineProps(['cols'])
+
+onBeforeMount(onBeforeMountHandler)
+
 </script>
 
 <style scoped>
