@@ -4,26 +4,29 @@
       <div class="padding-30px"></div>
       <n-result status="404" title="暂无数据" :description="noVideoListMsg"></n-result>
     </div>
-    <div v-else>
+    <div v-else class="links">
       <n-grid x-gap="12" y-gap="1" :cols="cols">
-        <n-gi v-for="(video, idx) in videoList" :key="idx" @click="onOpenVideo(video)">
-          <div class="flex-row flex-justify-center flex-align-center">
-            <n-image
-                width="175"
-                height="230"
-                :src="video.thumb"
-                :key="video.thumb"
-                class="thumb"
-                object-fit="cover"
-                preview-disabled
-            />
-          </div>
+        <n-gi v-for="(video, idx) in videoList" :key="idx">
+          <RouterLink :to="`/video/detail/${video.id}?_source=${appStore.source}`" class="flex-column">
+            <div class="flex-row flex-justify-center flex-align-center">
+              <n-image
+                  width="175"
+                  height="230"
+                  :src="video.thumb"
+                  :key="video.thumb"
+                  class="thumb"
+                  object-fit="cover"
+                  preview-disabled
+              />
+            </div>
 
-          <div class="name text-align-center">
-            <n-ellipsis :line-clamp="1">
-              {{ video.name }}
-            </n-ellipsis>
-          </div>
+            <div class="name text-align-center">
+              <n-ellipsis :line-clamp="1">
+                {{ video.name }}
+              </n-ellipsis>
+            </div>
+          </RouterLink>
+
         </n-gi>
       </n-grid>
     </div>
@@ -38,7 +41,6 @@
 import {onBeforeMount, ref} from 'vue'
 import {NEllipsis, NGi, NGrid, NImage, NPagination, NResult, useLoadingBar,} from 'naive-ui'
 import {httpVideoList} from '../helpers/api'
-import {getCurrentSource} from '../helpers/utils'
 import {useRoute, useRouter} from 'vue-router'
 import {useAppStore} from "@/stores/app.js";
 
@@ -58,7 +60,7 @@ const loadVideoList = (tag, _page) => {
   page.value = 0
   noVideoListMsg.value = null
 
-  httpVideoList(tag, _page, getCurrentSource(route)).then((resp) => {
+  httpVideoList(tag, _page, appStore.source).then((resp) => {
     videoList.value = resp.data.list
     pages.value = resp.data.pages
     page.value = resp.data.page

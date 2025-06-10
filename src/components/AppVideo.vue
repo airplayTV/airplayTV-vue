@@ -49,7 +49,7 @@ import {useRoute} from 'vue-router'
 import {httpVideo} from '@/helpers/api'
 import AppSourceList from '@/components/AppSourceList.vue'
 import {formatVideoSourceMap} from '@/helpers/app'
-import {getCurrentSource} from '@/helpers/utils'
+import {useAppStore} from "@/stores/app.js";
 
 const video = ref(null)
 // const pages = ref(0)
@@ -58,20 +58,18 @@ const _key = ref(null)
 
 const loadingBar = ref(null)
 const route = ref(null)
+const appStore = useAppStore()
 
 const loadVideo = (id) => {
   video.value = null
   loadingBar.value.start()
-  httpVideo(id, getCurrentSource(route.value))
-      .then((resp) => {
-        video.value = resp.data
-      })
-      .catch((err) => {
-        console.log('[httpVideo.Error]', err)
-      })
-      .finally(() => {
-        loadingBar.value.finish()
-      })
+  httpVideo(id, appStore.source).then((resp) => {
+    video.value = resp.data
+  }).catch((err) => {
+    console.log('[httpVideo.Error]', err)
+  }).finally(() => {
+    loadingBar.value.finish()
+  })
 }
 
 const onBeforeMountHandler = () => {

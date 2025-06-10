@@ -17,19 +17,21 @@
         </n-text>
       </n-h5>
 
-      <div class="flex-row" style="gap: 8px 12px">
+      <div class="flex-row links" style="gap: 8px 12px">
         <div v-for="(item, idx) in source" :key="idx" class="source-item">
           <n-tag
               :type="pid === item.id ? 'info' : ''"
               :bordered="false"
               @click="onOpenVideoPlay(vid, item)"
           >
-            <div class="xx-uu" style="display: flex; align-items: center">
-              {{ item.name }}
-              <n-icon v-if="room" size="18" color="#0e7a0d" style="margin-left: 5px">
-                <CastRound />
-              </n-icon>
-            </div>
+            <RouterLink :to="`/video/play/${vid}/${item.id}?_source=${appStore.source}`" class="flex-column">
+              <div class="xx-uu" style="display: flex; align-items: center">
+                {{ item.name }}
+                <n-icon v-if="room" size="18" color="#0e7a0d" style="margin-left: 5px">
+                  <CastRound />
+                </n-icon>
+              </div>
+            </RouterLink>
           </n-tag>
         </div>
       </div>
@@ -63,9 +65,10 @@ import {
 } from 'naive-ui'
 import {BrokenImageRound, CastRound} from '@vicons/material'
 import {useRoute, useRouter} from 'vue-router'
-import {getCurrentSource, getStorageSync} from '../helpers/utils'
+import {getStorageSync} from '../helpers/utils'
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from '../helpers/constant'
 import {ControlEventLoadVideo, sendControl} from '@/helpers/websocket'
+import {useAppStore} from "@/stores/app.js";
 
 const video = ref(null)
 const route = ref(null)
@@ -73,10 +76,11 @@ const router = ref(null)
 const room = ref(null)
 const clientId = ref(null)
 const message = ref(null)
+const appStore = useAppStore()
 
 const onOpenVideoPlay = (vid, source) => {
   if (!room.value) {
-    router.value.push(`/video/play/${vid}/${source.id}?_source=${getCurrentSource(route.value)}`)
+    router.value.push(`/video/play/${vid}/${source.id}?_source=${appStore.source}`)
   } else {
     // 投射播放
     sendControl(room.value, {
@@ -85,7 +89,7 @@ const onOpenVideoPlay = (vid, source) => {
       vid: vid,
       pid: source.id,
       // name: source.name,
-      source: getCurrentSource(route.value),
+      source: appStore.source,
     })
     // message.value.info('已发送投射播放请求')
     router.value.push('/control')
@@ -133,6 +137,7 @@ export default defineComponent({
       video,
       onOpenVideoPlay,
       room,
+      appStore,
     }
   },
 })

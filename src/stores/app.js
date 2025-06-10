@@ -1,5 +1,7 @@
 import {ref} from 'vue'
 import {defineStore} from 'pinia'
+import {setStorageSync} from "@/helpers/utils.js";
+import {KEY_VIDEO_SOURCE, KEY_VIDEO_SOURCE_LIST, KEY_VIDEO_TAG} from "@/helpers/constant.js";
 
 export const useAppStore = defineStore('app', () => {
   const sourceList = ref(null)
@@ -11,14 +13,17 @@ export const useAppStore = defineStore('app', () => {
   }
 
   function setSourceList(data) {
+    setStorageSync(KEY_VIDEO_SOURCE_LIST, data)
     sourceList.value = data
   }
 
   function setSource(data) {
+    setStorageSync(KEY_VIDEO_SOURCE, data)
     source.value = data
   }
 
   function setTags(data) {
+    setStorageSync(KEY_VIDEO_TAG, data)
     tags.value = data
   }
 

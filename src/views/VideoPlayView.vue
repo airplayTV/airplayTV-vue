@@ -51,7 +51,7 @@
 
 <script setup>
 import {computed, onBeforeMount, onBeforeUnmount, onBeforeUpdate, onMounted, onUpdated, ref, watch,} from 'vue'
-import {useRoute} from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import {httpPlayUrlNetworkCheck, httpVideo, httpVideoSource} from '../helpers/api'
 import {NCollapse, NCollapseItem, NEllipsis, NH2, NText, useLoadingBar, useMessage,} from 'naive-ui'
@@ -62,7 +62,6 @@ import Hls from 'hls.js'
 import artplayerPluginHlsControl from 'artplayer-plugin-hls-control'
 import AppFooter from '@/components/AppFooter.vue'
 import {addHistory, findHistory, updateHistory} from '@/helpers/db'
-import {getCurrentSource} from '@/helpers/utils'
 import {
   addEventHandler,
   ControlEventBack,
@@ -80,10 +79,13 @@ import {
 } from '@/helpers/websocket'
 import axios from 'axios'
 import {apiUrl} from '@/config'
+import {useAppStore} from "@/stores/app.js";
 
 const route = useRoute()
+const router = useRouter()
 const loadingBar = useLoadingBar()
 const message = useMessage()
+const appStore = useAppStore()
 
 const timer = ref(null)
 const vid = ref(null)
@@ -230,38 +232,35 @@ const checkSourceUrl = (url, errorCallback = null) => {
 
 const loadVideoSource = (vid, pid, count = 0) => {
   loadingBar.start()
-  httpVideoSource(vid, pid, getCurrentSource(route), count !== 0)
-      .then((resp) => {
-        if (count <= 1) {
-          checkSourceUrl(resp.data.url, () => {
-            loadVideoSource(vid, pid, ++count)
-          })
-        }
-        source.value = resp.data
-        if (resp.data.type === 'hls') {
-          artOption.value = {
-            url: resp.data.url,
-            fullscreen: true,
-            fullscreenWeb: true,
+  httpVideoSource(vid, pid, appStore.source, count !== 0).then((resp) => {
+    if (count <= 1) {
+      checkSourceUrl(resp.data.url, () => {
+        loadVideoSource(vid, pid, ++count)
+      })
+    }
+    source.value = resp.data
+    if (resp.data.type === 'hls') {
+      artOption.value = {
+        url: resp.data.url,
+        fullscreen: true,
+        fullscreenWeb: true,
 
-            ...getHlsOptions(),
-            ...getControls()
-          }
-        } else {
-          artOption.value = {
-            url: resp.data.url,
-            fullscreen: true,
-            fullscreenWeb: true
-            // ...getControls()
-          }
-        }
-      })
-      .catch((err) => {
-        console.log('[httpVideoSource.Error]', err)
-      })
-      .finally(() => {
-        loadingBar.finish()
-      })
+        ...getHlsOptions(),
+        ...getControls()
+      }
+    } else {
+      artOption.value = {
+        url: resp.data.url,
+        fullscreen: true,
+        fullscreenWeb: true
+        // ...getControls()
+      }
+    }
+  }).catch((err) => {
+    console.log('[httpVideoSource.Error]', err)
+  }).finally(() => {
+    loadingBar.finish()
+  })
 }
 const networkCheck = (playUrl) => {
   httpPlayUrlNetworkCheck(playUrl).then(resp => {
@@ -293,13 +292,11 @@ const networkCheck = (playUrl) => {
 }
 
 const loadVideo = (vid) => {
-  httpVideo(vid, getCurrentSource(route))
-      .then((resp) => {
-        video.value = resp.data
-      })
-      .catch((err) => {
-        console.log('[httpVideo.Error]', err)
-      })
+  httpVideo(vid, appStore.source).then((resp) => {
+    video.value = resp.data
+  }).catch((err) => {
+    console.log('[httpVideo.Error]', err)
+  })
 }
 
 // const videoSourceList = computed(formatVideoSourceMap(video.value?.links))
@@ -311,7 +308,7 @@ const getArtInstance = (art) => {
   console.info('[art]', art)
   artInstance.value = art
   art.on('ready', async () => {
-    const _findHistory = await findHistory(getCurrentSource(route), vid.value, pid.value)
+    const _findHistory = await findHistory(appStore.source, vid.value, pid.value)
     if (
         _findHistory &&
         _findHistory.lastTime &&
@@ -332,11 +329,36 @@ const getArtInstance = (art) => {
       playType.value++
     }
   })
+  art.on('video:ended', (e) => {
+    if (artInstance.value.currentTime > 0 && artInstance.value.currentTime === artInstance.value.duration) {
+      handleNextVideo()
+    }
+  })
 
   if (artOption.value && artOption.value.url) {
     networkCheck(artOption.value.url)
   }
 
+}
+
+const handleNextVideo = () => {
+  let found = null
+  const _pid = source.value.id
+  const tmpLinks = video.value.links
+  for (let i = 0; i < tmpLinks.length; i++) {
+    if (tmpLinks[i].id === _pid) {
+      found = true
+    }
+    if (found && i + 1 < tmpLinks.length) {
+      console.log('[即将播放]', tmpLinks[i + 1])
+      const nextSource = tmpLinks[i + 1]
+
+      router.push(`/video/play/${vid.value}/${nextSource.id}?_source=${appStore.source}`)
+    }
+    if (found) {
+      break
+    }
+  }
 }
 
 const handlerTimeUpdate = () => {
@@ -349,7 +371,7 @@ const handlerTimeUpdate = () => {
 }
 
 const addHistoryWarp = async () => {
-  const _source = getCurrentSource(route)
+  const _source = appStore.source
   const find = await findHistory(_source, vid.value, pid.value)
   if (!find) {
     await addHistory({

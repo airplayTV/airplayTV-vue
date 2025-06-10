@@ -103,3 +103,18 @@
 .min-height-100vh {
   min-height: 100vh;
 }
+
+
+.links {
+  & a {
+    padding: 3px 0;
+    margin: 0 6px;
+    color: rgba(0, 0, 0, 0.8);
+    text-decoration: none;
+  }
+
+  .router-link-active {
+    color: #18a058;
+    border-bottom: 2px solid #18a058;
+  }
+}

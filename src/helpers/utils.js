@@ -1,5 +1,3 @@
-import { KEY_VIDEO_SOURCE } from '@/helpers/constant'
-
 const getStorageSync = (key) => {
   const v = localStorage.getItem(key)
   if (!v) {
@@ -47,16 +45,6 @@ const arrayValuePick = (list, params, calculate) => {
   return result
 }
 
-const getCurrentSource = (route) => {
-  // if (route && route._source) {
-  //   return route._source
-  // }
-  if (route && route.query?._source) {
-    return route.query._source
-  }
-  return getStorageSync(KEY_VIDEO_SOURCE)
-}
-
 const computeWindowWidthColumn = () => {
   let column = 0
   if (window.innerWidth <= 350) {
@@ -80,6 +68,5 @@ export {
   setStorageSync,
   removeStorageSync,
   arrayContainsValue,
-  getCurrentSource,
   computeWindowWidthColumn
 }
