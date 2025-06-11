@@ -25,7 +25,7 @@
               </div>
             </div>
 
-            <div class="name text-align-center">
+            <div class="name text-align-center flex-justify-center">
               <n-ellipsis :line-clamp="1">
                 {{ video.name }}
               </n-ellipsis>
@@ -119,6 +119,7 @@ onBeforeMount(onBeforeMountHandler)
 
 .name {
   padding: 5px 0;
+  display: flex;
 }
 
 .vod-update-time {

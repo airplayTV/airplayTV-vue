@@ -1,29 +1,32 @@
 <template>
   <div>
-    <n-grid x-gap="12" y-gap="1" :cols="cols">
-      <n-gi v-for="(video, idx) in videoList" :key="idx" @click="onOpenVideo(video)">
-        <div class="flex-row flex-justify-center flex-align-center position-relative">
-          <n-image
-              width="175"
-              height="230"
-              :src="video.thumb"
-              :key="video.thumb"
-              class="thumb"
-              object-fit="cover"
-              preview-disabled
-          />
-          <div class="position-absolute vod-update-time">
-            <div class="c" v-if="video.updated_at">
-              更新：{{ FormatToDate(video.updated_at) }}
+    <n-grid x-gap="12" y-gap="1" :cols="cols" class="links">
+      <n-gi v-for="(video, idx) in videoList" :key="idx">
+        <RouterLink target="_blank" :to="`/video/detail/${video.id}?_source=${pageSource}`" class="flex-column">
+          <div class="flex-row flex-justify-center flex-align-center position-relative">
+            <n-image
+                width="175"
+                height="230"
+                :src="video.thumb"
+                :key="video.thumb"
+                class="thumb"
+                object-fit="cover"
+                preview-disabled
+            />
+            <div class="position-absolute vod-update-time">
+              <div class="c" v-if="video.updated_at">
+                更新：{{ FormatToDate(video.updated_at) }}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="name text-align-center">
-          <n-ellipsis :line-clamp="1">
-            {{ video.name }}
-          </n-ellipsis>
-        </div>
+          <div class="name text-align-center flex-justify-center">
+            <n-ellipsis :line-clamp="1">
+              {{ video.name }}
+            </n-ellipsis>
+          </div>
+
+        </RouterLink>
       </n-gi>
     </n-grid>
 
@@ -100,6 +103,7 @@ export default defineComponent({
 
 .name {
   padding: 5px 0;
+  display: flex;
 }
 
 .vod-update-time {
