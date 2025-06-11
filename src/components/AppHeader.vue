@@ -31,16 +31,16 @@
     <div v-if="showSearch">
       <div style="padding: 2px"></div>
       <n-input-group>
-        <n-input v-model:value="keyword" type="text" placeholder="请输入关键字进行查找" />
+        <n-input v-model:value="keyword" type="text" @keyup.enter="onClickSearch" placeholder="请输入关键字进行查找" />
 
-        <n-button type="primary" ghost @click="onClickSearch"> 搜索</n-button>
+        <n-button type="primary" ghost @click="onClickSearch">搜索</n-button>
       </n-input-group>
     </div>
   </div>
 </template>
 
 <script>
-import {defineComponent, onBeforeMount, onBeforeUpdate, onUpdated, ref} from 'vue'
+import {defineComponent, onBeforeMount, onBeforeUpdate, ref} from 'vue'
 import {NButton, NIcon, NInput, NInputGroup, NSelect} from 'naive-ui'
 import {SearchSharp} from '@vicons/material'
 import {useAppStore} from '@/stores/app'
