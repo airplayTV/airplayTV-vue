@@ -19,7 +19,7 @@
                   preview-disabled
               />
               <div class="position-absolute vod-update-time">
-                <div class="c">
+                <div class="c" v-if="video.updated_at">
                   更新：{{ FormatToDate(video.updated_at) }}
                 </div>
               </div>
