@@ -117,23 +117,17 @@ const onUpdatePage = (data) => {
 
   loadingBar.value?.start()
 
-  httpVideoSearch(new URLSearchParams(o).toString())
-      .then((resp) => {
-        console.log('[httpVideoSearch.resp]', resp)
-        console.log('[data.source]', data.source)
-
-        videoSearchResultMap.value[data.source] = {
-          total: resp.data?.total,
-          msg: resp?.msg,
-          ...resp.data,
-        }
-      })
-      .catch((err) => {
-        console.log('[httpVideoSearch.Error]', err)
-      })
-      .finally(() => {
-        loadingBar.value?.finish()
-      })
+  httpVideoSearch(new URLSearchParams(o).toString()).then((resp) => {
+    videoSearchResultMap.value[data.source] = {
+      total: resp.data?.total,
+      msg: resp?.msg,
+      ...resp.data,
+    }
+  }).catch((err) => {
+    console.log('[httpVideoSearch.Error]', err)
+  }).finally(() => {
+    loadingBar.value?.finish()
+  })
 }
 
 const computedTabName = (sourceName) => {
