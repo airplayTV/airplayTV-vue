@@ -161,5 +161,9 @@ export default defineComponent({
     display: flex;
     justify-content: center;
   }
+
+  ::v-deep(.router-link-active) {
+    border-bottom: unset !important;
+  }
 }
 </style>
