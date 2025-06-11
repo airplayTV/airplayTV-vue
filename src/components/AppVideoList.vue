@@ -7,8 +7,8 @@
     <div v-else class="links">
       <n-grid x-gap="12" y-gap="1" :cols="cols">
         <n-gi v-for="(video, idx) in videoList" :key="idx">
-          <RouterLink :to="`/video/detail/${video.id}?_source=${appStore.source}`" class="flex-column">
-            <div class="flex-row flex-justify-center flex-align-center">
+          <RouterLink target="_blank" :to="`/video/detail/${video.id}?_source=${appStore.source}`" class="flex-column">
+            <div class="flex-row flex-justify-center flex-align-center position-relative">
               <n-image
                   width="175"
                   height="230"
@@ -18,6 +18,11 @@
                   object-fit="cover"
                   preview-disabled
               />
+              <div class="position-absolute vod-update-time">
+                <div class="c">
+                  更新：{{ FormatToDate(video.updated_at) }}
+                </div>
+              </div>
             </div>
 
             <div class="name text-align-center">
@@ -43,6 +48,7 @@ import {NEllipsis, NGi, NGrid, NImage, NPagination, NResult, useLoadingBar,} fro
 import {httpVideoList} from '../helpers/api'
 import {useRoute, useRouter} from 'vue-router'
 import {useAppStore} from "@/stores/app.js";
+import {FormatToDate} from "../helpers/time.js";
 
 const videoList = ref([])
 const pages = ref(0)
@@ -113,5 +119,18 @@ onBeforeMount(onBeforeMountHandler)
 
 .name {
   padding: 5px 0;
+}
+
+.vod-update-time {
+  width: 175px;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.47);
+  border-radius: 4px;
+  font-size: 12px;
+  color: #ffffff;
+
+  .c {
+    padding: 4px 6px;
+  }
 }
 </style>

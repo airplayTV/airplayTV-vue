@@ -2,7 +2,7 @@
   <div>
     <n-grid x-gap="12" y-gap="1" :cols="cols">
       <n-gi v-for="(video, idx) in videoList" :key="idx" @click="onOpenVideo(video)">
-        <div class="flex-row flex-justify-center flex-align-center">
+        <div class="flex-row flex-justify-center flex-align-center position-relative">
           <n-image
               width="175"
               height="230"
@@ -12,6 +12,11 @@
               object-fit="cover"
               preview-disabled
           />
+          <div class="position-absolute vod-update-time">
+            <div class="c" v-if="video.updated_at">
+              更新：{{ FormatToDate(video.updated_at) }}
+            </div>
+          </div>
         </div>
 
         <div class="name text-align-center">
@@ -40,6 +45,7 @@ import {defineComponent, ref} from 'vue'
 import {NButton, NEllipsis, NGi, NGrid, NIcon, NImage, NInput, NInputGroup, NPagination, NSelect,} from 'naive-ui'
 import {BrokenImageRound} from '@vicons/material'
 import {useRouter} from 'vue-router'
+import {FormatToDate} from "@/helpers/time.js";
 
 const router = ref(null)
 const pageModel = ref(null)
@@ -50,6 +56,7 @@ const onOpenVideo = (video) => {
 }
 
 export default defineComponent({
+  methods: { FormatToDate },
   components: {
     NSelect,
     NInputGroup,
@@ -93,5 +100,18 @@ export default defineComponent({
 
 .name {
   padding: 5px 0;
+}
+
+.vod-update-time {
+  width: 175px;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.47);
+  border-radius: 4px;
+  font-size: 12px;
+  color: #ffffff;
+
+  .c {
+    padding: 4px 6px;
+  }
 }
 </style>

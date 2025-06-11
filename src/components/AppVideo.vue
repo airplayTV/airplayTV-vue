@@ -18,9 +18,17 @@
         <n-text depth="2">简介：</n-text>
       </b>
       <n-text depth="3">
-        {{ video.intro }}
+        {{ video.intro ? video.intro : '暂无' }}
       </n-text>
     </n-ellipsis>
+
+    <div style="padding: 5px"></div>
+    <div>
+      <b>
+        <n-text depth="2">更新：</n-text>
+      </b>
+      <n-text depth="3">{{ video.updated_at }}</n-text>
+    </div>
 
     <AppSourceList :source-list="videoSourceList" :vid="video.id" />
   </div>

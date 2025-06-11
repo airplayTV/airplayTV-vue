@@ -13,6 +13,7 @@
     "artplayer-plugin-hls-control": "^1.0.1",
     "axios": "^1.7.9",
     "copy-to-clipboard": "^3.3.3",
+    "dayjs": "^1.11.13",
     "dexie": "^4.0.11",
     "fecha": "^4.2.3",
     "hls.js": "^1.5.20",
