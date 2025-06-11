@@ -1,7 +1,7 @@
 <template>
   <div>
     <n-grid x-gap="12" y-gap="1" :cols="cols" class="links">
-      <n-gi v-for="(video, idx) in videoList" :key="idx">
+      <n-gi v-for="(video, idx) in videoList" :key="video.id">
         <RouterLink target="_blank" :to="`/video/detail/${video.id}?_source=${pageSource}`" class="flex-column">
           <div class="flex-row flex-justify-center flex-align-center position-relative">
             <n-image

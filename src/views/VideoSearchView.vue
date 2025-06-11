@@ -3,23 +3,24 @@
     <div>
       <AppHeader />
       <div style="padding: 0 10px">
-        <n-tabs type="line" animated placement="top">
+        <n-tabs type="line" animated placement="top" :key="videoSearchResultKey">
           <n-tab-pane
-              v-for="(item, sourceName) in videoSearchResultMap"
-              :key="sourceName"
-              :name="sourceName"
-              :tab="computedTabName(sourceName)"
+              v-for="item in videoSearchResultList"
+              :key="item._id"
+              :name="item.source"
+              :tab="computedTabName(item)"
           >
             <AppSearchList
+                :key="videoSearchResultKey"
                 :cols="cols"
-                :video-list="videoSearchResultMap[sourceName].list"
-                :page="videoSearchResultMap[sourceName].page"
-                :pages="videoSearchResultMap[sourceName].pages"
-                :source="sourceName"
+                :video-list="item.data.list"
+                :page="item.data.page"
+                :pages="item.data.pages"
+                :source="item.source"
                 @on-update-page="onUpdatePage"
             />
 
-            <div v-if="computedTabMsg(sourceName)">
+            <div v-if="computedTabMsg(item)">
               <div class="padding-30px"></div>
               <n-result status="404" title="暂无数据" :description="item.msg"></n-result>
             </div>
@@ -35,7 +36,6 @@
 <script>
 import {defineComponent, onBeforeMount, onBeforeUpdate, onMounted, onUpdated, ref} from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
-import {storeToRefs} from 'pinia'
 import {useAppStore} from '@/stores/app'
 import {NResult, NTabPane, NTabs, useLoadingBar} from 'naive-ui'
 import AppSearchList from '@/components/AppSearchList.vue'
@@ -50,6 +50,8 @@ const windowWidth = ref(0)
 const cols = ref(2)
 const appSourceList = ref(null)
 const videoSearchResultMap = ref({})
+const videoSearchResultList = ref([])
+const videoSearchResultKey = ref('')
 const searchEventSource = ref(null)
 const loadingBar = ref(null)
 const keyword = ref(null)
@@ -73,6 +75,9 @@ const onBeforeMountHandler = () => {
 const resetSearchEvent = (keyword) => {
   loadingBar.value?.start()
 
+  videoSearchResultList.value = []
+  let tmpList = []
+
   searchEventSource.value = new EventSource(
       `${apiUrl}/api/sse/video/search?_source=${appStore.source}&keyword=${keyword}&page=1`,
   )
@@ -81,7 +86,7 @@ const resetSearchEvent = (keyword) => {
     try {
       const resp = JSON.parse(e.data)
       let d = resp.data.data
-      console.log('[d]', resp.source, resp.data)
+      // console.log('[d]', resp.source, resp.data)
       if (resp.data.code === 200) {
         d.msg = ''
       } else {
@@ -89,7 +94,12 @@ const resetSearchEvent = (keyword) => {
         d.msg = resp.data.msg
         d.total = 0
       }
-      videoSearchResultMap.value[resp.source] = d
+
+      tmpList.push({ source: resp.source, data: d, total: d.total, _id: Math.random() })
+      tmpList.sort((a, b) => b.total - a.total)
+      videoSearchResultList.value = tmpList
+
+      videoSearchResultKey.value = `${Math.random()}`
     } catch (e) {
       console.log('[JSON.Error]', e)
     }
@@ -118,11 +128,19 @@ const onUpdatePage = (data) => {
   loadingBar.value?.start()
 
   httpVideoSearch(new URLSearchParams(o).toString()).then((resp) => {
-    videoSearchResultMap.value[data.source] = {
-      total: resp.data?.total,
-      msg: resp?.msg,
-      ...resp.data,
-    }
+    videoSearchResultList.value.filter((item, idx) => {
+      if (item.source === data.source) {
+        videoSearchResultList.value[idx] = {
+          source: data.source,
+          data: resp.data,
+          total: resp.data.total,
+          _id: Math.random()
+        }
+        videoSearchResultList.value = [...videoSearchResultList.value]
+      }
+    })
+
+    // videoSearchResultKey.value = `${Math.random()}`
   }).catch((err) => {
     console.log('[httpVideoSearch.Error]', err)
   }).finally(() => {
@@ -130,20 +148,11 @@ const onUpdatePage = (data) => {
   })
 }
 
-const computedTabName = (sourceName) => {
-  const n = videoSearchResultMap.value[sourceName]?.total
-  if (n === false) {
-    return sourceName
-  }
-  return `${sourceName}(${n})`
+const computedTabName = (item) => {
+  return `${item.source}(${item.total})`
 }
-const computedTabMsg = (sourceName) => {
-  // console.log('[xx]', {
-  //   aa: sourceName,
-  //   bb: videoSearchResultMap.value[sourceName]?.msg,
-  //   cc: JSON.parse(JSON.stringify(videoSearchResultMap.value[sourceName]))
-  // })
-  return videoSearchResultMap.value[sourceName]?.msg
+const computedTabMsg = (item) => {
+  return item.data.msg
 }
 
 const onBeforeUpdateHandler = () => {
@@ -156,9 +165,7 @@ const onUpdatedHandler = () => {
 }
 
 const resetVideoSearchResultMap = () => {
-  appSourceList.value.filter((item) => {
-    videoSearchResultMap.value[item.name] = { msg: false, total: false, name: item.name }
-  })
+  videoSearchResultList.value = []
 }
 
 const doSearch = () => {
@@ -179,11 +186,8 @@ export default defineComponent({
     NResult,
   },
   setup() {
-    const { sourceList } = storeToRefs(useAppStore())
-    const { getSourceList, setSourceList } = useAppStore()
-
-    appSourceList.value = sourceList.value
-    // console.log('[sourceList.XXX]', sourceList.value)
+    const appStore = useAppStore()
+    appSourceList.value = appStore.sourceList
 
     route.value = useRoute()
     loadingBar.value = useLoadingBar()
@@ -197,8 +201,11 @@ export default defineComponent({
       // appSourceList,
       onUpdatePage,
       videoSearchResultMap,
+      videoSearchResultList,
+      videoSearchResultKey,
       computedTabName,
       computedTabMsg,
+      route,
     }
   },
 })
