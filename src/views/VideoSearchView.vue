@@ -42,7 +42,7 @@ import AppSearchList from '@/components/AppSearchList.vue'
 import {useRoute} from 'vue-router'
 import {apiUrl} from '@/config'
 import {computeWindowWidthColumn} from '@/helpers/utils'
-import {httpVideoSearch} from '@/helpers/api'
+import {apiVideoSearchSSE, httpVideoSearch} from '@/helpers/api'
 import AppFooter from '@/components/AppFooter.vue'
 
 const route = ref(null)
@@ -78,9 +78,8 @@ const resetSearchEvent = (keyword) => {
   videoSearchResultList.value = []
   let tmpList = []
 
-  searchEventSource.value = new EventSource(
-      `${apiUrl}/api/sse/video/search?_source=${appStore.source}&keyword=${keyword}&page=1`,
-  )
+  const api = apiVideoSearchSSE(encodeURIComponent(keyword), 1, encodeURIComponent(appStore.source), encodeURIComponent(appStore.sourceSecret))
+  searchEventSource.value = new EventSource(`${apiUrl}${api}`)
 
   searchEventSource.value.addEventListener('update', (e) => {
     try {

@@ -1,6 +1,6 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import {arrayContainsValue, getStorageSync} from "@/helpers/utils.js";
-import {KEY_VIDEO_SOURCE, KEY_VIDEO_TAG} from "@/helpers/constant.js";
+import {KEY_VIDEO_SOURCE, KEY_VIDEO_SOURCE_SECRET, KEY_VIDEO_TAG, KEY_VIDEO_THUMB_LAYOUT} from "@/helpers/constant.js";
 import {useAppStore} from "@/stores/app.js";
 import {httpSourceList} from "@/helpers/api.js";
 import VideoListView from "@/views/VideoListView.vue";
@@ -71,7 +71,6 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const appStore = useAppStore()
-
   // 从 URL 解析 SOURCE 和 TAG
   if (to.query.hasOwnProperty('_source') && to.query._source !== appStore.source) {
     appStore.setSource(to.query._source)
@@ -80,52 +79,7 @@ router.beforeEach(async (to, from, next) => {
     appStore.setTags(to.query.tag)
   }
 
-  if (!appStore.sourceList) {
-    const resp = await httpSourceList()
-    appStore.setSourceList(resp.data)
-
-    checkOrResetSource(resp.data)
-  }
   next()
 })
-
-const checkOrResetSource = (sourceList) => {
-  const appStore = useAppStore()
-  const tmpSource = getStorageSync(KEY_VIDEO_SOURCE)
-  if (sourceList.length <= 0) {
-    return// 无可用源
-  }
-  // console.log('[xxx]', tmpSource)
-  const findSource = arrayContainsValue(sourceList, tmpSource, (item, v) => {
-    return item.name === v
-  })
-  // console.log('[findSource]', findSource)
-  if (!findSource) {
-    appStore.setSource(sourceList[0].name)
-    resetSourceTag(sourceList[0].tags)
-  } else {
-    appStore.setSource(tmpSource)
-    const tmpTags = arrayContainsValue(sourceList, tmpSource, (item, v) => {
-      if (item.name === v) {
-        return item.tags
-      }
-      return null
-    })
-    resetSourceTag(tmpTags)
-  }
-}
-
-const resetSourceTag = (currentSourceTags) => {
-  const appStore = useAppStore()
-  const tmpTag = getStorageSync(KEY_VIDEO_TAG)
-  const findTag = arrayContainsValue(currentSourceTags, tmpTag, (item, v) => {
-    return item.value === v
-  })
-  if (!findTag) {
-    appStore.setTags(currentSourceTags[0]?.value)
-  } else {
-    appStore.setTags(tmpTag)
-  }
-}
 
 export default router

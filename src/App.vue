@@ -1,12 +1,18 @@
 <script>
-import {defineComponent, onBeforeMount, onBeforeUnmount, ref} from 'vue'
+import {defineComponent, onBeforeMount, onBeforeUnmount, onMounted, ref} from 'vue'
 import {NLoadingBarProvider, NMessageProvider, NNotificationProvider, NSkeleton, NSpace, NSpin,} from 'naive-ui'
 // import { useAppStore } from '@/stores/app'
 import {storeToRefs} from 'pinia'
 import {useAppStore} from '@/stores/app'
 import {v4 as uuidv4} from 'uuid'
-import {getStorageSync, setStorageSync} from '@/helpers/utils'
-import {KEY_CLIENT_ID} from '@/helpers/constant'
+import {arrayContainsValue, getStorageSync, setStorageSync} from '@/helpers/utils'
+import {
+  KEY_CLIENT_ID,
+  KEY_VIDEO_SOURCE,
+  KEY_VIDEO_SOURCE_SECRET,
+  KEY_VIDEO_TAG,
+  KEY_VIDEO_THUMB_LAYOUT
+} from '@/helpers/constant'
 import {
   addEventHandler,
   connect,
@@ -18,6 +24,7 @@ import {
   removeEventHandler,
 } from '@/helpers/websocket'
 import {useRoute, useRouter} from 'vue-router'
+import {httpSourceList} from "@/helpers/api.js";
 
 const _pageKey = '_key_app_page_app_'
 const router = ref(null)
@@ -30,6 +37,8 @@ const onBeforeMountHandler = () => {
   }
 
   console.log('[client-id]', getStorageSync(KEY_CLIENT_ID))
+
+  initAppStore()
 
   addEventHandler(EventNameMessage, _pageKey, (data) => {
     switch (data.event) {
@@ -49,6 +58,62 @@ const onBeforeMountHandler = () => {
   })
   connect()
 }
+
+const initAppStore = async () => {
+  const appStore = useAppStore()
+
+  appStore.setSourceSecret(getStorageSync(KEY_VIDEO_SOURCE_SECRET))
+  appStore.setThumbLayout(getStorageSync(KEY_VIDEO_THUMB_LAYOUT))
+  if (!appStore.sourceList) {
+    const resp = await httpSourceList()
+    appStore.setSourceList(resp.data)
+    appStore.setSourceSecret(getStorageSync(KEY_VIDEO_SOURCE_SECRET))
+    appStore.setThumbLayout(getStorageSync(KEY_VIDEO_THUMB_LAYOUT))
+
+    checkOrResetSource(resp.data)
+  }
+
+}
+
+const checkOrResetSource = (sourceList) => {
+  const appStore = useAppStore()
+  const tmpSource = getStorageSync(KEY_VIDEO_SOURCE)
+  if (sourceList.length <= 0) {
+    return// 无可用源
+  }
+  // console.log('[xxx]', tmpSource)
+  const findSource = arrayContainsValue(sourceList, tmpSource, (item, v) => {
+    return item.name === v
+  })
+  // console.log('[findSource]', findSource)
+  if (!findSource) {
+    appStore.setSource(sourceList[0].name)
+    resetSourceTag(sourceList[0].tags)
+  } else {
+    appStore.setSource(tmpSource)
+    const tmpTags = arrayContainsValue(sourceList, tmpSource, (item, v) => {
+      if (item.name === v) {
+        return item.tags
+      }
+      return null
+    })
+    resetSourceTag(tmpTags)
+  }
+}
+
+const resetSourceTag = (currentSourceTags) => {
+  const appStore = useAppStore()
+  const tmpTag = getStorageSync(KEY_VIDEO_TAG)
+  const findTag = arrayContainsValue(currentSourceTags, tmpTag, (item, v) => {
+    return item.value === v
+  })
+  if (!findTag) {
+    appStore.setTags(currentSourceTags[0]?.value)
+  } else {
+    appStore.setTags(tmpTag)
+  }
+}
+
 
 const onBeforeUnmountHandler = () => {
   removeEventHandler(_pageKey)

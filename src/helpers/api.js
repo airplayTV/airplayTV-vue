@@ -20,8 +20,8 @@ const httpVideoSearch = (query) => {
   return httpInstance.get(`/api/video/search?${query}`)
 }
 
-const httpVideoSearchSSE = (keyword, page ) => {
-  return httpInstance.get(`/api/sse/video/search?keyword=${keyword}&page=${page}`)
+const apiVideoSearchSSE = (keyword, page , source, sourceMode) => {
+  return `/api/sse/video/search?page=${page}&keyword=${keyword}&_source=${source}&source_mode=${sourceMode}`
 }
 
 const httpPlayUrlNetworkCheck = (url) => {
@@ -34,6 +34,6 @@ export {
   httpVideo,
   httpVideoSource,
   httpVideoSearch,
-  httpVideoSearchSSE,
+  apiVideoSearchSSE,
   httpPlayUrlNetworkCheck,
 }
