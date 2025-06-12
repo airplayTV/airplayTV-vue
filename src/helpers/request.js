@@ -17,8 +17,8 @@ httpInstance.interceptors.request.use(
     if (!url.searchParams.get('_source')) {
       url.searchParams.append('_source', appStore.source)
     }
-    if (!url.searchParams.get('_source_secret')) {
-      url.searchParams.append('_source_secret', appStore.sourceSecret)
+    if (!url.searchParams.get('_s_key')) {
+      url.searchParams.append('_s_key', appStore.sourceSecret)
     }
     config.url = url.pathname + url.search
     return config
