@@ -27,6 +27,7 @@
                   :options="formattedSourceList"
               />
             </div>
+            <div class="padding-10px"></div>
             <div class="flex-row flex-1 xxxx">
               <n-select
                   v-if="formattedTagList"
@@ -53,6 +54,23 @@
                 <n-button secondary type="primary" @click="startScanning"> 扫码加入</n-button>
               </n-space>
             </n-space>
+          </n-form-item>
+
+
+          <n-form-item label="配置：" path="defaultThumbLayout">
+            <div class="flex-row flex-1 ">
+              <n-select
+                  v-model:value="defaultThumbLayout"
+                  placeholder="选择视频封面视图样式"
+                  @update:value="onUpdateThumbLayout"
+                  :options="thumbLayoutConfig"
+                  clearable
+              />
+            </div>
+            <div class="padding-10px"></div>
+            <div class="flex-row flex-1 ">
+              <n-input v-model:value="sourceSecret" placeholder="请输入兑换码" @keyup="onUpdateSourceSecret" clearable />
+            </div>
           </n-form-item>
 
           <div class="fixed-qr-reader-content" v-show="showQrReader">
@@ -119,7 +137,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import {defineComponent, onBeforeMount, onBeforeUnmount, onBeforeUpdate, onMounted, ref,} from 'vue'
 import {
   NButton,
@@ -139,15 +157,24 @@ import AppHeader from '@/components/AppHeader.vue'
 import {storeToRefs} from 'pinia'
 import {useAppStore} from '@/stores/app'
 import {arrayContainsValue, getStorageSync, removeStorageSync, setStorageSync,} from '@/helpers/utils'
-import {KEY_ROOM_ID, KEY_VIDEO_SOURCE, KEY_VIDEO_TAG} from '@/helpers/constant'
+import {
+  KEY_ROOM_ID,
+  KEY_VIDEO_SOURCE,
+  KEY_VIDEO_SOURCE_SECRET,
+  KEY_VIDEO_TAG,
+  KEY_VIDEO_THUMB_LAYOUT
+} from '@/helpers/constant'
 import {clearHistory} from '@/helpers/db'
 import {Html5Qrcode} from 'html5-qrcode'
 import copy from 'copy-to-clipboard'
 import {useRoute, useRouter} from 'vue-router'
 import AppFooter from '@/components/AppFooter.vue'
 
-const route = ref(null)
-const router = ref(null)
+
+const route = useRoute()
+const router = useRouter()
+const message =  useMessage()
+
 const source = ref(null)
 const tag = ref(null)
 const room = ref(null)
@@ -157,17 +184,40 @@ const showClearHistoryModal = ref(false)
 const showClearStorageModal = ref(false)
 const showClearRoomId = ref(false)
 const showQrResultModal = ref(false)
-const message = ref(null)
 const qrResult = ref(null)
 const html5QrCode = ref(null)
 const showQrReader = ref(false)
 const pageViewKey = ref(null)
 const appStore = useAppStore()
 
+
+const sourceSecret = ref(null)
+const defaultThumbLayout = ref('cover')
+const thumbLayoutConfig = ref([
+  { value: 'cover', label: '正常人视图', },
+  { value: 'contain', label: '异常人视图', }
+])
+
+
 const onBeforeMountHandler = () => {
   source.value = appStore.source
   tag.value = appStore.tags
   room.value = getStorageSync(KEY_ROOM_ID)
+
+  appStore.setSourceSecret(getStorageSync(KEY_VIDEO_SOURCE_SECRET))
+  sourceSecret.value = appStore.sourceSecret
+
+  appStore.setThumbLayout(getStorageSync(KEY_VIDEO_THUMB_LAYOUT))
+  defaultThumbLayout.value = appStore.thumbLayout
+
+  formattedSourceList.value = appStore.sourceList?.map((item) => {
+    return {
+      label: item.name,
+      value: item.name,
+      data: item,
+    }
+  })
+
 }
 
 const onBeforeUnmountHandler = () => {
@@ -184,7 +234,7 @@ const onBeforeUpdateHandler = () => {
 }
 
 const checkUpdateView = () => {
-  const _id = JSON.stringify({ params: route.value.params, query: route.value.query })
+  const _id = JSON.stringify({ params: route.params, query: route.query })
   if (_id !== pageViewKey.value) {
     pageViewKey.value = _id
   }
@@ -223,10 +273,19 @@ const onUpdateSource = (value) => {
   handleTagList(source.value)
 }
 
+const onUpdateThumbLayout = (value) => {
+  defaultThumbLayout.value = value
+  appStore.setThumbLayout(value)
+}
+
 const onUpdateTag = (value) => {
   console.log('[onUpdateTag]', value)
   setStorageSync(KEY_VIDEO_TAG, value)
   appStore.setTags(value)
+}
+
+const onUpdateSourceSecret = () => {
+  appStore.setSourceSecret(sourceSecret.value)
 }
 
 const onClearVideoHistoryHandler = async () => {
@@ -238,48 +297,41 @@ const onClearLocalStorageHandler = () => {
 
 const onClearVideoHistory = async () => {
   await clearHistory()
-  message.value.info('历史播放记录已清空')
+  message.info('历史播放记录已清空')
 }
 const onClearLocalStorage = () => {
   localStorage.clear()
-  message.value.info('本地缓存数据已清空')
+  message.info('本地缓存数据已清空')
 }
 
 const startScanning = () => {
   showQrReader.value = true
   //
   html5QrCode.value = new Html5Qrcode('qr-reader')
-  html5QrCode.value
-      .start(
-          { facingMode: 'environment' }, // 使用后置摄像头
-          { fps: 10, qrbox: 250 },
-          (decodedText) => {
-            qrResult.value = decodedText // 解析的二维码内容
-
-            stopScanning()
-
-            showQrResultModal.value = true
-          },
-          (errorMessage) => {
-          },
-      )
-      .catch((err) => {
-        showQrReader.value = false
-        message.value.info(`启动扫码失败：${err}`)
-      })
+  html5QrCode.value.start(
+      { facingMode: 'environment' }, // 使用后置摄像头
+      { fps: 10, qrbox: 250 },
+      (decodedText) => {
+        qrResult.value = decodedText // 解析的二维码内容
+        stopScanning()
+        showQrResultModal.value = true
+      },
+      (errorMessage) => {
+      },
+  ).catch((err) => {
+    showQrReader.value = false
+    message.info(`启动扫码失败：${err}`)
+  })
 }
 
 const stopScanning = () => {
   showQrReader.value = false
   if (html5QrCode.value) {
-    html5QrCode.value
-        .stop()
-        .then((ignore) => {
-          // alert('扫描停止')
-        })
-        .catch((err) => {
-          // alert('停止扫描失败:', err)
-        })
+    html5QrCode.value.stop().then((ignore) => {
+      // alert('扫描停止')
+    }).catch((err) => {
+      // alert('停止扫描失败:', err)
+    })
   }
 }
 
@@ -289,7 +341,7 @@ const isUrl = (data) => {
 
 const copyQrResult = () => {
   if (!qrResult.value) {
-    message.value.warning(`没有可复制数据`)
+    message.warning(`没有可复制数据`)
     return
   }
   copy(qrResult.value, {
@@ -297,80 +349,20 @@ const copyQrResult = () => {
     message: 'Press #{key} to copy',
   })
   showQrResultModal.value = false
-  message.value.info(`已复制到粘贴板`)
+  message.info(`已复制到粘贴板`)
 }
 
 const clearRoomId = () => {
   removeStorageSync(KEY_ROOM_ID)
   room.value = null
-  router.value.replace(`${router.value.currentRoute.path}?t=${Math.random()}`)
+  router.replace(`${router.currentRoute.path}?t=${Math.random()}`)
 }
 
-export default defineComponent({
-  components: {
-    AppFooter,
-    AppHeader,
-    NForm,
-    NInput,
-    NFormItem,
-    NSelect,
-    NSpace,
-    NDivider,
-    NButton,
-    NText,
-    NEllipsis,
-    NModal,
-    NTag,
-  },
-  setup() {
-    const { sourceList } = storeToRefs(useAppStore())
-    formattedSourceList.value = sourceList.value?.map((item) => {
-      return {
-        label: item.name,
-        value: item.name,
-        data: item,
-      }
-    })
+onBeforeMount(onBeforeMountHandler)
+onBeforeUnmount(onBeforeUnmountHandler)
+onMounted(onMountedHandler)
+onBeforeUpdate(onBeforeUpdateHandler)
 
-    message.value = useMessage()
-
-    route.value = useRoute()
-    router.value = useRouter()
-
-    onBeforeMount(onBeforeMountHandler)
-    onBeforeUnmount(onBeforeUnmountHandler)
-    onMounted(onMountedHandler)
-    onBeforeUpdate(onBeforeUpdateHandler)
-
-    return {
-      source,
-      tag,
-      room,
-      formattedSourceList,
-      formattedTagList,
-      onUpdateSource,
-      onUpdateTag,
-      onClearVideoHistoryHandler,
-      onClearLocalStorageHandler,
-      onClearVideoHistory,
-      onClearLocalStorage,
-      showClearHistoryModal,
-      showClearStorageModal,
-      showClearRoomId,
-      qrResult,
-      html5QrCode,
-      startScanning,
-      stopScanning,
-      showQrReader,
-      showQrResultModal,
-      copyQrResult,
-      isUrl,
-      clearRoomId,
-      router,
-      pageViewKey,
-    }
-  },
-})
 </script>
 
 <style scoped lang="scss">
@@ -379,7 +371,6 @@ export default defineComponent({
   min-height: 200px;
   display: flex;
   flex-direction: column;
-  //background-color: rgba(0, 0, 0, 0.1);
 
   .qr-reader {
     width: 100%;
