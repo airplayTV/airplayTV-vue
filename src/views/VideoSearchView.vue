@@ -156,12 +156,10 @@ const computedTabMsg = (item) => {
 }
 
 const onBeforeUpdateHandler = () => {
-  console.log('[onBeforeUpdateHandler]')
 
   doSearch()
 }
 const onUpdatedHandler = () => {
-  console.log('[onUpdatedHandler]')
 }
 
 const resetVideoSearchResultMap = () => {
