@@ -5,15 +5,15 @@
         <RouterLink target="_blank" :to="`/video/detail/${video.id}?_source=${pageSource}`" class="flex-column">
           <div class="flex-row flex-justify-center flex-align-center position-relative">
             <n-image
-                width="175"
-                height="230"
+                :width="width"
+                :height="height"
                 :src="video.thumb"
                 :key="video.thumb"
                 class="thumb"
                 object-fit="cover"
                 preview-disabled
             />
-            <div class="position-absolute vod-update-time">
+            <div class="position-absolute vod-update-time" :style="{width:`${width}px`}">
               <div class="c" v-if="video.updated_at">
                 更新：{{ FormatToDate(video.updated_at) }}
               </div>
@@ -73,7 +73,7 @@ export default defineComponent({
     NPagination,
     BrokenImageRound,
   },
-  props: ['cols', 'videoList', 'page', 'pages', 'source'],
+  props: ['cols', 'width', 'height', 'videoList', 'page', 'pages', 'source'],
   emits: ['onUpdatePage'],
   setup(props) {
     // const { sourceList } = storeToRefs(useAppStore())

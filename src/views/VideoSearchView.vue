@@ -13,6 +13,8 @@
             <AppSearchList
                 :key="videoSearchResultKey"
                 :cols="cols"
+                :width="width"
+                :height="height"
                 :video-list="item.data.list"
                 :page="item.data.page"
                 :pages="item.data.pages"
@@ -51,6 +53,9 @@ const loadingBar = useLoadingBar()
 
 const windowWidth = ref(0)
 const cols = ref(2)
+const width = ref(0)
+const height = ref(0)
+
 const videoSearchResultList = ref([])
 const videoSearchResultKey = ref('')
 const searchEventSource = ref(null)
@@ -59,13 +64,17 @@ const appStore = useAppStore()
 
 const onMountedHandler = () => {
   window.onresize = () => {
-    const { _column, _windowWidth } = computeWindowWidthColumn()
+    const { _column, _windowWidth, _width, _height } = computeWindowWidthColumn()
     windowWidth.value = _windowWidth
     cols.value = _column
+    width.value = _width
+    height.value = _height
   }
-  const { _column, _windowWidth } = computeWindowWidthColumn()
+  const { _column, _windowWidth, _width, _height } = computeWindowWidthColumn()
   windowWidth.value = _windowWidth
   cols.value = _column
+  width.value = _width
+  height.value = _height
 }
 
 const onBeforeMountHandler = () => {
