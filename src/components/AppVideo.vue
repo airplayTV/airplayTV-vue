@@ -32,6 +32,13 @@
 
     <AppSourceList :source-list="videoSourceList" :vid="video.id" />
   </div>
+  <div v-else>
+    <div class="padding-30px"></div>
+    <div class="padding-30px"></div>
+    <div class="padding-30px"></div>
+    <n-result status="404" title="暂无数据" :description="noVideoListMsg"></n-result>
+  </div>
+
 </template>
 
 <script>
@@ -47,7 +54,7 @@ import {
   NImage,
   NInput,
   NInputGroup,
-  NPagination,
+  NPagination, NResult,
   NSelect,
   NText,
   useLoadingBar,
@@ -105,6 +112,7 @@ const doRequest = () => {
 
 export default defineComponent({
   components: {
+    NResult,
     AppSourceList,
     NSelect,
     NInputGroup,

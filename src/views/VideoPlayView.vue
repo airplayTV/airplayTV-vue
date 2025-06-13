@@ -43,6 +43,13 @@
           </n-collapse-item>
         </n-collapse>
       </div>
+      <div v-else>
+        <div class="padding-30px"></div>
+        <div class="padding-30px"></div>
+        <div class="padding-30px"></div>
+        <n-result status="404" title="暂无数据"></n-result>
+      </div>
+
     </div>
 
     <AppFooter />
@@ -54,7 +61,7 @@ import {computed, onBeforeMount, onBeforeUnmount, onBeforeUpdate, onMounted, onU
 import {useRoute, useRouter} from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import {httpPlayUrlNetworkCheck, httpVideo, httpVideoSource} from '../helpers/api'
-import {NCollapse, NCollapseItem, NEllipsis, NH2, NText, useLoadingBar, useMessage,} from 'naive-ui'
+import {NCollapse, NCollapseItem, NEllipsis, NH2, NText, useLoadingBar, useMessage, NResult} from 'naive-ui'
 import AppSourceList from '@/components/AppSourceList.vue'
 import AppArtplayer from '@/components/AppArtplayer.vue'
 import {formatVideoSourceMap} from '@/helpers/app'
