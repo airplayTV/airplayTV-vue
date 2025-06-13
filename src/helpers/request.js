@@ -17,10 +17,12 @@ httpInstance.interceptors.request.use(
     if (!url.searchParams.get('_source')) {
       url.searchParams.append('_source', appStore.source)
     }
-    if (!url.searchParams.get('_s_key')) {
-      url.searchParams.append('_s_key', appStore.sourceSecret)
-    }
     config.url = url.pathname + url.search
+
+    if (!config.headers.has('_mode')) {
+      config.headers.set('X-Source-Mode', appStore.sourceSecret)
+    }
+
     return config
   },
   (error) => {
