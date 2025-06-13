@@ -47,8 +47,24 @@ const arrayValuePick = (list, params, calculate) => {
 
 const computeWindowWidthColumn = () => {
   let column = 0
+  let width = 175
+  let height = 230
   if (window.innerWidth <= 350) {
     column = 1
+  } else if (window.innerWidth <= 370) {
+    column = 2
+    width = 152
+    height = 200
+  } else if (window.innerWidth <= 370 + 10) {
+    column = 2
+    width = 160
+    height = 230
+  } else if (window.innerWidth <= 370 + 50) {
+    column = 2
+    width = 165
+    height = 230
+  } else if (window.innerWidth <= 370 + 100) {
+    column = 2
   } else if (window.innerWidth <= 370 + 200) {
     column = 2
   } else if (window.innerWidth <= 370 + 200 * 2) {
@@ -60,7 +76,12 @@ const computeWindowWidthColumn = () => {
   } else {
     column = 6
   }
-  return { _column: column, _windowWidth: window.innerWidth }
+  return {
+    _column: column,
+    _windowWidth: window.innerWidth,
+    _width: width,
+    _height: height,
+  }
 }
 
 export {

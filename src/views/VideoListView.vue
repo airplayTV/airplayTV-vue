@@ -15,6 +15,8 @@ const router = useRouter()
 
 const windowWidth = ref(0)
 const cols = ref(2)
+const width = ref(0)
+const height = ref(0)
 const tagList = ref([])
 const tag = ref(null)
 const _pageKey = ref('')
@@ -22,13 +24,17 @@ const appStore = useAppStore()
 
 onMounted(() => {
   window.onresize = () => {
-    const { _column, _windowWidth } = computeWindowWidthColumn()
+    const { _column, _windowWidth, _width, _height } = computeWindowWidthColumn()
     windowWidth.value = _windowWidth
     cols.value = _column
+    width.value = _width
+    height.value = _height
   }
-  const { _column, _windowWidth } = computeWindowWidthColumn()
+  const { _column, _windowWidth, _width, _height } = computeWindowWidthColumn()
   windowWidth.value = _windowWidth
   cols.value = _column
+  width.value = _width
+  height.value = _height
 
   loadTagList()
 })
@@ -86,7 +92,7 @@ onBeforeUpdate(onBeforeUpdateHandler)
         </n-space>
       </div>
       <div style="padding: 0 10px" class="flex-1 flex-column flex-justify-between">
-        <AppVideoList :cols="cols" :key="_pageKey" />
+        <AppVideoList :cols="cols" :width="width" :height="height" :key="_pageKey" />
       </div>
     </div>
 

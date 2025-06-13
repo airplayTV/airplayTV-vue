@@ -10,15 +10,15 @@
           <RouterLink target="_blank" :to="`/video/detail/${video.id}?_source=${appStore.source}`" class="flex-column">
             <div class="flex-row flex-justify-center flex-align-center position-relative">
               <n-image
-                  width="175"
-                  height="230"
+                  :width="width"
+                  :height="height"
                   :src="video.thumb"
                   :key="video.thumb"
                   class="thumb"
                   object-fit="cover"
                   preview-disabled
               />
-              <div class="position-absolute vod-update-time">
+              <div class="position-absolute vod-update-time" :style="{width:`${width}px`}">
                 <div class="c" v-if="video.updated_at">
                   更新：{{ FormatToDate(video.updated_at) }}
                 </div>
@@ -105,7 +105,7 @@ const onOpenVideo = (video) => {
   router.push(`/video/detail/${video.id}?_source=${appStore.source}`)
 }
 
-defineProps(['cols'])
+defineProps(['cols', 'width', 'height'])
 
 onBeforeMount(onBeforeMountHandler)
 
