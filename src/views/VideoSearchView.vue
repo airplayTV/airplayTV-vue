@@ -33,8 +33,8 @@
   </div>
 </template>
 
-<script>
-import {defineComponent, onBeforeMount, onBeforeUpdate, onMounted, onUpdated, ref} from 'vue'
+<script setup>
+import {onBeforeMount, onBeforeUpdate, onMounted, onUpdated, ref} from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
 import {useAppStore} from '@/stores/app'
 import {NResult, NTabPane, NTabs, useLoadingBar} from 'naive-ui'
@@ -45,17 +45,19 @@ import {computeWindowWidthColumn} from '@/helpers/utils'
 import {apiVideoSearchSSE, httpVideoSearch} from '@/helpers/api'
 import AppFooter from '@/components/AppFooter.vue'
 
-const route = ref(null)
+
+const route = useRoute()
+const loadingBar = useLoadingBar()
+
 const windowWidth = ref(0)
 const cols = ref(2)
-const appSourceList = ref(null)
 const videoSearchResultMap = ref({})
 const videoSearchResultList = ref([])
 const videoSearchResultKey = ref('')
 const searchEventSource = ref(null)
-const loadingBar = ref(null)
 const keyword = ref(null)
 const appStore = useAppStore()
+const appSourceList = appStore.sourceList
 
 const onMountedHandler = () => {
   window.onresize = () => {
@@ -73,7 +75,7 @@ const onBeforeMountHandler = () => {
 }
 
 const resetSearchEvent = (keyword) => {
-  loadingBar.value?.start()
+  loadingBar.start()
 
   videoSearchResultList.value = []
   let tmpList = []
@@ -108,7 +110,7 @@ const resetSearchEvent = (keyword) => {
     console.log('[FINISH]', e)
     searchEventSource.value.close()
 
-    loadingBar.value?.finish()
+    loadingBar.finish()
   })
 
   searchEventSource.value.onerror = () => {
@@ -124,7 +126,7 @@ const onUpdatePage = (data) => {
     keyword: keyword.value,
   }
 
-  loadingBar.value?.start()
+  loadingBar.start()
 
   httpVideoSearch(new URLSearchParams(o).toString()).then((resp) => {
     videoSearchResultList.value.filter((item, idx) => {
@@ -143,7 +145,7 @@ const onUpdatePage = (data) => {
   }).catch((err) => {
     console.log('[httpVideoSearch.Error]', err)
   }).finally(() => {
-    loadingBar.value?.finish()
+    loadingBar.finish()
   })
 }
 
@@ -166,44 +168,16 @@ const resetVideoSearchResultMap = () => {
 }
 
 const doSearch = () => {
-  if (keyword.value !== route.value.query.keyword) {
+  if (keyword.value !== route.query.keyword) {
     resetVideoSearchResultMap()
-    keyword.value = route.value.query.keyword
+    keyword.value = route.query.keyword
     resetSearchEvent(keyword.value)
   }
 }
 
-export default defineComponent({
-  components: {
-    AppFooter,
-    AppSearchList,
-    AppHeader,
-    NTabs,
-    NTabPane,
-    NResult,
-  },
-  setup() {
-    const appStore = useAppStore()
-    appSourceList.value = appStore.sourceList
+onMounted(onMountedHandler)
+onBeforeMount(onBeforeMountHandler)
+onBeforeUpdate(onBeforeUpdateHandler)
+onUpdated(onUpdatedHandler)
 
-    route.value = useRoute()
-    loadingBar.value = useLoadingBar()
-
-    onMounted(onMountedHandler)
-    onBeforeMount(onBeforeMountHandler)
-    onBeforeUpdate(onBeforeUpdateHandler)
-    onUpdated(onUpdatedHandler)
-    return {
-      cols,
-      // appSourceList,
-      onUpdatePage,
-      videoSearchResultMap,
-      videoSearchResultList,
-      videoSearchResultKey,
-      computedTabName,
-      computedTabMsg,
-      route,
-    }
-  },
-})
 </script>
