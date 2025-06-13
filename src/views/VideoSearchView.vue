@@ -51,13 +51,11 @@ const loadingBar = useLoadingBar()
 
 const windowWidth = ref(0)
 const cols = ref(2)
-const videoSearchResultMap = ref({})
 const videoSearchResultList = ref([])
 const videoSearchResultKey = ref('')
 const searchEventSource = ref(null)
 const keyword = ref(null)
 const appStore = useAppStore()
-const appSourceList = appStore.sourceList
 
 const onMountedHandler = () => {
   window.onresize = () => {

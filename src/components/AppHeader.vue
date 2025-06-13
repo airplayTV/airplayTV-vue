@@ -39,13 +39,11 @@
   </div>
 </template>
 
-<script>
-import {defineComponent, onBeforeMount, onBeforeUpdate, ref} from 'vue'
-import {NButton, NIcon, NInput, NInputGroup, NSelect} from 'naive-ui'
+<script setup>
+import {onBeforeMount, onBeforeUpdate, ref} from 'vue'
+import {NButton, NIcon, NInput, NInputGroup} from 'naive-ui'
 import {SearchSharp} from '@vicons/material'
-import {useAppStore} from '@/stores/app'
-import {storeToRefs} from 'pinia'
-import {useRouter} from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 import {getStorageSync} from '@/helpers/utils'
 import {KEY_ROOM_ID} from '@/helpers/constant'
 
@@ -53,7 +51,8 @@ const room = ref(null)
 const source = ref(0)
 const keyword = ref(null)
 const showSearch = ref(false)
-const router = ref(null)
+const route = useRoute()
+const router = useRouter()
 
 const onToggleSearchBox = () => {
   showSearch.value = !showSearch.value
@@ -61,47 +60,25 @@ const onToggleSearchBox = () => {
 
 const onClickSearch = () => {
   console.log('[keyword]', keyword.value)
-  router.value.push(`/video/search?page=1&keyword=` + encodeURIComponent(keyword.value))
+  router.push(`/video/search?page=1&keyword=` + encodeURIComponent(keyword.value))
 }
 
 const onBeforeMountHandler = () => {
   room.value = getStorageSync(KEY_ROOM_ID)
+
+  if (route.query.keyword) {
+    keyword.value = route.query.keyword
+    showSearch.value = true
+  }
+
 }
 
 const onBeforeUpdateHandler = () => {
 }
 
-export default defineComponent({
-  components: {
-    NSelect,
-    NInputGroup,
-    NInput,
-    NButton,
-    NIcon,
-    SearchSharp,
-  },
-  setup() {
-    const { sourceList } = storeToRefs(useAppStore())
-    const { getSourceList, setSourceList } = useAppStore()
-    router.value = useRouter()
+onBeforeMount(onBeforeMountHandler)
+onBeforeUpdate(onBeforeUpdateHandler)
 
-    onBeforeMount(onBeforeMountHandler)
-    onBeforeUpdate(onBeforeUpdateHandler)
-
-    return {
-      source,
-      keyword,
-      sourceList,
-      showSearch,
-      onToggleSearchBox,
-      getSourceList,
-      setSourceList,
-      router,
-      onClickSearch,
-      room,
-    }
-  },
-})
 </script>
 
 <style scoped>
