@@ -36,7 +36,7 @@
     <div class="padding-30px"></div>
     <div class="padding-30px"></div>
     <div class="padding-30px"></div>
-    <n-result status="404" title="暂无数据" :description="noVideoListMsg"></n-result>
+    <n-result status="404" title="暂无数据"></n-result>
   </div>
 
 </template>
