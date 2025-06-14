@@ -20,10 +20,6 @@
         </ul>
       </div>
       <div class="flex-row flex-align-center">
-        <n-text depth="3">
-          {{ appStore.source }}
-        </n-text>
-        <div class="padding-2px"></div>
         <div class="xxx flex-row" @click="onToggleSearchBox">
           <n-icon color="#000000" size="20">
             <SearchSharp />
