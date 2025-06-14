@@ -69,7 +69,7 @@
             </div>
             <div class="padding-10px"></div>
             <div class="flex-row flex-1 ">
-              <n-input v-model:value="sourceSecret" placeholder="请输入兑换码" @keyup="onUpdateSourceSecret" clearable />
+              <n-input v-model:value="sourceSecret" placeholder="请输入兑换码" @keyup="onUpdateSourceSecret" @clear="onUpdateSourceSecret(true)" clearable />
             </div>
           </n-form-item>
 
@@ -290,7 +290,10 @@ const onUpdateTag = (value) => {
   appStore.setTags(value)
 }
 
-const onUpdateSourceSecret = () => {
+const onUpdateSourceSecret = (clear) => {
+  if (clear === true){
+    sourceSecret.value = ''
+  }
   appStore.setSourceSecret(sourceSecret.value)
 }
 
