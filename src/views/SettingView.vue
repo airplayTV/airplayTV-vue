@@ -73,6 +73,12 @@
             </div>
           </n-form-item>
 
+          <n-form-item label="" path="source">
+            <n-space justify="end" class="flex-1">
+              <n-text depth="3">修改<b>配置</b>后刷新页面生效！！！</n-text>
+            </n-space>
+          </n-form-item>
+
           <div class="fixed-qr-reader-content" v-show="showQrReader">
             <div id="qr-reader" class="qr-reader"></div>
             <div class="text-align-center padding-10px">

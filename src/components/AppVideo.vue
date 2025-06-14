@@ -1,6 +1,18 @@
 <template>
   <div v-if="video" class="flex-column">
-    <div class="flex-column flex-align-center">
+    <div class="flex-column flex-align-center" v-if="appStore.styleConfig===1">
+      <div class="padding-10px" ></div>
+      <n-image
+          :width="width*cols*0.8"
+          :height="height*cols*0.8"
+          object-fit="cover"
+          :src="video.thumb"
+          :key="video.thumb"
+          class="thumb"
+      />
+      <div class="padding-10px"></div>
+    </div>
+    <div class="flex-column flex-align-center" v-else>
       <n-image
           width="200"
           height="280"
@@ -41,8 +53,8 @@
 
 </template>
 
-<script>
-import {computed, defineComponent, onBeforeMount, onBeforeUpdate, onUpdated, ref} from 'vue'
+<script setup>
+import {computed, defineComponent, onBeforeMount, onBeforeUpdate, onMounted, onUpdated, ref} from 'vue'
 import {
   NButton,
   NEllipsis,
@@ -65,30 +77,36 @@ import {httpVideo} from '@/helpers/api'
 import AppSourceList from '@/components/AppSourceList.vue'
 import {formatVideoSourceMap} from '@/helpers/app'
 import {useAppStore} from "@/stores/app.js";
+import {computeWindowWidthColumn} from "@/helpers/utils.js";
+
 
 const video = ref(null)
 // const pages = ref(0)
 // const page = ref(0)
 const _key = ref(null)
 
-const loadingBar = ref(null)
-const route = ref(null)
+const loadingBar = useLoadingBar()
+const route = useRoute()
 const appStore = useAppStore()
+
+const cols = ref(1)
+const width = ref(0)
+const height = ref(0)
 
 const loadVideo = (id) => {
   video.value = null
-  loadingBar.value.start()
+  loadingBar.start()
   httpVideo(id, appStore.source).then((resp) => {
     video.value = resp.data
   }).catch((err) => {
     console.log('[httpVideo.Error]', err)
   }).finally(() => {
-    loadingBar.value.finish()
+    loadingBar.finish()
   })
 }
 
 const onBeforeMountHandler = () => {
-  // loadVideo(route.value.params.id)
+  // loadVideo(route.params.id)
   doRequest()
 }
 
@@ -103,48 +121,32 @@ const onUpdatedHandler = () => {
 }
 
 const doRequest = () => {
-  const _k = `${route.value.params.id},${route.value.query._source}`
+  const _k = `${route.params.id},${route.query._source}`
   if (_k !== _key.value) {
     _key.value = _k
-    loadVideo(route.value.params.id)
+    loadVideo(route.params.id)
   }
 }
 
-export default defineComponent({
-  components: {
-    NResult,
-    AppSourceList,
-    NSelect,
-    NInputGroup,
-    NInput,
-    NButton,
-    NIcon,
-    NGrid,
-    NGi,
-    NImage,
-    NEllipsis,
-    NH1,
-    NH2,
-    NText,
-    NPagination,
-    BrokenImageRound,
-  },
-  setup() {
-    // const { sourceList } = storeToRefs(useAppStore())
-    // const { getSourceList, setSourceList } = useAppStore()
-    onBeforeMount(onBeforeMountHandler)
 
-    onBeforeUpdate(onBeforeUpdateHandler)
-    onUpdated(onUpdatedHandler)
-
-    loadingBar.value = useLoadingBar()
-    route.value = useRoute()
-    return {
-      video,
-      videoSourceList,
-    }
-  },
+onMounted(() => {
+  window.onresize = () => {
+    const { _column, _windowWidth, _width, _height } = computeWindowWidthColumn()
+    cols.value = _column
+    width.value = _width
+    height.value = _height
+  }
+  const { _column, _windowWidth, _width, _height } = computeWindowWidthColumn()
+  cols.value = _column
+  width.value = _width
+  height.value = _height
 })
+
+onBeforeMount(onBeforeMountHandler)
+
+onBeforeUpdate(onBeforeUpdateHandler)
+onUpdated(onUpdatedHandler)
+
 </script>
 
 <style scoped>
