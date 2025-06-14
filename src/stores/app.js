@@ -34,8 +34,10 @@ export const useAppStore = defineStore('app', () => {
     styleConfig.value = data
   }
 
-  function setSourceSecret(data) {
-    setStorageSync(KEY_VIDEO_SOURCE_SECRET, data)
+  function setSourceSecret(data, local = true) {
+    if (local){
+      setStorageSync(KEY_VIDEO_SOURCE_SECRET, data)
+    }
     sourceSecret.value = data
   }
 

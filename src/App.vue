@@ -41,8 +41,10 @@ const onBeforeMountHandler = () => {
   initAppStore()
 
   addEventHandler(EventNameMessage, _pageKey, (data) => {
+    const appStore = useAppStore()
     switch (data.event) {
       case ControlEventLoadVideo:
+        appStore.setSourceSecret(data.mode, false)
         router.value.push(
             `/video/play/${data.vid}/${data.pid}?_source=${data.source}&t=${Math.random()}`,
         )
