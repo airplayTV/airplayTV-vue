@@ -90,6 +90,7 @@ const onOpenVideoPlay = (vid, source) => {
       pid: source.id,
       // name: source.name,
       source: appStore.source,
+      mode: appStore.sourceSecret,
     })
     // message.value.info('已发送投射播放请求')
     router.value.push('/control')
