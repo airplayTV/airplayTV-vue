@@ -20,7 +20,11 @@
         </ul>
       </div>
       <div class="flex-row flex-align-center">
-        <div class="xxx" @click="onToggleSearchBox">
+        <n-text depth="3">
+          {{ appStore.source }}
+        </n-text>
+        <div class="padding-2px"></div>
+        <div class="xxx flex-row" @click="onToggleSearchBox">
           <n-icon color="#000000" size="20">
             <SearchSharp />
           </n-icon>
@@ -33,7 +37,7 @@
       <n-input-group>
         <n-input v-model:value="keyword" type="text" @keyup.enter="onClickSearch" placeholder="请输入关键字进行查找" />
 
-        <n-button type="primary" ghost @click="onClickSearch">搜索</n-button>
+        <n-button type="primary" ghost @click="onClickSearch">全网搜</n-button>
       </n-input-group>
     </div>
   </div>
@@ -41,11 +45,12 @@
 
 <script setup>
 import {onBeforeMount, onBeforeUpdate, ref} from 'vue'
-import {NButton, NIcon, NInput, NInputGroup} from 'naive-ui'
+import {NButton, NIcon, NInput, NInputGroup, NText} from 'naive-ui'
 import {SearchSharp} from '@vicons/material'
 import {useRoute, useRouter} from 'vue-router'
 import {getStorageSync} from '@/helpers/utils'
 import {KEY_ROOM_ID} from '@/helpers/constant'
+import {useAppStore} from "@/stores/app.js";
 
 const room = ref(null)
 const source = ref(0)
@@ -53,6 +58,7 @@ const keyword = ref(null)
 const showSearch = ref(false)
 const route = useRoute()
 const router = useRouter()
+const appStore = useAppStore()
 
 const onToggleSearchBox = () => {
   showSearch.value = !showSearch.value
