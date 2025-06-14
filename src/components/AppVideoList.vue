@@ -15,7 +15,7 @@
                   :src="video.thumb"
                   :key="video.thumb"
                   class="thumb"
-                  object-fit="cover"
+                  :object-fit="getImageObjectFit(appStore.styleConfig)"
                   preview-disabled
               />
               <div class="position-absolute vod-update-time" :style="{width:`${width}px`}">
@@ -49,7 +49,7 @@ import {httpVideoList} from '../helpers/api'
 import {useRoute, useRouter} from 'vue-router'
 import {useAppStore} from "@/stores/app.js";
 import {FormatToDate} from "../helpers/time.js";
-import {getRouterLinkType} from "../helpers/app.js";
+import {getRouterLinkType, getImageObjectFit} from "../helpers/app.js";
 
 const videoList = ref([])
 const pages = ref(0)

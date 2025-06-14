@@ -52,7 +52,7 @@ const loadTagList = () => {
     }
   })
 
-  console.log('[tagList]', tagList.value)
+  // console.log('[tagList]', tagList.value)
 
 }
 

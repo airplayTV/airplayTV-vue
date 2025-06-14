@@ -1,3 +1,5 @@
+import {useAppStore} from "@/stores/app.js";
+
 const getStorageSync = (key) => {
   const v = localStorage.getItem(key)
   if (!v) {
@@ -49,6 +51,52 @@ const computeWindowWidthColumn = () => {
   let column = 0
   let width = 175
   let height = 230
+
+  const appStore = useAppStore()
+  if (appStore.styleConfig){
+    width = 180
+    height = 120
+
+    if (window.innerWidth <= 350) {
+      column = 1
+    } else if (window.innerWidth <= 370) {
+      column = 2
+      width = 160
+      height = 100
+    } else if (window.innerWidth <= 370 + 10) {
+      column = 2
+      width = 160
+      height = 100
+    } else if (window.innerWidth <= 370 + 50) {
+      column = 2
+      width = 160
+      height = 100
+    } else if (window.innerWidth <= 370 + 100) {
+      column = 2
+      width = 180
+      height = 120
+
+    } else if (window.innerWidth <= 370 + 200) {
+      column = 2
+    } else if (window.innerWidth <= 370 + 200 * 2) {
+      column = 3
+    } else if (window.innerWidth <= 370 + 200 * 3) {
+      column = 4
+    } else if (window.innerWidth <= 370 + 200 * 4) {
+      column = 5
+    } else {
+      column = 5
+      width = 210
+      height = 140
+    }
+    return {
+      _column: column,
+      _windowWidth: window.innerWidth,
+      _width: width,
+      _height: height,
+    }
+  }
+
   if (window.innerWidth <= 350) {
     column = 1
   } else if (window.innerWidth <= 370) {
