@@ -355,7 +355,7 @@ const copyQrResult = () => {
 const clearRoomId = () => {
   removeStorageSync(KEY_ROOM_ID)
   room.value = null
-  router.replace(`${router.currentRoute.path}?t=${Math.random()}`)
+  router.replace(`${route.path}?t=${Math.random()}`)
 }
 
 onBeforeMount(onBeforeMountHandler)
