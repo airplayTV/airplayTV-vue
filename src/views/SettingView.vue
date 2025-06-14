@@ -57,13 +57,13 @@
           </n-form-item>
 
 
-          <n-form-item label="配置：" path="defaultThumbLayout">
+          <n-form-item label="配置：" path="defaultStyle">
             <div class="flex-row flex-1 ">
               <n-select
-                  v-model:value="defaultThumbLayout"
-                  placeholder="选择视频封面视图样式"
-                  @update:value="onUpdateThumbLayout"
-                  :options="thumbLayoutConfig"
+                  v-model:value="defaultStyle"
+                  placeholder="选择样式风格"
+                  @update:value="onUpdateStyleConfig"
+                  :options="styleConfig"
                   clearable
               />
             </div>
@@ -162,7 +162,7 @@ import {
   KEY_VIDEO_SOURCE,
   KEY_VIDEO_SOURCE_SECRET,
   KEY_VIDEO_TAG,
-  KEY_VIDEO_THUMB_LAYOUT
+  KEY_VIDEO_STYLE_CONFIG
 } from '@/helpers/constant'
 import {clearHistory} from '@/helpers/db'
 import {Html5Qrcode} from 'html5-qrcode'
@@ -192,10 +192,10 @@ const appStore = useAppStore()
 
 
 const sourceSecret = ref(null)
-const defaultThumbLayout = ref('cover')
-const thumbLayoutConfig = ref([
-  { value: 'cover', label: '正常人视图', },
-  { value: 'contain', label: '异常人视图', }
+const defaultStyle = ref(0)
+const styleConfig = ref([
+  { value: 0, label: '正常人视图', },
+  { value: 1, label: '异常人视图', }
 ])
 
 
@@ -207,8 +207,8 @@ const onBeforeMountHandler = () => {
   appStore.setSourceSecret(getStorageSync(KEY_VIDEO_SOURCE_SECRET))
   sourceSecret.value = appStore.sourceSecret
 
-  appStore.setThumbLayout(getStorageSync(KEY_VIDEO_THUMB_LAYOUT))
-  defaultThumbLayout.value = appStore.thumbLayout
+  appStore.setStyleConfig(getStorageSync(KEY_VIDEO_STYLE_CONFIG))
+  defaultStyle.value = appStore.styleConfig
 
   formattedSourceList.value = appStore.sourceList?.map((item) => {
     return {
@@ -273,9 +273,9 @@ const onUpdateSource = (value) => {
   handleTagList(source.value)
 }
 
-const onUpdateThumbLayout = (value) => {
-  defaultThumbLayout.value = value
-  appStore.setThumbLayout(value)
+const onUpdateStyleConfig = (value) => {
+  defaultStyle.value = value
+  appStore.setStyleConfig(value)
 }
 
 const onUpdateTag = (value) => {

@@ -2,7 +2,7 @@
   <div>
     <n-grid x-gap="12" y-gap="1" :cols="cols" class="links">
       <n-gi v-for="(video, idx) in videoList" :key="video.id">
-        <RouterLink target="_blank" :to="`/video/detail/${video.id}?_source=${pageSource}`" class="flex-column">
+        <RouterLink :target="getRouterLinkType(appStore.styleConfig)" :to="`/video/detail/${video.id}?_source=${pageSource}`" class="flex-column">
           <div class="flex-row flex-justify-center flex-align-center position-relative">
             <n-image
                 :width="width"
@@ -49,10 +49,13 @@ import {NButton, NEllipsis, NGi, NGrid, NIcon, NImage, NInput, NInputGroup, NPag
 import {BrokenImageRound} from '@vicons/material'
 import {useRouter} from 'vue-router'
 import {FormatToDate} from "@/helpers/time.js";
+import {getRouterLinkType} from "../helpers/app.js";
+import {useAppStore} from "@/stores/app.js";
 
 const router = ref(null)
 const pageModel = ref(null)
 const pageSource = ref(null)
+const appStore = useAppStore()
 
 const onOpenVideo = (video) => {
   router.value.push(`/video/detail/${video.id}?_source=${pageSource.value}`)
@@ -90,6 +93,8 @@ export default defineComponent({
       onOpenVideo,
       pageModel,
       pageSource,
+      appStore,
+      getRouterLinkType,
     }
   },
 })

@@ -9,4 +9,14 @@ const formatVideoSourceMap = (videoLinks) => {
   return linkMap
 }
 
-export { formatVideoSourceMap }
+const getRouterLinkType = (styleConfig) => {
+  if (styleConfig === 1) {
+    return '_blank'
+  }
+  return ''
+}
+
+export {
+  formatVideoSourceMap,
+  getRouterLinkType,
+}
