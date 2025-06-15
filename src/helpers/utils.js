@@ -53,7 +53,7 @@ const computeWindowWidthColumn = () => {
   let height = 230
 
   const appStore = useAppStore()
-  if (appStore.styleConfig){
+  if (appStore.styleConfig) {
     width = 180
     height = 120
 
@@ -75,19 +75,25 @@ const computeWindowWidthColumn = () => {
       column = 2
       width = 180
       height = 120
-
     } else if (window.innerWidth <= 370 + 200) {
       column = 2
     } else if (window.innerWidth <= 370 + 200 * 2) {
       column = 3
+      width = 180 * 0.95
+      height = 120 * 0.95
     } else if (window.innerWidth <= 370 + 200 * 3) {
       column = 4
+      width = 180 * 0.95
+      height = 120 * 0.95
+
     } else if (window.innerWidth <= 370 + 200 * 4) {
-      column = 5
+      column = 4
+      width = 180 * 1.2
+      height = 120 * 1.2
     } else {
-      column = 5
-      width = 210
-      height = 140
+      column = 4
+      width = 180 * 1.5
+      height = 120 * 1.5
     }
     return {
       _column: column,
