@@ -23,7 +23,16 @@
       />
     </div>
 
-    <n-h2>{{ video.name }}</n-h2>
+    <div class="flex-row flex-align-center">
+      <n-h2>{{ video.name }}</n-h2>
+      <div class="padding-2px"></div>
+      <RouterLink :to="`/video/search?page=1&keyword=${video.name}`" target="_blank">
+        <n-icon color="#5e5b5b" size="20">
+          <SearchSharp />
+        </n-icon>
+      </RouterLink>
+
+    </div>
 
     <n-ellipsis :line-clamp="6">
       <b>
@@ -78,6 +87,8 @@ import AppSourceList from '@/components/AppSourceList.vue'
 import {formatVideoSourceMap} from '@/helpers/app'
 import {useAppStore} from "@/stores/app.js";
 import {computeWindowWidthColumn} from "@/helpers/utils.js";
+import ExternalLink from '@vicons/tabler/ExternalLink'
+import {SearchSharp} from '@vicons/material'
 
 
 const video = ref(null)
