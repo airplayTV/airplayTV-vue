@@ -69,7 +69,11 @@
             </div>
             <div class="padding-10px"></div>
             <div class="flex-row flex-1 ">
-              <n-input v-model:value="sourceSecret" placeholder="请输入兑换码" @keyup="onUpdateSourceSecret" @clear="onUpdateSourceSecret(true)" clearable />
+              <n-input
+                  v-model:value="sourceSecret"
+                  placeholder="请输入兑换码"
+                  @keyup="onUpdateSourceSecret"
+                  @clear="onUpdateSourceSecret(true)" clearable />
             </div>
           </n-form-item>
 
@@ -144,31 +148,17 @@
 </template>
 
 <script setup>
-import {defineComponent, onBeforeMount, onBeforeUnmount, onBeforeUpdate, onMounted, ref,} from 'vue'
-import {
-  NButton,
-  NDivider,
-  NEllipsis,
-  NForm,
-  NFormItem,
-  NInput,
-  NModal,
-  NSelect,
-  NSpace,
-  NTag,
-  NText,
-  useMessage,
-} from 'naive-ui'
+import {onBeforeMount, onBeforeUnmount, onBeforeUpdate, onMounted, ref,} from 'vue'
+import {NButton, NEllipsis, NForm, NFormItem, NInput, NModal, NSelect, NSpace, NTag, NText, useMessage,} from 'naive-ui'
 import AppHeader from '@/components/AppHeader.vue'
-import {storeToRefs} from 'pinia'
 import {useAppStore} from '@/stores/app'
 import {arrayContainsValue, getStorageSync, removeStorageSync, setStorageSync,} from '@/helpers/utils'
 import {
   KEY_ROOM_ID,
   KEY_VIDEO_SOURCE,
   KEY_VIDEO_SOURCE_SECRET,
-  KEY_VIDEO_TAG,
-  KEY_VIDEO_STYLE_CONFIG
+  KEY_VIDEO_STYLE_CONFIG,
+  KEY_VIDEO_TAG
 } from '@/helpers/constant'
 import {clearHistory} from '@/helpers/db'
 import {Html5Qrcode} from 'html5-qrcode'
@@ -179,7 +169,7 @@ import AppFooter from '@/components/AppFooter.vue'
 
 const route = useRoute()
 const router = useRouter()
-const message =  useMessage()
+const message = useMessage()
 
 const source = ref(null)
 const tag = ref(null)
@@ -291,7 +281,7 @@ const onUpdateTag = (value) => {
 }
 
 const onUpdateSourceSecret = (clear) => {
-  if (clear === true){
+  if (clear === true) {
     sourceSecret.value = ''
   }
   appStore.setSourceSecret(sourceSecret.value)

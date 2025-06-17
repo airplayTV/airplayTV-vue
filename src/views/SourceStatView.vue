@@ -37,11 +37,7 @@
               </td>
               <td>
                 <n-ellipsis :line-clamp="1" style="max-width: 200px">
-                  {{ item.name }}{{ item.name }}{{ item.name }}{{ item.name }}{{ item.name }}{{ item.name }}{{
-                    item.name
-                  }}{{ item.name }}{{ item.name }}{{ item.name }}{{ item.name }}{{ item.name }}{{
-                    item.name
-                  }}{{ item.name }}
+                  {{ item.name }}
                 </n-ellipsis>
               </td>
               <td>
