@@ -122,6 +122,11 @@
 .position-relative {
     position: relative;
 }
+
 .position-absolute {
-    position:absolute;
+    position: absolute;
+}
+
+.no-wrap {
+    white-space: nowrap;
 }

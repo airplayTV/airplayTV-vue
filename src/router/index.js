@@ -66,6 +66,11 @@ const router = createRouter({
       name: 'Control',
       component: () => import('../views/ControlView.vue'),
     },
+    {
+      path: '/source-stat',
+      name: 'source-stat',
+      component: () => import('../views/SourceStatView.vue'),
+    },
   ],
 })
 

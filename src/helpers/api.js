@@ -28,6 +28,10 @@ const httpPlayUrlNetworkCheck = (url) => {
   return httpInstance.get(`/api/m3u8/network-check?url=${url}`)
 }
 
+const apiSourceStat = (query) => {
+  return httpInstance.get(`/api/source/stat?${query}`)
+}
+
 export {
   httpSourceList,
   httpVideoList,
@@ -36,4 +40,5 @@ export {
   httpVideoSearch,
   apiVideoSearchSSE,
   httpPlayUrlNetworkCheck,
+  apiSourceStat,
 }
