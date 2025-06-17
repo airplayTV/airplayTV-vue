@@ -36,9 +36,17 @@
                 <span v-else>N/A</span>
               </td>
               <td>
-                <n-ellipsis :line-clamp="1" style="max-width: 200px">
-                  {{ item.name }}
-                </n-ellipsis>
+
+                <div class="flex-row" style="">
+                  <n-ellipsis :line-clamp="1" style="max-width: 200px">
+                    {{ item.name }}
+                  </n-ellipsis>
+                  <div class="padding-2px"></div>
+                  <n-icon color="#5e5b5b" size="20" @click="openVideo(item)">
+                    <ExternalLink />
+                  </n-icon>
+                </div>
+
               </td>
               <td>
                 <n-text class="text-ellipsis">
@@ -68,12 +76,13 @@
 </template>
 
 <script setup>
-import {NEllipsis, NScrollbar, NTable, NText, useLoadingBar, useMessage} from 'naive-ui'
+import {NEllipsis, NIcon, NScrollbar, NTable, NText, useLoadingBar, useMessage} from 'naive-ui'
 import AppHeader from '@/components/AppHeader.vue'
 import {useRoute, useRouter} from 'vue-router'
 import AppFooter from '@/components/AppFooter.vue'
 import {onBeforeMount, ref} from "vue";
 import {apiSourceStat} from "@/helpers/api.js";
+import ExternalLink from '@vicons/tabler/ExternalLink'
 
 
 const route = useRoute()
@@ -98,6 +107,11 @@ const loadSourceStat = () => {
     loadingBar.finish()
   })
 
+}
+
+const openVideo = (item) => {
+  console.log('[openVideo]', item)
+  window.open(`/video/play/${item.vid}/${item.pid}?_source=${item.source}`)
 }
 
 onBeforeMount(onBeforeMountHandler)

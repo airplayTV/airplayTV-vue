@@ -25,6 +25,8 @@
                   placeholder="切换源"
                   @update:value="onUpdateSource"
                   :options="formattedSourceList"
+                  filterable
+                  clearable
               />
             </div>
             <div class="padding-10px"></div>
@@ -35,6 +37,8 @@
                   placeholder="选择类型"
                   @update:value="onUpdateTag"
                   :options="formattedTagList"
+                  filterable
+                  clearable
               />
             </div>
           </n-form-item>
