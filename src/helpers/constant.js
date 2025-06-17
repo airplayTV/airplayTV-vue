@@ -7,7 +7,7 @@ const KEY_VIDEO_TAG = 'tv_video_tag'
 const KEY_VIDEO_SOURCE_TAGS = 'tv_video_source_tags'
 const KEY_VIDEO_PLAYER = 'tv_video_player'
 const KEY_VIDEO_SOURCE_SECRET = 'tv_video_source_secret'
-const KEY_VIDEO_THUMB_LAYOUT = 'tv_video_thumb_layout'
+const KEY_VIDEO_STYLE_CONFIG = 'tv_video_style_config'
 
 const CONTROL_LOAD_VIDEO = '/ctl_load_Video'
 const CONTROL_MUTE = '/ctl_mute'
@@ -42,5 +42,5 @@ export {
   CONTROL_PAUSE,
   CONTROL_FORWARD,
   KEY_VIDEO_SOURCE_SECRET,
-  KEY_VIDEO_THUMB_LAYOUT,
+  KEY_VIDEO_STYLE_CONFIG,
 }

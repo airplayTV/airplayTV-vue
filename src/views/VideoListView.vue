@@ -52,7 +52,7 @@ const loadTagList = () => {
     }
   })
 
-  console.log('[tagList]', tagList.value)
+  // console.log('[tagList]', tagList.value)
 
 }
 
@@ -85,8 +85,9 @@ onBeforeUpdate(onBeforeUpdateHandler)
       <AppHeader />
       <div class="tags-container">
         <n-space :key="_pageKey">
+          <n-tag type="success" disabled>{{appStore.source}}</n-tag>
           <n-tag v-for="(item,idx) in tagList" :key="idx" @click="onUpdateTag(item.value)"
-                 :type="tag===item.value?'success':''">
+                 :type="tag===item.value?'warning':''" :disabled="tag===item.value">
             {{ item.label }}
           </n-tag>
         </n-space>

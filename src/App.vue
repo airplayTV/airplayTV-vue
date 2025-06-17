@@ -11,7 +11,7 @@ import {
   KEY_VIDEO_SOURCE,
   KEY_VIDEO_SOURCE_SECRET,
   KEY_VIDEO_TAG,
-  KEY_VIDEO_THUMB_LAYOUT
+  KEY_VIDEO_STYLE_CONFIG
 } from '@/helpers/constant'
 import {
   addEventHandler,
@@ -41,8 +41,10 @@ const onBeforeMountHandler = () => {
   initAppStore()
 
   addEventHandler(EventNameMessage, _pageKey, (data) => {
+    const appStore = useAppStore()
     switch (data.event) {
       case ControlEventLoadVideo:
+        appStore.setSourceSecret(data.mode, false)
         router.value.push(
             `/video/play/${data.vid}/${data.pid}?_source=${data.source}&t=${Math.random()}`,
         )
@@ -63,12 +65,12 @@ const initAppStore = async () => {
   const appStore = useAppStore()
 
   appStore.setSourceSecret(getStorageSync(KEY_VIDEO_SOURCE_SECRET))
-  appStore.setThumbLayout(getStorageSync(KEY_VIDEO_THUMB_LAYOUT))
+  appStore.setStyleConfig(getStorageSync(KEY_VIDEO_STYLE_CONFIG))
   if (!appStore.sourceList) {
     const resp = await httpSourceList()
     appStore.setSourceList(resp.data)
     appStore.setSourceSecret(getStorageSync(KEY_VIDEO_SOURCE_SECRET))
-    appStore.setThumbLayout(getStorageSync(KEY_VIDEO_THUMB_LAYOUT))
+    appStore.setStyleConfig(getStorageSync(KEY_VIDEO_STYLE_CONFIG))
 
     checkOrResetSource(resp.data)
   }

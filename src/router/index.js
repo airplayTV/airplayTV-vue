@@ -1,6 +1,6 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import {arrayContainsValue, getStorageSync} from "@/helpers/utils.js";
-import {KEY_VIDEO_SOURCE, KEY_VIDEO_SOURCE_SECRET, KEY_VIDEO_TAG, KEY_VIDEO_THUMB_LAYOUT} from "@/helpers/constant.js";
+import {KEY_VIDEO_SOURCE, KEY_VIDEO_SOURCE_SECRET, KEY_VIDEO_TAG, KEY_VIDEO_STYLE_CONFIG} from "@/helpers/constant.js";
 import {useAppStore} from "@/stores/app.js";
 import {httpSourceList} from "@/helpers/api.js";
 import VideoListView from "@/views/VideoListView.vue";

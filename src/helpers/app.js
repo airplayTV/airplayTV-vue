@@ -9,4 +9,22 @@ const formatVideoSourceMap = (videoLinks) => {
   return linkMap
 }
 
-export { formatVideoSourceMap }
+const getRouterLinkType = (styleConfig) => {
+  if (styleConfig === 1) {
+    return '_blank'
+  }
+  return ''
+}
+
+const getImageObjectFit = (styleConfig) => {
+  if (styleConfig === 1) {
+    return 'cover'
+  }
+  return 'cover'
+}
+
+export {
+  formatVideoSourceMap,
+  getRouterLinkType,
+  getImageObjectFit,
+}

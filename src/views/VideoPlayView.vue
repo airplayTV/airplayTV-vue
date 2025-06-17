@@ -4,7 +4,15 @@
       <AppHeader />
 
       <div style="padding: 0 10px" v-if="video">
-        <n-h2 class="text-align-center">{{ video.name }}</n-h2>
+        <div class="flex-row flex-align-center flex-justify-center">
+          <n-h2 class="text-align-center">{{ video.name }}</n-h2>
+          <div class="padding-2px"></div>
+          <RouterLink :to="`/video/search?page=1&keyword=${video.name}`" target="_blank">
+            <n-icon color="#5e5b5b" size="20">
+              <SearchSharp />
+            </n-icon>
+          </RouterLink>
+        </div>
 
         <!--<video :src="video.url" style="width: 100%" />-->
         <div style="border-radius: 4px; display: flex; min-height: 180px">
@@ -43,6 +51,13 @@
           </n-collapse-item>
         </n-collapse>
       </div>
+      <div v-else>
+        <div class="padding-30px"></div>
+        <div class="padding-30px"></div>
+        <div class="padding-30px"></div>
+        <n-result status="404" title="暂无数据"></n-result>
+      </div>
+
     </div>
 
     <AppFooter />
@@ -54,7 +69,7 @@ import {computed, onBeforeMount, onBeforeUnmount, onBeforeUpdate, onMounted, onU
 import {useRoute, useRouter} from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import {httpPlayUrlNetworkCheck, httpVideo, httpVideoSource} from '../helpers/api'
-import {NCollapse, NCollapseItem, NEllipsis, NH2, NText, useLoadingBar, useMessage,} from 'naive-ui'
+import {NCollapse, NCollapseItem, NEllipsis, NH2, NText, useLoadingBar, useMessage, NResult, NIcon} from 'naive-ui'
 import AppSourceList from '@/components/AppSourceList.vue'
 import AppArtplayer from '@/components/AppArtplayer.vue'
 import {formatVideoSourceMap} from '@/helpers/app'
@@ -80,6 +95,7 @@ import {
 import axios from 'axios'
 import {apiUrl} from '@/config'
 import {useAppStore} from "@/stores/app.js";
+import {SearchSharp} from '@vicons/material'
 
 const route = useRoute()
 const router = useRouter()
