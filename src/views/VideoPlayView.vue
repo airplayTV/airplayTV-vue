@@ -341,9 +341,9 @@ const getArtInstance = (art) => {
     handlerTimeUpdate()
   })
   art.on('error', (error, reconnectTime) => {
-    if (reconnectTime >= Artplayer.RECONNECT_TIME_MAX) {
-      playType.value++
-    }
+    // if (reconnectTime >= Artplayer.RECONNECT_TIME_MAX) {
+    //   playType.value++
+    // }
   })
   art.on('video:ended', (e) => {
     if (artInstance.value.currentTime > 0 && artInstance.value.currentTime === artInstance.value.duration) {
@@ -369,7 +369,7 @@ const handleNextVideo = () => {
       console.log('[即将播放]', tmpLinks[i + 1])
       const nextSource = tmpLinks[i + 1]
 
-      router.push(`/video/play/${vid.value}/${nextSource.id}?_source=${appStore.source}`)
+      router.push(`/video/play/${vid.value}/${nextSource.id}?_source=${appStore.source}&from=next`)
     }
     if (found) {
       break
