@@ -1,13 +1,21 @@
 <template>
   <div class="flex-1 flex-column flex-justify-between">
-    <div v-if="noVideoListMsg">
+
+    <div v-if="videoList===false" class="flex-column flex-justify-center">
+      <div class="padding-30px"></div>
+      <div class="padding-30px"></div>
+      <div class="padding-30px"></div>
+      <n-spin size="large" />
+    </div>
+    <div v-else-if="noVideoListMsg">
       <div class="padding-30px"></div>
       <n-result status="404" title="暂无数据" :description="noVideoListMsg"></n-result>
     </div>
     <div v-else class="links">
       <n-grid x-gap="12" y-gap="1" :cols="cols">
         <n-gi v-for="(video, idx) in videoList" :key="idx">
-          <RouterLink :target="getRouterLinkType(appStore.styleConfig)" :to="`/video/detail/${video.id}?_source=${appStore.source}`" class="flex-column">
+          <RouterLink :target="getRouterLinkType(appStore.styleConfig)"
+                      :to="`/video/detail/${video.id}?_source=${appStore.source}`" class="flex-column">
             <div class="flex-row flex-justify-center flex-align-center position-relative">
               <n-image
                   :width="width"
@@ -44,14 +52,14 @@
 
 <script setup>
 import {onBeforeMount, ref} from 'vue'
-import {NEllipsis, NGi, NGrid, NImage, NPagination, NResult, useLoadingBar,} from 'naive-ui'
+import {NEllipsis, NGi, NGrid, NImage, NPagination, NResult, NSpin, useLoadingBar,} from 'naive-ui'
 import {httpVideoList} from '../helpers/api'
 import {useRoute, useRouter} from 'vue-router'
 import {useAppStore} from "@/stores/app.js";
 import {FormatToDate} from "../helpers/time.js";
-import {getRouterLinkType, getImageObjectFit} from "../helpers/app.js";
+import {getImageObjectFit, getRouterLinkType} from "../helpers/app.js";
 
-const videoList = ref([])
+const videoList = ref(false)
 const pages = ref(0)
 const page = ref(1)
 const loadingBar = useLoadingBar()
@@ -62,7 +70,7 @@ const appStore = useAppStore()
 
 const loadVideoList = (tag, _page) => {
   loadingBar.start()
-  videoList.value = []
+  videoList.value = false
   pages.value = 0
   page.value = 0
   noVideoListMsg.value = null
@@ -73,10 +81,12 @@ const loadVideoList = (tag, _page) => {
     page.value = resp.data.page
 
     if (!resp.data.list || resp.data.list.length === 0) {
+      videoList.value = []
       noVideoListMsg.value = '暂无数据'
     }
   }).catch((err) => {
     console.log('[httpVideoList.Error]', err)
+    videoList.value = []
     noVideoListMsg.value = err
   }).finally(() => {
     loadingBar.finish()

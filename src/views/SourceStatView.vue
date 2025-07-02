@@ -18,6 +18,7 @@
               <th>#</th>
               <th>源名</th>
               <th>分辨率</th>
+              <th>延迟</th>
               <th>检测视频</th>
               <th>时间</th>
               <th>错误信息</th>
@@ -26,14 +27,17 @@
             <tbody>
             <tr v-for="(item,idx) in statList" :key="idx">
               <td>{{ idx + 1 }}</td>
-              <td>
-                <n-ellipsis :line-clamp="1" style="max-width: 120px; min-width: 80px;">
+              <td class="links-x657 text-ellipsis">
+                <router-link :to="`/?page=1&tag=&_source=${item.source}`">
                   {{ item.source }}
-                </n-ellipsis>
+                </router-link>
               </td>
               <td>
                 <span v-if="item.width > 0">{{ item.width }}*{{ item.height }}</span>
                 <span v-else>N/A</span>
+              </td>
+              <td>
+                <n-text class="text-ellipsis">{{ item.latency / 1000 }}</n-text>
               </td>
               <td>
 
@@ -128,6 +132,15 @@ onBeforeMount(onBeforeMountHandler)
   .qr-reader {
     width: 100%;
     height: 100%;
+  }
+}
+
+.links-x657 {
+  & a {
+    color: rgba(0, 0, 0, 0.8);
+  }
+
+  .router-link-active {
   }
 }
 </style>

@@ -1,7 +1,13 @@
 <template>
-  <div v-if="video" class="flex-column">
+  <div v-if="video === false" class="flex-column flex-justify-center">
+    <div class="padding-30px"></div>
+    <div class="padding-30px"></div>
+    <div class="padding-30px"></div>
+    <n-spin size="large" />
+  </div>
+  <div v-else-if="video" class="flex-column">
     <div class="flex-column flex-align-center" v-if="appStore.styleConfig===1">
-      <div class="padding-10px" ></div>
+      <div class="padding-10px"></div>
       <n-image
           :width="width*cols*0.8"
           :height="height*cols*0.8"
@@ -57,41 +63,24 @@
     <div class="padding-30px"></div>
     <div class="padding-30px"></div>
     <div class="padding-30px"></div>
-    <n-result status="404" title="暂无数据"></n-result>
+    <n-result status="404" title="暂无数据" :description="errMsg"></n-result>
   </div>
 
 </template>
 
 <script setup>
-import {computed, defineComponent, onBeforeMount, onBeforeUpdate, onMounted, onUpdated, ref} from 'vue'
-import {
-  NButton,
-  NEllipsis,
-  NGi,
-  NGrid,
-  NH1,
-  NH2,
-  NIcon,
-  NImage,
-  NInput,
-  NInputGroup,
-  NPagination, NResult,
-  NSelect,
-  NText,
-  useLoadingBar,
-} from 'naive-ui'
-import {BrokenImageRound} from '@vicons/material'
+import {computed, onBeforeMount, onBeforeUpdate, onMounted, onUpdated, ref} from 'vue'
+import {NEllipsis, NH2, NIcon, NImage, NResult, NSpin, NText, useLoadingBar,} from 'naive-ui'
+import {SearchSharp} from '@vicons/material'
 import {useRoute} from 'vue-router'
 import {httpVideo} from '@/helpers/api'
 import AppSourceList from '@/components/AppSourceList.vue'
 import {formatVideoSourceMap} from '@/helpers/app'
 import {useAppStore} from "@/stores/app.js";
 import {computeWindowWidthColumn} from "@/helpers/utils.js";
-import ExternalLink from '@vicons/tabler/ExternalLink'
-import {SearchSharp} from '@vicons/material'
 
 
-const video = ref(null)
+const video = ref(false)
 // const pages = ref(0)
 // const page = ref(0)
 const _key = ref(null)
@@ -103,13 +92,16 @@ const appStore = useAppStore()
 const cols = ref(1)
 const width = ref(0)
 const height = ref(0)
+const errMsg = ref('')
 
 const loadVideo = (id) => {
-  video.value = null
+  video.value = false
   loadingBar.start()
   httpVideo(id, appStore.source).then((resp) => {
     video.value = resp.data
   }).catch((err) => {
+    errMsg.value = err
+    video.value = null
     console.log('[httpVideo.Error]', err)
   }).finally(() => {
     loadingBar.finish()

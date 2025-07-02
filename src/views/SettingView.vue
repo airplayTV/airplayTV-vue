@@ -104,6 +104,14 @@
               </n-button>
             </n-space>
           </n-form-item>
+
+          <n-form-item label="" path="source">
+            <n-space justify="end" class="flex-1">
+              <n-button strong secondary type="warning" @click="router.push('/source-stat')">
+                监测
+              </n-button>
+            </n-space>
+          </n-form-item>
         </n-form>
       </div>
     </div>

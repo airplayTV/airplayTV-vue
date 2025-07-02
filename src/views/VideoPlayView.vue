@@ -3,7 +3,13 @@
     <div>
       <AppHeader />
 
-      <div style="padding: 0 10px" v-if="video">
+      <div v-if="video === false" class="flex-column flex-justify-center">
+        <div class="padding-30px"></div>
+        <div class="padding-30px"></div>
+        <div class="padding-30px"></div>
+        <n-spin size="large" />
+      </div>
+      <div style="padding: 0 10px" v-else-if="video">
         <div class="flex-row flex-align-center flex-justify-center">
           <n-h2 class="text-align-center">{{ video.name }}</n-h2>
           <div class="padding-2px"></div>
@@ -55,7 +61,7 @@
         <div class="padding-30px"></div>
         <div class="padding-30px"></div>
         <div class="padding-30px"></div>
-        <n-result status="404" title="暂无数据"></n-result>
+        <n-result status="404" title="暂无数据" :description="errMsg"></n-result>
       </div>
 
     </div>
@@ -69,7 +75,18 @@ import {computed, onBeforeMount, onBeforeUnmount, onBeforeUpdate, onMounted, onU
 import {useRoute, useRouter} from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import {httpPlayUrlNetworkCheck, httpVideo, httpVideoSource} from '../helpers/api'
-import {NCollapse, NCollapseItem, NEllipsis, NH2, NText, useLoadingBar, useMessage, NResult, NIcon} from 'naive-ui'
+import {
+  NCollapse,
+  NCollapseItem,
+  NEllipsis,
+  NH2,
+  NIcon,
+  NResult,
+  NSpin,
+  NText,
+  useLoadingBar,
+  useMessage
+} from 'naive-ui'
 import AppSourceList from '@/components/AppSourceList.vue'
 import AppArtplayer from '@/components/AppArtplayer.vue'
 import {formatVideoSourceMap} from '@/helpers/app'
@@ -108,9 +125,10 @@ const vid = ref(null)
 const pid = ref(null)
 const tmpQuery = ref(null)
 const playType = ref(0)
+const errMsg = ref('')
 
 const source = ref(null)
-const video = ref(null)
+const video = ref(false)
 const artInstance = ref({})
 const artOption = ref({})
 const artStyle = ref({
@@ -139,7 +157,7 @@ const checkUpdateVideo = (params) => {
     if (timer.value) {
       clearInterval(timer.value)
     }
-    video.value = null
+    video.value = false
     source.value = null
     artInstance.value = null
     artOption.value = null
@@ -311,6 +329,8 @@ const loadVideo = (vid) => {
   httpVideo(vid, appStore.source).then((resp) => {
     video.value = resp.data
   }).catch((err) => {
+    errMsg.value = err
+    video.value = null
     console.log('[httpVideo.Error]', err)
   })
 }
