@@ -1,3 +1,32 @@
+<template>
+  <n-loading-bar-provider>
+    <n-message-provider>
+      <n-notification-provider>
+        <div class="container">
+          <div v-if="!sourceList" class="padding-20px">
+            <n-skeleton text :repeat="2" />
+            <n-skeleton text style="width: 60%" />
+
+            <div v-if="errMsg">
+              <div class="padding-30px"></div>
+              <div class="padding-30px"></div>
+              <n-result status="404" title="暂无数据" :description="errMsg"></n-result>
+            </div>
+            <div v-else class="flex-column flex-justify-center">
+              <div class="padding-30px"></div>
+              <div class="padding-30px"></div>
+              <div class="padding-30px"></div>
+              <n-spin size="large" />
+            </div>
+
+          </div>
+          <RouterView v-else />
+        </div>
+      </n-notification-provider>
+    </n-message-provider>
+  </n-loading-bar-provider>
+</template>
+
 <script setup>
 import {onBeforeMount, onBeforeUnmount, ref} from 'vue'
 import {NLoadingBarProvider, NMessageProvider, NNotificationProvider, NResult, NSkeleton, NSpin,} from 'naive-ui'
@@ -136,34 +165,5 @@ onBeforeMount(onBeforeMountHandler)
 onBeforeUnmount(onBeforeUnmountHandler)
 
 </script>
-
-<template>
-  <n-loading-bar-provider>
-    <n-message-provider>
-      <n-notification-provider>
-        <div class="container">
-          <div v-if="!sourceList" class="padding-20px">
-            <n-skeleton text :repeat="2" />
-            <n-skeleton text style="width: 60%" />
-
-            <div v-if="errMsg">
-              <div class="padding-30px"></div>
-              <div class="padding-30px"></div>
-              <n-result status="404" title="暂无数据" :description="errMsg"></n-result>
-            </div>
-            <div v-else class="flex-column flex-justify-center">
-              <div class="padding-30px"></div>
-              <div class="padding-30px"></div>
-              <div class="padding-30px"></div>
-              <n-spin size="large" />
-            </div>
-
-          </div>
-          <RouterView v-else />
-        </div>
-      </n-notification-provider>
-    </n-message-provider>
-  </n-loading-bar-provider>
-</template>
 
 <style scoped></style>
