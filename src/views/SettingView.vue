@@ -218,9 +218,9 @@ const onBeforeMountHandler = () => {
   appStore.setStyleConfig(getStorageSync(KEY_VIDEO_STYLE_CONFIG))
   defaultStyle.value = appStore.styleConfig
 
-  formattedSourceList.value = appStore.sourceList?.map((item) => {
+  formattedSourceList.value = appStore.sourceList?.map((item, idx) => {
     return {
-      label: item.name,
+      label: `(${idx + 1}) ${item.name}`,
       value: item.name,
       data: item,
     }
@@ -252,9 +252,9 @@ const handleTagList = (source) => {
   formattedTagList.value = []
   formattedSourceList.value.filter((item) => {
     if (item.value === source) {
-      formattedTagList.value = item.data.tags.map((_tag) => {
+      formattedTagList.value = item.data.tags.map((_tag, idx) => {
         return {
-          label: _tag.name,
+          label: `(${idx + 1}) ${_tag.name}`,
           value: _tag.value,
           data: _tag,
         }
