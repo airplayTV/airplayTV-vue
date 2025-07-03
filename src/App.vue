@@ -1,6 +1,6 @@
-<script>
-import {defineComponent, onBeforeMount, onBeforeUnmount, ref} from 'vue'
-import {NLoadingBarProvider, NMessageProvider, NNotificationProvider, NSkeleton, NSpace, NSpin,} from 'naive-ui'
+<script setup>
+import {onBeforeMount, onBeforeUnmount, ref} from 'vue'
+import {NLoadingBarProvider, NMessageProvider, NNotificationProvider, NResult, NSkeleton, NSpin,} from 'naive-ui'
 // import { useAppStore } from '@/stores/app'
 import {storeToRefs} from 'pinia'
 import {useAppStore} from '@/stores/app'
@@ -10,8 +10,8 @@ import {
   KEY_CLIENT_ID,
   KEY_VIDEO_SOURCE,
   KEY_VIDEO_SOURCE_SECRET,
-  KEY_VIDEO_TAG,
-  KEY_VIDEO_STYLE_CONFIG
+  KEY_VIDEO_STYLE_CONFIG,
+  KEY_VIDEO_TAG
 } from '@/helpers/constant'
 import {
   addEventHandler,
@@ -27,8 +27,11 @@ import {useRoute, useRouter} from 'vue-router'
 import {httpSourceList} from "@/helpers/api.js";
 
 const _pageKey = '_key_app_page_app_'
-const router = ref(null)
-const route = ref(null)
+const router = useRouter()
+const route = useRoute()
+
+const errMsg = ref('')
+const { sourceList } = storeToRefs(useAppStore())
 
 const onBeforeMountHandler = () => {
   const clientId = getStorageSync(KEY_CLIENT_ID)
@@ -45,7 +48,7 @@ const onBeforeMountHandler = () => {
     switch (data.event) {
       case ControlEventLoadVideo:
         appStore.setSourceSecret(data.mode, false)
-        router.value.push(
+        router.push(
             `/video/play/${data.vid}/${data.pid}?_source=${data.source}&t=${Math.random()}`,
         )
         break
@@ -67,12 +70,20 @@ const initAppStore = async () => {
   appStore.setSourceSecret(getStorageSync(KEY_VIDEO_SOURCE_SECRET))
   appStore.setStyleConfig(getStorageSync(KEY_VIDEO_STYLE_CONFIG))
   if (!appStore.sourceList) {
-    const resp = await httpSourceList()
-    appStore.setSourceList(resp.data)
-    appStore.setSourceSecret(getStorageSync(KEY_VIDEO_SOURCE_SECRET))
-    appStore.setStyleConfig(getStorageSync(KEY_VIDEO_STYLE_CONFIG))
+    try {
+      const resp = await httpSourceList()
+      appStore.setSourceList(resp.data)
+      appStore.setSourceSecret(getStorageSync(KEY_VIDEO_SOURCE_SECRET))
+      appStore.setStyleConfig(getStorageSync(KEY_VIDEO_STYLE_CONFIG))
 
-    checkOrResetSource(resp.data)
+      checkOrResetSource(resp.data)
+
+    } catch (e) {
+      console.log('E]', e.message)
+      // message.warning(e.message || '服务器异常')
+      errMsg.value = e.message || '服务器异常'
+
+    }
   }
 
 }
@@ -121,29 +132,9 @@ const onBeforeUnmountHandler = () => {
   removeEventHandler(_pageKey)
 }
 
-export default defineComponent({
-  components: {
-    NSkeleton,
-    NSpace,
-    NSpin,
-    NLoadingBarProvider,
-    NNotificationProvider,
-    NMessageProvider,
-  },
-  setup() {
-    const { sourceList } = storeToRefs(useAppStore())
+onBeforeMount(onBeforeMountHandler)
+onBeforeUnmount(onBeforeUnmountHandler)
 
-    router.value = useRouter()
-    route.value = useRoute()
-
-    onBeforeMount(onBeforeMountHandler)
-    onBeforeUnmount(onBeforeUnmountHandler)
-
-    return {
-      sourceList,
-    }
-  },
-})
 </script>
 
 <template>
@@ -154,6 +145,19 @@ export default defineComponent({
           <div v-if="!sourceList" class="padding-20px">
             <n-skeleton text :repeat="2" />
             <n-skeleton text style="width: 60%" />
+
+            <div v-if="errMsg">
+              <div class="padding-30px"></div>
+              <div class="padding-30px"></div>
+              <n-result status="404" title="暂无数据" :description="errMsg"></n-result>
+            </div>
+            <div v-else class="flex-column flex-justify-center">
+              <div class="padding-30px"></div>
+              <div class="padding-30px"></div>
+              <div class="padding-30px"></div>
+              <n-spin size="large" />
+            </div>
+
           </div>
           <RouterView v-else />
         </div>
