@@ -292,6 +292,7 @@ const loadVideoSource = (vid, pid, count = 0) => {
     }
   }).catch((err) => {
     console.log('[httpVideoSource.Error]', err)
+    artInstance.value.notice.show = `无法播放：${err}`
   }).finally(() => {
     loadingBar.finish()
   })
