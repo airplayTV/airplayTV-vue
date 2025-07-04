@@ -2,7 +2,9 @@
   <div class="padding-10px">
     <div class="flex-row flex-align-center flex-justify-between">
       <div class="flex-row flex-align-center">
-        <div class="logo" @click="router.push('/')">AirplayTV</div>
+        <div class="logo links" @click="router.push('/')">
+          <RouterLink to="/" style="color: #18a058;">AirplayTV</RouterLink>
+        </div>
         <ul class="links">
           <li v-if="room">
             <RouterLink to="/control">遥控</RouterLink>
@@ -41,7 +43,7 @@
 
 <script setup>
 import {onBeforeMount, onBeforeUpdate, ref} from 'vue'
-import {NButton, NIcon, NInput, NInputGroup, NText} from 'naive-ui'
+import {NButton, NIcon, NInput, NInputGroup} from 'naive-ui'
 import {SearchSharp} from '@vicons/material'
 import {useRoute, useRouter} from 'vue-router'
 import {getStorageSync} from '@/helpers/utils'
@@ -99,7 +101,7 @@ ul li.active {
 }
 
 .logo {
-  margin-right: 10px;
+  margin-right: 6px;
   font-size: 18px;
   font-weight: bold;
   color: #18a058;
@@ -114,8 +116,7 @@ ul li.active {
   }
 
   .router-link-active {
-    color: #18a058;
-    border-bottom: 2px solid #18a058;
+    border-bottom: 0;
   }
 }
 </style>
