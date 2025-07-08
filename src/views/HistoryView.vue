@@ -6,8 +6,8 @@
       <div style="padding: 0 10px">
         <n-grid x-gap="12" y-gap="1" :cols="cols">
           <n-gi v-for="(video, idx) in historyList" :key="idx">
-            <div class="flex-row flex-justify-center flex-align-center thumb-warp">
-              <div class="close flex-row flex-justify-between">
+            <div class="flex-row flex-justify-center flex-align-center thumb-warp position-relative">
+              <div class="close flex-row flex-justify-between width-100">
                 <div></div>
                 <div class="close-box flex-column flex-justify-center flex-align-center">
                   <n-icon color="#ffffff" size="22" @click="onOpenClearHistoryTips(video)">
@@ -15,7 +15,7 @@
                   </n-icon>
                 </div>
               </div>
-              <div class="update-time" @click="onOpenVideo(video)">
+              <div class="update-time width-100" @click="onOpenVideo(video)">
                 <div class="time">
                   <div>{{ video.source }}</div>
                   <div>{{ video.updated_time }}</div>
@@ -28,11 +28,11 @@
               </div>
               <n-image
                   @click="onOpenVideo(video)"
-                  width="175"
+                  width="300"
                   height="230"
                   :src="video.thumb"
                   :key="video.thumb"
-                  class="thumb"
+                  class="thumb overflow-hidden"
                   object-fit="cover"
                   preview-disabled
               />
@@ -162,7 +162,6 @@ onBeforeMount(onBeforeMountHandler)
   position: relative;
 
   .close {
-    width: 175px;
     position: absolute;
     z-index: 9;
     top: 0;
@@ -171,21 +170,15 @@ onBeforeMount(onBeforeMountHandler)
   .close-box {
     width: 28px;
     height: 28px;
-    //border-top-right-radius: 3px;
+    border-radius: 4px;
     background-color: rgba(0, 0, 0, 0.47);
-    //background-color: rgba(44, 62, 80, 0.8);
   }
 
   .update-time {
-    width: 175px; /** width+padding总宽等于图片设置的宽度 **/
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
+    border-radius: 4px;
     position: absolute;
     z-index: 9;
     bottom: 0;
-    //background-color: rgba(44, 62, 80, 0.76);
     background-color: rgb(0, 0, 0, 0.47);
     color: #ffffff;
     text-align: left;

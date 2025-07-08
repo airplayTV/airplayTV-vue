@@ -18,15 +18,15 @@
                       :to="`/video/detail/${video.id}?_source=${appStore.source}`" class="flex-column">
             <div class="flex-row flex-justify-center flex-align-center position-relative">
               <n-image
-                  :width="width"
+                  width="300"
                   :height="height"
                   :src="video.thumb"
                   :key="video.thumb"
-                  class="thumb"
+                  class="thumb overflow-hidden"
                   :object-fit="getImageObjectFit(appStore.styleConfig)"
                   preview-disabled
               />
-              <div class="position-absolute vod-update-time" :style="{width:`${width}px`}">
+              <div class="position-absolute vod-update-time" style="width: 100%;">
                 <div class="c" v-if="video.updated_at">
                   更新：{{ FormatToDate(video.updated_at) }}
                 </div>
