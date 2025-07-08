@@ -38,9 +38,17 @@ const clearHistory = async () => {
   return await db.history.clear()
 }
 
-const listHistory = async () => {
+const listHistory = async (page = 1, limit = 20) => {
+  page = +page
+  limit = +limit
+  if (page < 1) {
+    page = 1
+  }
+  if (limit > 100 || limit <= 0) {
+    limit = 20
+  }
   // 倒序取出100
-  return await db.history.orderBy('updated_at').desc().limit(100).toArray()
+  return await db.history.orderBy('updated_at').desc().offset((page - 1) * limit).limit(limit).toArray()
 }
 
 const findHistory = async (source, vid, pid) => {

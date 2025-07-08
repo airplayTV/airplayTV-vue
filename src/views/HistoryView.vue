@@ -4,7 +4,7 @@
       <AppHeader />
 
       <div style="padding: 0 10px">
-        <n-grid x-gap="12" y-gap="1" :cols="cols">
+        <n-grid x-gap="12" y-gap="1" :cols="cols" class="links">
           <n-gi v-for="(video, idx) in historyList" :key="idx">
             <div class="flex-row flex-justify-center flex-align-center thumb-warp position-relative">
               <div class="close flex-row flex-justify-between width-100">
@@ -15,7 +15,7 @@
                   </n-icon>
                 </div>
               </div>
-              <div class="update-time width-100" @click="onOpenVideo(video)">
+              <div class="update-time width-100">
                 <div class="time">
                   <div>{{ video.source }}</div>
                   <div>{{ video.updated_time }}</div>
@@ -39,11 +39,11 @@
             </div>
 
             <div class="name text-align-center">
-              <div>
-                <n-ellipsis :line-clamp="1">
+              <n-ellipsis :line-clamp="1">
+                <router-link class="flex-column" :to="`/video/detail/${video.id}?_source=${appStore.source}`">
                   {{ video.name }}
-                </n-ellipsis>
-              </div>
+                </router-link>
+              </n-ellipsis>
             </div>
           </n-gi>
         </n-grid>
@@ -81,8 +81,11 @@ import {format} from 'fecha'
 import AppHeader from "@/components/AppHeader.vue";
 import AppFooter from "@/components/AppFooter.vue";
 import {CloseRound} from '@vicons/material'
+import {useAppStore} from "@/stores/app.js";
 
 const router = useRouter()
+const appStore = useAppStore()
+
 const windowWidth = ref(0)
 const cols = ref(2)
 const historyList = ref(null)
@@ -104,8 +107,8 @@ const onBeforeMountHandler = () => {
   loadHistoryList()
 }
 
-const loadHistoryList = async () => {
-  const findList = await listHistory()
+const loadHistoryList = async (page) => {
+  const findList = await listHistory(page, 50)
   historyList.value = findList.map((item) => {
     // item.updated_time = (new Date(item.updated_at)).toLocaleString()
     item.updated_time = format(new Date(item.updated_at), 'YYYY/MM/DD hh:mm:ss')
@@ -172,6 +175,7 @@ onBeforeMount(onBeforeMountHandler)
     height: 28px;
     border-radius: 4px;
     background-color: rgba(0, 0, 0, 0.47);
+    cursor: pointer;
   }
 
   .update-time {
