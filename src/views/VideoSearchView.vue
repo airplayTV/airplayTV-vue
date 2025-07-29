@@ -103,11 +103,19 @@ const resetSearchEvent = (keyword) => {
         d.total = 0
       }
 
-      tmpList.push({ source: resp.source, data: d, total: d.total, _id: Math.random() })
-      tmpList.sort((a, b) => b.total - a.total)
-      videoSearchResultList.value = tmpList
+      // 有数据才排序
+      if (d.total > 0) {
+        tmpList.push({ source: resp.source, sort: resp.sort, data: d, total: d.total, _id: Math.random() })
+        tmpList.sort((a, b) => {
+          if (b.sort === a.sort) {
+            return b.total - a.total
+          }
+          return a.sort - b.sort
+        })
+        videoSearchResultList.value = tmpList
+        videoSearchResultKey.value = `${Math.random()}`
+      }
 
-      videoSearchResultKey.value = `${Math.random()}`
     } catch (e) {
       console.log('[JSON.Error]', e)
     }
