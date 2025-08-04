@@ -12,7 +12,8 @@ db.version(1).stores({
     'source', // 源
     'vid',
     'pid',
-    'name', // 名称
+    'name', // 视频名称
+    'pname', // 播放名称
     'thumb', // 地址
     'url', // 播放地址
     'type', // 视频源类型，hls/auto
@@ -20,6 +21,15 @@ db.version(1).stores({
     'lastTime', // 最后播放时间
     'updated_at', // 更新时间
   ].join(', '),
+  timeline: [
+    '++id',
+    'source', // 源
+    'vid',
+    'pid',
+    'duration', // 总时长，秒
+    'lastTime', // 最后播放时间
+    'updated_at', // 更新时间
+  ].join(', ')
 })
 
 const addHistory = async (history) => {
@@ -51,13 +61,35 @@ const listHistory = async (page = 1, limit = 20) => {
   return await db.history.orderBy('updated_at').desc().offset((page - 1) * limit).limit(limit).toArray()
 }
 
-const findHistory = async (source, vid, pid) => {
-  return await db.history.where({ source: source, vid: vid, pid: pid }).first()
+const findHistory = async (source, vid) => {
+  return await db.history.where({ source: source, vid: vid }).first()
 }
 
-const deleteVideoHistory = async (source, vid, pid) => {
-  return await db.history.where({ source: source, vid: vid, pid: pid }).delete()
+const deleteVideoHistory = async (source, vid) => {
+  return await db.history.where({ source: source, vid: vid }).delete()
 }
+
+
+const addTimeline = async (history) => {
+  return await db.timeline.add(history)
+}
+
+const updateTimeline = async (key, updates) => {
+  return await db.timeline.update(key, updates)
+}
+
+const deleteTimeline = async (key) => {
+  return await db.timeline.delete(key)
+}
+
+const clearTimeline = async () => {
+  return await db.timeline.clear()
+}
+
+const findTimeline = async (source, vid, pid) => {
+  return await db.timeline.where({ source: source, vid: vid, pid: pid }).first()
+}
+
 
 export {
   db,
@@ -68,4 +100,9 @@ export {
   clearHistory,
   listHistory,
   findHistory,
+  addTimeline,
+  updateTimeline,
+  deleteTimeline,
+  clearTimeline,
+  findTimeline,
 }

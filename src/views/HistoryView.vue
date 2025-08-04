@@ -41,7 +41,7 @@
             <div class="name text-align-center">
               <n-ellipsis :line-clamp="1">
                 <router-link class="flex-column" :to="`/video/detail/${video.id}?_source=${appStore.source}`">
-                  {{ video.name }}
+                  {{ video.name }} ({{video.pname}})
                 </router-link>
               </n-ellipsis>
             </div>

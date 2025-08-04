@@ -123,6 +123,7 @@ const appStore = useAppStore()
 const timer = ref(null)
 const vid = ref(null)
 const pid = ref(null)
+const pname = ref(null)
 const tmpQuery = ref(null)
 const playType = ref(0)
 const errMsg = ref('')
@@ -328,7 +329,12 @@ const networkCheck = (playUrl) => {
 
 const loadVideo = (vid) => {
   httpVideo(vid, appStore.source).then((resp) => {
-    video.value = resp.data
+    video.value = resp.data;
+    (resp.data.links || []).filter(item => {
+      if (item.id === pid.value) {
+        pname.value = item.name
+      }
+    })
   }).catch((err) => {
     errMsg.value = err
     video.value = null
@@ -416,6 +422,7 @@ const addHistoryWarp = async () => {
       vid: vid.value,
       pid: pid.value,
       name: video.value.name,
+      pname: pname.value,
       thumb: video.value.thumb,
       url: source.value.url,
       type: source.value.type,
@@ -425,6 +432,8 @@ const addHistoryWarp = async () => {
     })
   } else {
     await updateHistory(find.id, {
+      pid: pid.value,
+      pname: pname.value,
       lastTime: artInstance.value.currentTime,
       updated_at: Date.now(),
     })
