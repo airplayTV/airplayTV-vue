@@ -40,7 +40,7 @@
 
             <div class="name text-align-center">
               <n-ellipsis :line-clamp="1">
-                <router-link class="flex-column" :to="`/video/detail/${video.id}?_source=${appStore.source}`">
+                <router-link class="flex-column" :to="onOpenVideoDetail(video)">
                   {{ video.name }} ({{ video.pname }})
                 </router-link>
               </n-ellipsis>
@@ -131,6 +131,10 @@ const onOpenVideo = (video) => {
   console.log('[]', video)
   // router.value.push(`/video/detail/${video.vid}?_source=${video._source}`)
   router.push(`/video/play/${video.vid}/${video.pid}?_source=${video.source}`)
+}
+
+const onOpenVideoDetail = (video) => {
+  return `/video/detail/${video.vid}?_source=${video.source}`
 }
 
 const removeHistory = async () => {

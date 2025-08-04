@@ -23,7 +23,7 @@
         <!--<video :src="video.url" style="width: 100%" />-->
         <div style="border-radius: 4px; display: flex; min-height: 180px">
           <AppArtplayer
-              v-if="playType===0"
+              v-if="playType===0 && artOption"
               :key="artOption"
               :option="artOption"
               :style="artStyle"
@@ -348,7 +348,7 @@ const videoSourceList = computed(() => {
 })
 
 const getArtInstance = (art) => {
-  console.info('[art]', art)
+  // console.info('[art]', art)
   artInstance.value = art
   art.on('ready', async () => {
     const _findTimeline = await findTimeline(appStore.source, vid.value, pid.value)
@@ -360,7 +360,11 @@ const getArtInstance = (art) => {
       art.seek = _findTimeline.lastTime
       message.info('跳转到最新进度播放')
     }
-    art.play()
+    art.play().then(resp => {
+    }).catch(err => {
+      console.info('[err]', err)
+      message.info(`${err}`)
+    })
   })
 
   art.on('play', () => {
@@ -499,7 +503,10 @@ const addControlEventHandler = () => {
         artInstance.value.backward = 15
         break
       case ControlEventPlay:
-        artInstance.value.play()
+        artInstance.value.play().then(resp => {
+        }).catch(err => {
+          message.info(`${err}`)
+        })
         break
       case ControlEventPause:
         artInstance.value.pause()

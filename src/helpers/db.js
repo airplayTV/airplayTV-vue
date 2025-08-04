@@ -8,7 +8,7 @@ const db = new Dexie('db.airplayTV')
 db.version(1).stores({
   // '++id, name, age'
   history: [
-    '++id',
+    '++id, [source+vid]',
     'source', // 源
     'vid',
     'pid',
@@ -21,7 +21,7 @@ db.version(1).stores({
     'updated_at', // 更新时间
   ].join(', '),
   timeline: [
-    '++id',
+    '++id, [source+vid+pid]',
     'source', // 源
     'vid',
     'pid',
