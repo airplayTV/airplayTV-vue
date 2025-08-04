@@ -41,7 +41,7 @@
             <div class="name text-align-center">
               <n-ellipsis :line-clamp="1">
                 <router-link class="flex-column" :to="`/video/detail/${video.id}?_source=${appStore.source}`">
-                  {{ video.name }} ({{video.pname}})
+                  {{ video.name }} ({{ video.pname }})
                 </router-link>
               </n-ellipsis>
             </div>
@@ -74,7 +74,7 @@
 <script setup>
 import {onBeforeMount, onMounted, ref} from 'vue'
 import {computeWindowWidthColumn} from '@/helpers/utils'
-import {deleteVideoHistory, listHistory} from '@/helpers/db'
+import {deleteTimeline, deleteVideoHistory, listHistory} from '@/helpers/db'
 import {NEllipsis, NGi, NGrid, NIcon, NImage, NModal, NResult} from 'naive-ui'
 import {useRouter} from 'vue-router'
 import {format} from 'fecha'
@@ -138,6 +138,7 @@ const removeHistory = async () => {
     console.log('[removeHistory]', selectedHistory.value)
     await deleteVideoHistory(selectedHistory.value.source, selectedHistory.value.vid, selectedHistory.value.pid)
     await loadHistoryList()
+    await deleteTimeline(selectedHistory.value.source, selectedHistory.value.vid)
   }
 }
 

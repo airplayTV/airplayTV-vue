@@ -93,7 +93,7 @@ import {formatVideoSourceMap} from '@/helpers/app'
 import Hls from 'hls.js'
 import artplayerPluginHlsControl from 'artplayer-plugin-hls-control'
 import AppFooter from '@/components/AppFooter.vue'
-import {addHistory, findHistory, updateHistory} from '@/helpers/db'
+import {addHistory, addTimeline, findHistory, findTimeline, updateHistory, updateTimeline} from '@/helpers/db'
 import {
   addEventHandler,
   ControlEventBack,
@@ -253,7 +253,7 @@ const getControls = () => {
 const checkSourceUrl = (url, errorCallback = null) => {
   const http = axios.create({ baseURL: apiUrl, timeout: 1000 * 20 })
   http.get(url).then(resp => {
-    console.log('[resp+++]', resp)
+    // console.log('[resp+++]', resp)
   }).catch(err => {
     // console.log('[axios.Error]', err)
     if (err.code === 'ERR_NETWORK') {
@@ -300,7 +300,7 @@ const loadVideoSource = (vid, pid, count = 0) => {
 }
 const networkCheck = (playUrl) => {
   httpPlayUrlNetworkCheck(playUrl).then(resp => {
-    console.log('[httpPlayUrlNetworkCheck.resp]', resp.data.resolved)
+    // console.log('[httpPlayUrlNetworkCheck.resp]', resp.data.resolved)
     const resolved = resp.data.resolved.map(item => {
       return `<div><span class="sp1">${item.addr}</span>(<span class="sp2">${item.ip}</span>) <span class="sp3">${item.url}</span></div>`
     })
@@ -351,13 +351,13 @@ const getArtInstance = (art) => {
   console.info('[art]', art)
   artInstance.value = art
   art.on('ready', async () => {
-    const _findHistory = await findHistory(appStore.source, vid.value, pid.value)
+    const _findTimeline = await findTimeline(appStore.source, vid.value, pid.value)
     if (
-        _findHistory &&
-        _findHistory.lastTime &&
-        _findHistory.duration - _findHistory.lastTime >= 60
+        _findTimeline &&
+        _findTimeline.lastTime &&
+        _findTimeline.duration - _findTimeline.lastTime >= 60
     ) {
-      art.seek = _findHistory.lastTime
+      art.seek = _findTimeline.lastTime
       message.info('跳转到最新进度播放')
     }
     art.play()
@@ -409,8 +409,33 @@ const handlerTimeUpdate = () => {
     clearInterval(timer.value)
   }
   timer.value = setInterval(() => {
+    addTimelineWarp()
+  }, 5000)
+
+  setTimeout(() => {
     addHistoryWarp()
   }, 5000)
+}
+
+const addTimelineWarp = async () => {
+  const _source = appStore.source
+  const find = await findTimeline(_source, vid.value, pid.value)
+  if (!find) {
+    await addTimeline({
+      source: _source,
+      vid: vid.value,
+      pid: pid.value,
+      duration: artInstance.value.duration,
+      lastTime: artInstance.value.currentTime,
+      updated_at: Date.now(),
+    })
+  } else {
+    await updateTimeline(find.id, {
+      duration: artInstance.value.duration,
+      lastTime: artInstance.value.currentTime,
+      updated_at: Date.now(),
+    })
+  }
 }
 
 const addHistoryWarp = async () => {
@@ -427,14 +452,12 @@ const addHistoryWarp = async () => {
       url: source.value.url,
       type: source.value.type,
       duration: artInstance.value.duration,
-      lastTime: artInstance.value.currentTime,
       updated_at: Date.now(),
     })
   } else {
     await updateHistory(find.id, {
       pid: pid.value,
       pname: pname.value,
-      lastTime: artInstance.value.currentTime,
       updated_at: Date.now(),
     })
   }

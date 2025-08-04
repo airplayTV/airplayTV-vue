@@ -172,7 +172,7 @@ import {
   KEY_VIDEO_STYLE_CONFIG,
   KEY_VIDEO_TAG
 } from '@/helpers/constant'
-import {clearHistory} from '@/helpers/db'
+import {clearHistory, clearTimeline} from '@/helpers/db'
 import {Html5Qrcode} from 'html5-qrcode'
 import copy from 'copy-to-clipboard'
 import {useRoute, useRouter} from 'vue-router'
@@ -308,6 +308,7 @@ const onClearLocalStorageHandler = () => {
 
 const onClearVideoHistory = async () => {
   await clearHistory()
+  await clearTimeline()
   message.info('历史播放记录已清空')
 }
 const onClearLocalStorage = () => {
