@@ -79,7 +79,7 @@ const updateTimeline = async (key, updates) => {
 }
 
 const deleteTimeline = async (source, vid) => {
-  return await db.timeline.where({ source: source, vid: vid }).delete(key)
+  return await db.timeline.where({ source: source, vid: vid }).delete()
 }
 
 const clearTimeline = async () => {

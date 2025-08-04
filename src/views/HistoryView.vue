@@ -40,8 +40,11 @@
 
             <div class="name text-align-center">
               <n-ellipsis :line-clamp="1">
-                <router-link class="flex-column" :to="onOpenVideoDetail(video)">
+                <router-link v-if="video.pname" class="flex-column" :to="onOpenVideoDetail(video)">
                   {{ video.name }} ({{ video.pname }})
+                </router-link>
+                <router-link v-else class="flex-column" :to="onOpenVideoDetail(video)">
+                  {{ video.name }}
                 </router-link>
               </n-ellipsis>
             </div>
