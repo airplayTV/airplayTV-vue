@@ -414,9 +414,6 @@ const handlerTimeUpdate = () => {
   }
   timer.value = setInterval(() => {
     addTimelineWarp()
-  }, 5000)
-
-  setTimeout(() => {
     addHistoryWarp()
   }, 5000)
 }
@@ -456,12 +453,14 @@ const addHistoryWarp = async () => {
       url: source.value.url,
       type: source.value.type,
       duration: artInstance.value.duration,
+      lastTime: artInstance.value.currentTime,
       updated_at: Date.now(),
     })
   } else {
     await updateHistory(find.id, {
       pid: pid.value,
       pname: pname.value,
+      lastTime: artInstance.value.currentTime,
       updated_at: Date.now(),
     })
   }

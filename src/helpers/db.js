@@ -18,6 +18,7 @@ db.version(1).stores({
     'url', // 播放地址
     'type', // 视频源类型，hls/auto
     'duration', // 总时长，秒
+    'lastTime', // 最后播放时间
     'updated_at', // 更新时间
   ].join(', '),
   timeline: [
