@@ -5,7 +5,7 @@ import Dexie from 'dexie'
 
 const db = new Dexie('db.airplayTV')
 
-db.version(1).stores({
+db.version(2).stores({
   // '++id, name, age'
   history: [
     '++id, [source+vid]',
