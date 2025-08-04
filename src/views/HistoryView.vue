@@ -111,7 +111,7 @@ const onBeforeMountHandler = () => {
 }
 
 const loadHistoryList = async (page) => {
-  const findList = await listHistory(page, 50)
+  const findList = await listHistory(page, 100)
   historyList.value = findList.map((item) => {
     // item.updated_time = (new Date(item.updated_at)).toLocaleString()
     item.updated_time = format(new Date(item.updated_at), 'YYYY/MM/DD hh:mm:ss')
@@ -126,12 +126,9 @@ const loadHistoryList = async (page) => {
 
     return item
   })
-  console.log('[historyList]', historyList.value)
 }
 
 const onOpenVideo = (video) => {
-  console.log('[]', router)
-  console.log('[]', video)
   // router.value.push(`/video/detail/${video.vid}?_source=${video._source}`)
   router.push(`/video/play/${video.vid}/${video.pid}?_source=${video.source}`)
 }
@@ -142,7 +139,6 @@ const onOpenVideoDetail = (video) => {
 
 const removeHistory = async () => {
   if (selectedHistory.value) {
-    console.log('[removeHistory]', selectedHistory.value)
     await deleteVideoHistory(selectedHistory.value.source, selectedHistory.value.vid, selectedHistory.value.pid)
     await loadHistoryList()
     await deleteTimeline(selectedHistory.value.source, selectedHistory.value.vid)

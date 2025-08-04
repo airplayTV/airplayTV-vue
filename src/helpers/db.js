@@ -54,7 +54,7 @@ const listHistory = async (page = 1, limit = 20) => {
   if (page < 1) {
     page = 1
   }
-  if (limit > 100 || limit <= 0) {
+  if (limit > 500 || limit <= 0) {
     limit = 20
   }
   // 倒序取出100
