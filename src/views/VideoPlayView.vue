@@ -38,7 +38,10 @@
 
         <div style="color: dimgray; word-wrap: break-word" v-if="source">
           <div style="padding: 8px 0">
-            <n-text depth="2">{{ source.url }}</n-text>
+            <n-space>
+              <n-text depth="2">{{ source.url }}</n-text>
+              <n-text class="bottom-dashed" @click="gotoAvp">libmedia(avp)解码</n-text>
+            </n-space>
           </div>
 
           <n-ellipsis :line-clamp="5">
@@ -82,6 +85,7 @@ import {
   NH2,
   NIcon,
   NResult,
+  NSpace,
   NSpin,
   NText,
   useLoadingBar,
@@ -517,6 +521,11 @@ const addControlEventHandler = () => {
   })
 }
 
+const gotoAvp = () => {
+  const q = btoa(JSON.stringify({ url: encodeURIComponent(source.value.url) }))
+  window.location.href = `https://libmedia-avp.pages.dev/?config=${q}`
+}
+
 onBeforeMount(onBeforeMountHandler)
 onMounted(onMountedHandler)
 onBeforeUpdate(onBeforeUpdateHandler)
@@ -537,5 +546,10 @@ watch(route, (newValue) => {
 video {
   background-color: #2c3e50;
   border-radius: 4px;
+}
+
+.bottom-dashed {
+  border-bottom: 1px dashed #50555b;
+  cursor: pointer;
 }
 </style>
