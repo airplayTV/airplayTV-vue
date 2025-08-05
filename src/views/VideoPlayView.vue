@@ -39,8 +39,10 @@
         <div style="color: dimgray; word-wrap: break-word" v-if="source">
           <div style="padding: 8px 0">
             <n-space>
-              <n-text depth="2">{{ source.url }}</n-text>
-              <n-text class="bottom-dashed" @click="gotoAvp">libmedia(avp)解码</n-text>
+              <n-text depth="3">{{ source.url }}</n-text>
+              <n-text class="bottom-dashed avp-link" @click="gotoAvp">
+                <b>libmedia(avp)解码</b>
+              </n-text>
             </n-space>
           </div>
 
@@ -522,7 +524,11 @@ const addControlEventHandler = () => {
 }
 
 const gotoAvp = () => {
-  const q = btoa(JSON.stringify({ url: encodeURIComponent(source.value.url) }))
+  const q = btoa(JSON.stringify({
+    id: encodeURIComponent(`${source.value.vid},${source.value.id}`),
+    name: encodeURIComponent(`${source.value.name} ${pname.value}`),
+    url: encodeURIComponent(source.value.url),
+  }))
   window.location.href = `https://libmedia-avp.pages.dev/?config=${q}`
 }
 
@@ -552,4 +558,10 @@ video {
   border-bottom: 1px dashed #50555b;
   cursor: pointer;
 }
+
+.avp-link {
+  color: #000000;
+  font-family: DM Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+}
+
 </style>
