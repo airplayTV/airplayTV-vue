@@ -23,15 +23,17 @@
         <!--<video :src="video.url" style="width: 100%" />-->
         <div style="border-radius: 4px; display: flex; min-height: 180px">
           <AppArtplayer
-              v-if="playType===0 && artOption"
+              v-if="playType===playTypeOption.art && artOption"
               :key="artOption"
               :option="artOption"
               :style="artStyle"
               @get-instance="getArtInstance"
           />
           <iframe
-              v-if="playType===1"
-              style="border:none;"
+              v-if="playType===playTypeOption.iframe"
+              style="border:none; background-color: #f2f2f2;"
+              allowfullscreen
+              allow="fullscreen"
               :style="{height: artStyle.height, width : artStyle.width}"
               :src="artOption.url" />
         </div>
@@ -126,12 +128,18 @@ const loadingBar = useLoadingBar()
 const message = useMessage()
 const appStore = useAppStore()
 
+
+const playTypeOption = {
+  art: 0,
+  iframe: 1,
+}
+
 const timer = ref(null)
 const vid = ref(null)
 const pid = ref(null)
 const pname = ref(null)
 const tmpQuery = ref(null)
-const playType = ref(0)
+const playType = ref(playTypeOption.art)
 const errMsg = ref('')
 
 const source = ref(null)
@@ -528,8 +536,16 @@ const gotoAvp = () => {
     id: encodeURIComponent(`${source.value.vid},${source.value.id}`),
     name: encodeURIComponent(`${source.value.name} ${pname.value}`),
     url: encodeURIComponent(source.value.url),
+    t: Date.now(),
   }))
-  window.location.href = `https://libmedia-avp.pages.dev/?config=${q}`
+
+  playType.value = playTypeOption.iframe
+  artOption.value.url = `https://libmedia-avp.pages.dev/?config=${q}`
+
+  message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
+  message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
+  message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
+  // window.location.href = `https://libmedia-avp.pages.dev/?config=${q}`
 }
 
 onBeforeMount(onBeforeMountHandler)
