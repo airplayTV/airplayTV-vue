@@ -32,3 +32,10 @@ npm run dev
 ```sh
 npm run build
 ```
+
+
+## 后端
+`https://github.com/airplayTV/api`
+
+
+
