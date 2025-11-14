@@ -281,7 +281,7 @@ const checkSourceUrl = (url, errorCallback = null) => {
 
 const loadVideoSource = (vid, pid, count = 0) => {
   loadingBar.start()
-  httpVideoSource(vid, pid, appStore.source, count > 3).then((resp) => {
+  httpVideoSource(vid, pid, appStore.source, count !== 0).then((resp) => {
     if (count <= 1) {
       checkSourceUrl(resp.data.url, () => {
         loadVideoSource(vid, pid, ++count)
