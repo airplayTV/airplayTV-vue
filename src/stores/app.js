@@ -1,7 +1,14 @@
 import {ref} from 'vue'
 import {defineStore} from 'pinia'
 import {setStorageSync} from "@/helpers/utils.js";
-import {KEY_VIDEO_SOURCE, KEY_VIDEO_SOURCE_LIST, KEY_VIDEO_TAG, KEY_VIDEO_SOURCE_SECRET, KEY_VIDEO_STYLE_CONFIG} from "@/helpers/constant.js";
+import {
+  KEY_VIDEO_SOURCE,
+  KEY_VIDEO_SOURCE_LIST,
+  KEY_VIDEO_TAG,
+  KEY_VIDEO_SOURCE_SECRET,
+  KEY_VIDEO_STYLE_CONFIG,
+  KEY_VIDEO_LATEST_VIDEO
+} from "@/helpers/constant.js";
 
 export const useAppStore = defineStore('app', () => {
   const sourceList = ref(null)
@@ -9,6 +16,7 @@ export const useAppStore = defineStore('app', () => {
   const tags = ref(null)
   const styleConfig = ref(0)
   const sourceSecret = ref(null)
+  const latestVideo = ref(null)// 最近一次点击的视频信息，防止部分视频详情没有图片，用来补充
 
   function getSourceList() {
     return sourceList.value
@@ -41,6 +49,11 @@ export const useAppStore = defineStore('app', () => {
     sourceSecret.value = data
   }
 
+  function setLatestVideo(data) {
+    setStorageSync(KEY_VIDEO_LATEST_VIDEO, data)
+    latestVideo.value = data
+  }
+
   return {
     sourceList,
     getSourceList,
@@ -53,5 +66,7 @@ export const useAppStore = defineStore('app', () => {
     setSourceSecret,
     styleConfig,
     sourceSecret,
+    latestVideo,
+    setLatestVideo,
   }
 })

@@ -14,8 +14,10 @@
     <div v-else class="links">
       <n-grid x-gap="12" y-gap="1" :cols="cols">
         <n-gi v-for="(video, idx) in videoList" :key="idx">
-          <RouterLink :target="getRouterLinkType(appStore.styleConfig)"
-                      :to="`/video/detail/${video.id}?_source=${appStore.source}`" class="flex-column">
+          <RouterLink
+              :target="getRouterLinkType(appStore.styleConfig)"
+              @click="onClickVideo(video)"
+              :to="`/video/detail/${video.id}?_source=${appStore.source}`" class="flex-column">
             <div class="flex-row flex-justify-center flex-align-center position-relative">
               <n-image
                   width="300"
@@ -114,6 +116,11 @@ const onUpdatePage = (data) => {
 
 const onOpenVideo = (video) => {
   router.push(`/video/detail/${video.id}?_source=${appStore.source}`)
+}
+
+const onClickVideo = (video) => {
+  // console.log('[onClickVideo]', video)
+  appStore.setLatestVideo(video)
 }
 
 defineProps(['cols', 'width', 'height'])

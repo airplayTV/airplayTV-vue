@@ -2,7 +2,11 @@
   <div>
     <n-grid x-gap="12" y-gap="1" :cols="cols" class="links">
       <n-gi v-for="(video, idx) in videoList" :key="video.id">
-        <RouterLink :target="getRouterLinkType(appStore.styleConfig)" :to="`/video/detail/${video.id}?_source=${pageSource}`" class="flex-column">
+        <RouterLink
+            :target="getRouterLinkType(appStore.styleConfig)"
+            :to="`/video/detail/${video.id}?_source=${pageSource}`"
+            @click="onClickVideo(video)"
+            class="flex-column">
           <div class="flex-row flex-justify-center flex-align-center position-relative">
             <n-image
                 :width="width"
@@ -61,6 +65,11 @@ const onOpenVideo = (video) => {
   router.value.push(`/video/detail/${video.id}?_source=${pageSource.value}`)
 }
 
+const onClickVideo = (video) => {
+  // console.log('[onClickVideo]', video)
+  appStore.setLatestVideo(video)
+}
+
 export default defineComponent({
   methods: { FormatToDate },
   components: {
@@ -95,6 +104,7 @@ export default defineComponent({
       pageSource,
       appStore,
       getRouterLinkType,
+      onClickVideo,
     }
   },
 })

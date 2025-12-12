@@ -14,6 +14,7 @@
           object-fit="cover"
           :src="video.thumb"
           :key="video.thumb"
+          :fallback-src="latestVideo.thumb"
           class="thumb"
       />
       <div class="padding-10px"></div>
@@ -25,6 +26,7 @@
           object-fit="cover"
           :src="video.thumb"
           :key="video.thumb"
+          :fallback-src="latestVideo.thumb"
           class="thumb"
       />
     </div>
@@ -94,11 +96,14 @@ const width = ref(0)
 const height = ref(0)
 const errMsg = ref('')
 
+const latestVideo = ref({})
+
 const loadVideo = (id) => {
   video.value = false
   loadingBar.start()
   httpVideo(id, appStore.source).then((resp) => {
     video.value = resp.data
+    video.value.thumb = video.value.thumb || latestVideo.value.thumb// 修正图片显示
   }).catch((err) => {
     errMsg.value = err
     video.value = null
@@ -110,6 +115,7 @@ const loadVideo = (id) => {
 
 const onBeforeMountHandler = () => {
   // loadVideo(route.params.id)
+  latestVideo.value = appStore.latestVideo || {}
   doRequest()
 }
 
