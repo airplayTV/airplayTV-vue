@@ -21,7 +21,7 @@
         </div>
 
         <!--<video :src="video.url" style="width: 100%" />-->
-        <div style="border-radius: 4px; display: flex; min-height: 180px">
+        <div style="border-radius: 4px; display: flex; min-height: 180px" class="player-container">
           <AppArtplayer
               v-if="playType===playTypeOption.art && artOption"
               :key="artOption"
@@ -57,6 +57,7 @@
             </n-text>
           </n-ellipsis>
         </div>
+        <div v-else class="padding-5px"></div>
 
         <n-collapse accordion default-expanded-names="1">
           <n-collapse-item title="选集" name="1">
@@ -307,7 +308,11 @@ const loadVideoSource = (vid, pid, count = 0) => {
     }
   }).catch((err) => {
     console.log('[httpVideoSource.Error]', err)
-    artInstance.value.notice.show = `无法播放：${err}`
+    if (artInstance.value) {
+      artInstance.value.notice.show = `无法播放：${err}`
+    } else {
+      message.warning(`无法播放：${err}`)
+    }
   }).finally(() => {
     loadingBar.finish()
   })
@@ -578,6 +583,28 @@ video {
 .avp-link {
   color: #000000;
   font-family: DM Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+}
+
+.player-container {
+  background-color: rgba(246, 246, 246, 1)
+}
+
+@media (min-width: 0px) and (max-width: 600px) {
+  .player-container {
+    min-height: 180px !important;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 900px) {
+  .player-container {
+    min-height: 280px !important;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 9000px) {
+  .player-container {
+    min-height: 380px !important;
+  }
 }
 
 </style>
