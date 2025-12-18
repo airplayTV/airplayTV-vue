@@ -75,7 +75,7 @@
             <div class="flex-row flex-1 ">
               <n-input
                   v-model:value="sourceSecret"
-                  placeholder="请输入兑换码"
+                  placeholder="请输入兑换码，解锁更多资源"
                   @keyup="onUpdateSourceSecret"
                   @clear="onUpdateSourceSecret(true)" clearable />
             </div>
