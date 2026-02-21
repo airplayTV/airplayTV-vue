@@ -295,6 +295,9 @@ const loadVideoSource = (vid, pid, count = 0) => {
         fullscreen: true,
         fullscreenWeb: true,
         pip: true,
+        autoMini: true,
+        airplay: true,
+        autoOrientation: true,
 
         ...getHlsOptions(),
         ...getControls()
