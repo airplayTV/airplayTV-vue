@@ -294,6 +294,7 @@ const loadVideoSource = (vid, pid, count = 0) => {
         url: resp.data.url,
         fullscreen: true,
         fullscreenWeb: true,
+        pip: true,
 
         ...getHlsOptions(),
         ...getControls()
