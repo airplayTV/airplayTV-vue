@@ -26,6 +26,7 @@
               v-if="playType===playTypeOption.art && artOption"
               :key="artOption"
               :option="artOption"
+              :video="video"
               :style="artStyle"
               @get-instance="getArtInstance"
           />
@@ -191,7 +192,8 @@ const onMountedHandler = () => {
 }
 
 const onBeforeUpdateHandler = () => {
-  checkUpdateVideo({ params: route.params, query: route.query })
+  source.value = Object.assign({}, source.value, { id: route.params.pid })
+  handleNextVideo(0)
 }
 const onUpdatedHandler = () => {
 }
@@ -298,6 +300,7 @@ const loadVideoSource = (vid, pid, count = 0) => {
         autoMini: true,
         airplay: true,
         autoOrientation: true,
+        autoplay: true,
 
         ...getHlsOptions(),
         ...getControls()
@@ -401,7 +404,7 @@ const getArtInstance = (art) => {
   })
   art.on('video:ended', (e) => {
     if (artInstance.value.currentTime > 0 && artInstance.value.currentTime === artInstance.value.duration) {
-      handleNextVideo()
+      handleNextVideo(1)
     }
   })
 
@@ -411,7 +414,7 @@ const getArtInstance = (art) => {
 
 }
 
-const handleNextVideo = () => {
+const handleNextVideo = (next = 0) => {
   let found = null
   const _pid = source.value.id
   const tmpLinks = video.value.links
@@ -419,16 +422,34 @@ const handleNextVideo = () => {
     if (tmpLinks[i].id === _pid) {
       found = true
     }
-    if (found && i + 1 < tmpLinks.length) {
-      console.log('[即将播放]', tmpLinks[i + 1])
-      const nextSource = tmpLinks[i + 1]
-
-      router.push(`/video/play/${vid.value}/${nextSource.id}?_source=${appStore.source}&from=next`)
+    if (found && i + next < tmpLinks.length) {
+      // console.log('[即将播放]', tmpLinks[i + next])
+      playNextVideo(tmpLinks[i + next])
     }
     if (found) {
       break
     }
   }
+}
+
+const playNextVideo = (nextSource) => {
+  router.replace(`/video/play/${vid.value}/${nextSource.id}?_source=${appStore.source}&from=next`)
+
+  loadingBar.start()
+  httpVideoSource(vid.value, nextSource.id, appStore.source, false).then((resp) => {
+    artOption.value.video = Object.assign({}, video.value, { title: `${video.value.name} ${nextSource.name || ''}` })
+    artInstance.value.switchUrl(resp.data.url);
+  }).catch((err) => {
+    console.log('[httpVideoSource.Error]', err)
+    if (artInstance.value) {
+      artInstance.value.notice.show = `无法播放：${err}`
+    } else {
+      message.warning(`无法播放：${err}`)
+    }
+  }).finally(() => {
+    loadingBar.finish()
+  })
+
 }
 
 const handlerTimeUpdate = () => {
