@@ -61,6 +61,11 @@
         <div v-else class="padding-5px"></div>
 
         <n-collapse accordion default-expanded-names="1">
+          <template #header-extra>
+            <div class="color-grey">
+              快捷键：上一集(ctrl+p)，下一集(ctrl+n)
+            </div>
+          </template>
           <n-collapse-item title="选集" name="1">
             <AppSourceList v-if="video" :vid="vid" :pid="pid" :source-list="videoSourceList" />
           </n-collapse-item>
@@ -123,6 +128,7 @@ import axios from 'axios'
 import {apiUrl} from '@/config'
 import {useAppStore} from "@/stores/app.js";
 import {SearchSharp} from '@vicons/material'
+import hotkeys from 'hotkeys-js';
 
 const route = useRoute()
 const router = useRouter()
@@ -159,6 +165,21 @@ const onBeforeMountHandler = () => {
   addControlEventHandler()
 
   checkUpdateVideo(route.params)
+
+  hotkeys('ctrl+p,ctrl+n', function (event, handler) {
+    if (!artInstance.value.isReady) {
+      return
+    }
+    switch (handler.key) {
+      case 'ctrl+p':
+        handleNextVideo(-1)
+        break;
+      case 'ctrl+n':
+        handleNextVideo(1)
+        break;
+    }
+  })
+
 }
 
 const checkUpdateVideo = (params) => {
@@ -433,6 +454,9 @@ const handleNextVideo = (next = 0) => {
 }
 
 const playNextVideo = (nextSource) => {
+  if (!nextSource) {
+    return
+  }
   router.replace(`/video/play/${vid.value}/${nextSource.id}?_source=${appStore.source}&from=next`)
 
   loadingBar.start()
