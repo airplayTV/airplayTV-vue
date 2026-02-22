@@ -62,8 +62,8 @@
 
         <n-collapse accordion default-expanded-names="1">
           <template #header-extra>
-            <div class="color-grey">
-              快捷键：上一集(ctrl+p)，下一集(ctrl+n)
+            <div class="color-grey font-size-12px">
+              快捷键：上一集(ctrl+p)，下一集(ctrl+n)，全屏切换(ctrl+f)
             </div>
           </template>
           <n-collapse-item title="选集" name="1">
@@ -166,7 +166,7 @@ const onBeforeMountHandler = () => {
 
   checkUpdateVideo(route.params)
 
-  hotkeys('ctrl+p,ctrl+n', function (event, handler) {
+  hotkeys('ctrl+p,ctrl+n,ctrl+f', function (event, handler) {
     if (!artInstance.value.isReady) {
       return
     }
@@ -177,6 +177,9 @@ const onBeforeMountHandler = () => {
       case 'ctrl+n':
         handleNextVideo(1)
         break;
+      case 'ctrl+f':
+        artInstance.value.fullscreen = !artInstance.value.fullscreen
+        break
     }
   })
 
