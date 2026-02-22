@@ -38,6 +38,9 @@ export default {
       setTimeout(() => {
         this.instance.notice.show = `正在播放：${this.option.video.title}`
       }, 2500)
+      setTimeout(() => {
+        this.instance.notice.show = `正在播放：${this.option.video.title}`
+      }, 3500)
     });
 
     // this.instance.on('ready', () => {
