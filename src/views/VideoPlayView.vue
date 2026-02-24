@@ -1,13 +1,13 @@
 <template>
   <div class="min-height-100vh flex-column flex-justify-between">
     <div>
-      <AppHeader />
+      <AppHeader/>
 
       <div v-if="video === false" class="flex-column flex-justify-center">
         <div class="padding-30px"></div>
         <div class="padding-30px"></div>
         <div class="padding-30px"></div>
-        <n-spin size="large" />
+        <n-spin size="large"/>
       </div>
       <div style="padding: 0 10px" v-else-if="video">
         <div class="flex-row flex-align-center flex-justify-center">
@@ -15,7 +15,7 @@
           <div class="padding-2px"></div>
           <RouterLink :to="`/video/search?page=1&keyword=${video.name}`" target="_blank">
             <n-icon color="#5e5b5b" size="20">
-              <SearchSharp />
+              <SearchSharp/>
             </n-icon>
           </RouterLink>
         </div>
@@ -36,7 +36,7 @@
               allowfullscreen
               allow="fullscreen"
               :style="{height: artStyle.height, width : artStyle.width}"
-              :src="artOption.url" />
+              :src="artOption.url"/>
         </div>
 
         <div style="color: dimgray; word-wrap: break-word" v-if="source">
@@ -67,7 +67,7 @@
             </div>
           </template>
           <n-collapse-item title="选集" name="1">
-            <AppSourceList v-if="video" :vid="vid" :pid="pid" :source-list="videoSourceList" />
+            <AppSourceList v-if="video" :vid="vid" :pid="pid" :source-list="videoSourceList"/>
           </n-collapse-item>
         </n-collapse>
       </div>
@@ -80,7 +80,7 @@
 
     </div>
 
-    <AppFooter />
+    <AppFooter/>
   </div>
 </template>
 
@@ -166,7 +166,7 @@ const onBeforeMountHandler = () => {
 
   checkUpdateVideo(route.params)
 
-  hotkeys('p,n,f', function (event, handler) {
+  hotkeys('p,n,f,space', function (event, handler) {
     if (!artInstance.value.isReady) {
       return
     }
@@ -181,6 +181,16 @@ const onBeforeMountHandler = () => {
         break;
       case 'f':
         artInstance.value.fullscreen = !artInstance.value.fullscreen
+        break
+      case 'space':
+        if (artInstance.value.playing) {
+          artInstance.value.pause()
+        } else {
+          artInstance.value.play().then(resp => {
+          }).catch(err => {
+            message.info(`${err}`)
+          })
+        }
         break
       default:
         console.log('[handler]', handler.keys)
@@ -220,7 +230,7 @@ const onMountedHandler = () => {
 }
 
 const onBeforeUpdateHandler = () => {
-  source.value = Object.assign({}, source.value, { id: route.params.pid })
+  source.value = Object.assign({}, source.value, {id: route.params.pid})
   handleNextVideo(0)
 }
 const onUpdatedHandler = () => {
@@ -296,7 +306,7 @@ const getControls = () => {
 }
 
 const checkSourceUrl = (url, errorCallback = null) => {
-  const http = axios.create({ baseURL: apiUrl, timeout: 1000 * 20 })
+  const http = axios.create({baseURL: apiUrl, timeout: 1000 * 20})
   http.get(url).then(resp => {
     // console.log('[resp+++]', resp)
   }).catch(err => {
@@ -468,7 +478,7 @@ const playNextVideo = (nextSource) => {
 
   loadingBar.start()
   httpVideoSource(vid.value, nextSource.id, appStore.source, false).then((resp) => {
-    artOption.value.video = Object.assign({}, video.value, { title: `${video.value.name} ${nextSource.name || ''}` })
+    artOption.value.video = Object.assign({}, video.value, {title: `${video.value.name} ${nextSource.name || ''}`})
     artInstance.value.switchUrl(resp.data.url);
   }).catch((err) => {
     console.log('[httpVideoSource.Error]', err)
@@ -603,9 +613,9 @@ const gotoAvp = () => {
   playType.value = playTypeOption.iframe
   artOption.value.url = `https://libmedia-avp.pages.dev/?config=${q}`
 
-  message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
-  message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
-  message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
+  message.warning('解码资源加载较慢，请稍等', {duration: 12 * 1000})
+  message.warning('解码资源加载较慢，请稍等', {duration: 12 * 1000})
+  message.warning('解码资源加载较慢，请稍等', {duration: 12 * 1000})
   // window.location.href = `https://libmedia-avp.pages.dev/?config=${q}`
 }
 

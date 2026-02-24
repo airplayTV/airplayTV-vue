@@ -17,7 +17,7 @@
     "dexie": "^4.0.11",
     "fecha": "^4.2.3",
     "hls.js": "^1.6.15",
-    "hotkeys-js": "^4.0.0",
+    "hotkeys-js": "^4.0.1",
     "html5-qrcode": "^2.3.8",
     "naive-ui": "^2.41.0",
     "pinia": "^3.0.1",
