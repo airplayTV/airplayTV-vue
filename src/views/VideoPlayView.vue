@@ -42,7 +42,7 @@
         <div style="color: dimgray; word-wrap: break-word" v-if="source">
           <div style="padding: 8px 0">
             <n-space>
-              <n-text depth="3">{{ source.url }}</n-text>
+              <n-text v-if="source.url" depth="3" :title="source.source">{{ source.url }}</n-text>
               <n-text class="bottom-dashed avp-link" @click="gotoAvp">
                 <b>libmedia(avp)解码</b>
               </n-text>
