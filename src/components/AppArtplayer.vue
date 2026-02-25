@@ -31,16 +31,16 @@ export default {
     });
 
     this.instance.on('restart', () => {
-      this.instance.notice.show = `正在播放：${this.option.video.title}`
-      setTimeout(() => {
-        this.instance.notice.show = `正在播放：${this.option.video.title}`
-      }, 1000)
-      setTimeout(() => {
-        this.instance.notice.show = `正在播放：${this.option.video.title}`
-      }, 2500)
-      setTimeout(() => {
-        this.instance.notice.show = `正在播放：${this.option.video.title}`
-      }, 3500)
+      // this.instance.notice.show = `正在播放：${this.option.video.title}`
+      // setTimeout(() => {
+      //   this.instance.notice.show = `正在播放：${this.option.video.title}`
+      // }, 1000)
+      // setTimeout(() => {
+      //   this.instance.notice.show = `正在播放：${this.option.video.title}`
+      // }, 2500)
+      // setTimeout(() => {
+      //   this.instance.notice.show = `正在播放：${this.option.video.title}`
+      // }, 3500)
     });
 
     // this.instance.on('ready', () => {

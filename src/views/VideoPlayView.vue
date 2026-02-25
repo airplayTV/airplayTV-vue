@@ -168,7 +168,7 @@ const onBeforeMountHandler = () => {
   tmpUrlPath.value = route.path
   checkUpdateVideo(route.params)
 
-  hotkeys('p,n,f,space', function (event, handler) {
+  hotkeys('p,n,f', function (event, handler) {
     if (!artInstance.value.isReady) {
       return
     }
@@ -183,16 +183,6 @@ const onBeforeMountHandler = () => {
         break;
       case 'f':
         artInstance.value.fullscreen = !artInstance.value.fullscreen
-        break
-      case 'space':
-        if (artInstance.value.playing) {
-          artInstance.value.pause()
-        } else {
-          artInstance.value.play().then(resp => {
-          }).catch(err => {
-            message.info(`${err}`)
-          })
-        }
         break
       default:
         console.log('[handler]', handler.keys)
@@ -321,10 +311,8 @@ const checkSourceUrlAsync = (url) => {
 
     try {
       axios.create({ baseURL: apiUrl, timeout: 1000 * 5, maxContentLength: 1000, }).get(url).then(resp => {
-        console.log('[debug] ok',)
         resolve(resp)
       }).catch(err => {
-        console.log('[debug] err', err)
         reject(err)
       })
     } catch (e) {
@@ -421,6 +409,18 @@ const getArtInstance = (art) => {
   art.on('play', () => {
     console.info('play')
     handlerTimeUpdate()
+
+    art.notice.show = `正在播放：${artOption.value.video.title}`
+    setTimeout(() => {
+      art.notice.show = `正在播放：${artOption.value.video.title}`
+    }, 1000)
+    setTimeout(() => {
+      art.notice.show = `正在播放：${artOption.value.video.title}`
+    }, 2500)
+    setTimeout(() => {
+      art.notice.show = `正在播放：${artOption.value.video.title}`
+    }, 3500)
+
   })
   art.on('error', (error, reconnectTime) => {
     // if (reconnectTime >= Artplayer.RECONNECT_TIME_MAX) {
@@ -458,25 +458,11 @@ const handleNextVideo = (next = 0) => {
 }
 
 const playNextVideo = (nextSource) => {
-  if (!nextSource) {
-    return
-  }
-  router.replace(`/video/play/${vid.value}/${nextSource.id}?_source=${appStore.source}&from=next`)
+  if (nextSource) {
+    router.replace(`/video/play/${vid.value}/${nextSource.id}?_source=${appStore.source}&from=next`)
+    tryHandlerVideoSource(vid.value, nextSource.id)
 
-  loadingBar.start()
-  httpVideoSource(vid.value, nextSource.id, appStore.source, false).then((resp) => {
-    artOption.value.video = Object.assign({}, video.value, { title: `${video.value.name} ${nextSource.name || ''}` })
-    artInstance.value.switchUrl(resp.data.url);
-  }).catch((err) => {
-    console.log('[httpVideoSource.Error]', err)
-    if (artInstance.value) {
-      artInstance.value.notice.show = `无法播放：${err}`
-    } else {
-      message.warning(`无法播放：${err}`)
-    }
-  }).finally(() => {
-    loadingBar.finish()
-  })
+  }
 
 }
 
@@ -509,17 +495,14 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
 
 
   if (artInstance.value) {
-    console.log('[step1]')
     artInstance.value.switchUrl(respSource.data.url);
   } else if (respSource.data.type === 'hls') {
-    console.log('[step2]')
     artOption.value = {
       url: respSource.data.url,
       ...getHlsOptions(),
       ...getControls()
     }
   } else {
-    console.log('[step3]',)
     artOption.value = {
       url: respSource.data.url,
       ...getControls()
@@ -530,15 +513,25 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   const findLink = (video.value.links || []).find(item => {
     return item.id === pid
   })
-  artOption.value.video = Object.assign({
-    fullscreen: true,
-    fullscreenWeb: true,
-    pip: true,
-    autoMini: true,
-    airplay: true,
-    autoOrientation: true,
-    autoplay: true,
-  }, video.value, { title: `${video.value.name} ${findLink.name || ''}` })
+  artOption.value = Object.assign(
+      {
+        fullscreen: true,
+        fullscreenWeb: true,
+        pip: true,
+        autoMini: true,
+        airplay: true,
+        autoOrientation: true,
+        autoplay: true,
+      },
+      artOption.value,
+      {
+        video: Object.assign(
+            {},
+            video.value,
+            { title: `${video.value.name} ${findLink.name || ''}` }
+        )
+      }
+  )
 
 }
 
