@@ -344,7 +344,7 @@ const networkCheck = (playUrl) => {
 
   }).catch(err => {
     // console.log('[httpPlayUrlNetworkCheck.Error]', err)
-    artInstance.value.notice.show = '网络检测失败：' + err
+    noticeToVideo('网络检测失败：' + err)
   })
 }
 
@@ -395,12 +395,9 @@ const getArtInstance = (art) => {
         _findTimeline.duration - _findTimeline.lastTime >= 60
     ) {
       art.seek = _findTimeline.lastTime
-      message.info('跳转到最新进度播放')
+      noticeToVideo(`跳转到最新进度播放`)
     }
-    art.play().then(resp => {
-    }).catch(err => {
-      console.info('[err]', err)
-      message.info(`${err}`)
+    art.play().then().catch(e => {
     })
   })
 
@@ -412,6 +409,7 @@ const getArtInstance = (art) => {
 
   })
   art.on('error', (error, reconnectTime) => {
+    noticeToVideo(`错误：${error}`)
     // if (reconnectTime >= Artplayer.RECONNECT_TIME_MAX) {
     //   playType.value++
     // }
@@ -432,16 +430,22 @@ const showVideoTitle = () => {
   if (!artInstance.value || !artOption.value) {
     return
   }
-  artInstance.value.notice.show = `正在播放：${artOption.value.video.title}`
+  noticeToVideo(`正在播放：${artOption.value.video.title}`)
   setTimeout(() => {
-    artInstance.value.notice.show = `正在播放：${artOption.value.video.title}`
+    noticeToVideo(`正在播放：${artOption.value.video.title}`)
   }, 1000)
   setTimeout(() => {
-    artInstance.value.notice.show = `正在播放：${artOption.value.video.title}`
+    noticeToVideo(`正在播放：${artOption.value.video.title}`)
   }, 2500)
   setTimeout(() => {
-    artInstance.value.notice.show = `正在播放：${artOption.value.video.title}`
+    noticeToVideo(`正在播放：${artOption.value.video.title}`)
   }, 3500)
+}
+
+const noticeToVideo = (msg) => {
+  if (artInstance.value) {
+    artInstance.value.notice.show = msg
+  }
 }
 
 const handleNextVideo = (next = 0) => {
@@ -456,11 +460,11 @@ const handleNextVideo = (next = 0) => {
       found = true
     }
     if (found && i === 0 && next < 0) {
-      artInstance.value.notice.show = `没有可播放节目`
+      noticeToVideo(`没有可播放节目`)
       continue
     }
     if (found && !tmpLinks[i + next]) {
-      artInstance.value.notice.show = `没有可播放节目`
+      noticeToVideo(`没有可播放节目`)
       continue
     }
     if (found && tmpLinks[i + next]) {
