@@ -303,6 +303,7 @@ const checkSourceUrlAsync = (url) => {
     try {
       axios.create({ baseURL: apiUrl, timeout: 1000 * 5, maxContentLength: 1000, }).head(url).then(resp => {
         resolve(resp)
+      }).catch(e => {
       })
     } catch (e) {
     }
