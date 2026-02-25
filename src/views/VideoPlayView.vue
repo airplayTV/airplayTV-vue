@@ -410,16 +410,7 @@ const getArtInstance = (art) => {
     console.info('play')
     handlerTimeUpdate()
 
-    art.notice.show = `正在播放：${artOption.value.video.title}`
-    setTimeout(() => {
-      art.notice.show = `正在播放：${artOption.value.video.title}`
-    }, 1000)
-    setTimeout(() => {
-      art.notice.show = `正在播放：${artOption.value.video.title}`
-    }, 2500)
-    setTimeout(() => {
-      art.notice.show = `正在播放：${artOption.value.video.title}`
-    }, 3500)
+    showVideoTitle()
 
   })
   art.on('error', (error, reconnectTime) => {
@@ -437,6 +428,22 @@ const getArtInstance = (art) => {
     networkCheck(artOption.value.url)
   }
 
+}
+
+const showVideoTitle = () => {
+  if (!artInstance.value || !artOption.value) {
+    return
+  }
+  artInstance.value.notice.show = `正在播放：${artOption.value.video.title}`
+  setTimeout(() => {
+    artInstance.value.notice.show = `正在播放：${artOption.value.video.title}`
+  }, 1000)
+  setTimeout(() => {
+    artInstance.value.notice.show = `正在播放：${artOption.value.video.title}`
+  }, 2500)
+  setTimeout(() => {
+    artInstance.value.notice.show = `正在播放：${artOption.value.video.title}`
+  }, 3500)
 }
 
 const handleNextVideo = (next = 0) => {
@@ -461,12 +468,14 @@ const playNextVideo = (nextSource) => {
   if (nextSource) {
     router.replace(`/video/play/${vid.value}/${nextSource.id}?_source=${appStore.source}&from=next`)
     tryHandlerVideoSource(vid.value, nextSource.id)
-
   }
 
 }
 
 const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
+  if (artInstance.value) {
+    artInstance.value.pause()
+  }
   let respSource;
   try {
     respSource = await httpVideoSource(vid, pid, appStore.source, _m3u8p)
@@ -530,6 +539,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
     })
   }
 
+  showVideoTitle()
 
 }
 
