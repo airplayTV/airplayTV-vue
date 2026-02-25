@@ -27,7 +27,7 @@ export default {
       container: this.$refs.artRef,
     })
     this.instance.on('hotkey', (event) => {
-      console.info('hotkey', event);
+      // console.info('hotkey', event);
     });
 
     this.instance.on('restart', () => {

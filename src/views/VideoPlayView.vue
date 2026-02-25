@@ -183,7 +183,7 @@ const onBeforeMountHandler = () => {
         artInstance.value.fullscreen = !artInstance.value.fullscreen
         break
       default:
-        console.log('[handler]', handler.keys)
+        // console.log('[handler]', handler.keys)
     }
   })
 
