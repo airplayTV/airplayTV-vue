@@ -377,7 +377,7 @@ const loadVideoAsync = async (vid) => {
     })
 
   } catch (e) {
-    console.log('[加载视频失败]', e)
+    console.log('[加载视频失败]', { e })
   }
 }
 
@@ -494,26 +494,16 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   })
 
 
-  if (artInstance.value) {
-    artInstance.value.switchUrl(respSource.data.url);
-  } else if (respSource.data.type === 'hls') {
-    artOption.value = {
-      url: respSource.data.url,
-      ...getHlsOptions(),
-      ...getControls()
-    }
-  } else {
-    artOption.value = {
-      url: respSource.data.url,
-      ...getControls()
-    }
-  }
-
-
   const findLink = (video.value.links || []).find(item => {
     return item.id === pid
   })
-  const otherOption = {
+  const tmpVideo = Object.assign(
+      {},
+      video.value,
+      { title: `${video.value.name} ${findLink.name || ''}` }
+  )
+  const otherOption = Object.assign({}, {
+    video: tmpVideo,
     fullscreen: true,
     fullscreenWeb: true,
     pip: true,
@@ -521,13 +511,25 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
     airplay: true,
     autoOrientation: true,
     autoplay: true,
+  })
+
+
+  if (artInstance.value) {
+    artOption.value.video = tmpVideo
+    artInstance.value.switchUrl(respSource.data.url);
+  } else if (respSource.data.type === 'hls') {
+    artOption.value = Object.assign({}, otherOption, {
+      url: respSource.data.url,
+      ...getHlsOptions(),
+      ...getControls()
+    })
+  } else {
+    artOption.value = Object.assign({}, otherOption, {
+      url: respSource.data.url,
+      ...getControls()
+    })
   }
-  const tmpVideo = Object.assign(
-      {},
-      video.value,
-      { title: `${video.value.name} ${findLink.name || ''}` }
-  )
-  artOption.value = Object.assign(otherOption, artOption.value, tmpVideo)
+
 
 }
 
