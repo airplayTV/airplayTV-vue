@@ -525,7 +525,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
 
   if (artInstance.value) {
     artOption.value.video = tmpVideo
-    artInstance.value.switchUrl(respSource.data.url);
+    await artInstance.value.switchUrl(respSource.data.url);
   } else if (respSource.data.type === 'hls') {
     artOption.value = Object.assign({}, otherOption, {
       url: respSource.data.url,
