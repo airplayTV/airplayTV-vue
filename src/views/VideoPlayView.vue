@@ -174,11 +174,9 @@ const onBeforeMountHandler = () => {
     }
     switch (handler.key) {
       case 'p':
-        message.info('即将播放上一集')
         handleNextVideo(-1)
         break;
       case 'n':
-        message.info('即将播放下一集')
         handleNextVideo(1)
         break;
       case 'f':
@@ -451,15 +449,23 @@ const handleNextVideo = (next = 0) => {
   const _pid = source.value.id
   const tmpLinks = video.value.links
   for (let i = 0; i < tmpLinks.length; i++) {
+    if (found) {
+      break
+    }
     if (tmpLinks[i].id === _pid) {
       found = true
     }
-    if (found && i + next < tmpLinks.length) {
-      // console.log('[即将播放]', tmpLinks[i + next])
-      playNextVideo(tmpLinks[i + next])
+    if (found && i === 0 && next < 0) {
+      artInstance.value.notice.show = `没有可播放节目`
+      continue
     }
-    if (found) {
-      break
+    if (found && !tmpLinks[i + next]) {
+      artInstance.value.notice.show = `没有可播放节目`
+      continue
+    }
+    if (found && tmpLinks[i + next]) {
+      console.log('[即将播放]', tmpLinks[i + next])
+      playNextVideo(tmpLinks[i + next])
     }
   }
 }
