@@ -513,25 +513,21 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   const findLink = (video.value.links || []).find(item => {
     return item.id === pid
   })
-  artOption.value = Object.assign(
-      {
-        fullscreen: true,
-        fullscreenWeb: true,
-        pip: true,
-        autoMini: true,
-        airplay: true,
-        autoOrientation: true,
-        autoplay: true,
-      },
-      artOption.value,
-      {
-        video: Object.assign(
-            {},
-            video.value,
-            { title: `${video.value.name} ${findLink.name || ''}` }
-        )
-      }
+  const otherOption = {
+    fullscreen: true,
+    fullscreenWeb: true,
+    pip: true,
+    autoMini: true,
+    airplay: true,
+    autoOrientation: true,
+    autoplay: true,
+  }
+  const tmpVideo = Object.assign(
+      {},
+      video.value,
+      { title: `${video.value.name} ${findLink.name || ''}` }
   )
+  artOption.value = Object.assign(otherOption, artOption.value, tmpVideo)
 
 }
 
