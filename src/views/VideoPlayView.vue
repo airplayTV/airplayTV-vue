@@ -1,13 +1,13 @@
 <template>
   <div class="min-height-100vh flex-column flex-justify-between">
     <div>
-      <AppHeader/>
+      <AppHeader />
 
       <div v-if="video === false" class="flex-column flex-justify-center">
         <div class="padding-30px"></div>
         <div class="padding-30px"></div>
         <div class="padding-30px"></div>
-        <n-spin size="large"/>
+        <n-spin size="large" />
       </div>
       <div style="padding: 0 10px" v-else-if="video">
         <div class="flex-row flex-align-center flex-justify-center">
@@ -15,7 +15,7 @@
           <div class="padding-2px"></div>
           <RouterLink :to="`/video/search?page=1&keyword=${video.name}`" target="_blank">
             <n-icon color="#5e5b5b" size="20">
-              <SearchSharp/>
+              <SearchSharp />
             </n-icon>
           </RouterLink>
         </div>
@@ -36,7 +36,7 @@
               allowfullscreen
               allow="fullscreen"
               :style="{height: artStyle.height, width : artStyle.width}"
-              :src="artOption.url"/>
+              :src="artOption.url" />
         </div>
 
         <div style="color: dimgray; word-wrap: break-word" v-if="source">
@@ -67,7 +67,7 @@
             </div>
           </template>
           <n-collapse-item title="选集" name="1">
-            <AppSourceList v-if="video" :vid="vid" :pid="pid" :source-list="videoSourceList"/>
+            <AppSourceList v-if="video" :vid="vid" :pid="pid" :source-list="videoSourceList" />
           </n-collapse-item>
         </n-collapse>
       </div>
@@ -80,7 +80,7 @@
 
     </div>
 
-    <AppFooter/>
+    <AppFooter />
   </div>
 </template>
 
@@ -147,6 +147,7 @@ const vid = ref(null)
 const pid = ref(null)
 const pname = ref(null)
 const tmpQuery = ref(null)
+const tmpUrlPath = ref(null)
 const playType = ref(playTypeOption.art)
 const errMsg = ref('')
 
@@ -164,6 +165,7 @@ const _pageKey = '_key_app_page_video_play_'
 const onBeforeMountHandler = () => {
   addControlEventHandler()
 
+  tmpUrlPath.value = route.path
   checkUpdateVideo(route.params)
 
   hotkeys('p,n,f,space', function (event, handler) {
@@ -199,7 +201,7 @@ const onBeforeMountHandler = () => {
 
 }
 
-const checkUpdateVideo = (params) => {
+const checkUpdateVideo = async (params) => {
   // tmpQuery
   const v = JSON.stringify(params)
 
@@ -217,8 +219,8 @@ const checkUpdateVideo = (params) => {
     artInstance.value = null
     artOption.value = null
 
-    loadVideoSource(route.params.vid, route.params.pid)
-    loadVideo(route.params.vid)
+    await loadVideoAsync(route.params.vid)
+    tryHandlerVideoSource(route.params.vid, route.params.pid)
   }
 }
 
@@ -230,8 +232,11 @@ const onMountedHandler = () => {
 }
 
 const onBeforeUpdateHandler = () => {
-  source.value = Object.assign({}, source.value, {id: route.params.pid})
-  handleNextVideo(0)
+  source.value = Object.assign({}, source.value, { id: route.params.pid })
+  if (tmpUrlPath.value !== route.path) {
+    tmpUrlPath.value = route.path
+    tryHandlerVideoSource(route.params.vid, route.params.pid)
+  }
 }
 const onUpdatedHandler = () => {
 }
@@ -305,63 +310,29 @@ const getControls = () => {
   }
 }
 
-const checkSourceUrl = (url, errorCallback = null) => {
-  const http = axios.create({baseURL: apiUrl, timeout: 1000 * 20})
-  http.get(url).then(resp => {
-    // console.log('[resp+++]', resp)
-  }).catch(err => {
-    // console.log('[axios.Error]', err)
-    if (err.code === 'ERR_NETWORK') {
-      console.log('[axios.Error2020]', err.code, err)
-      if (typeof errorCallback === 'function') {
-        errorCallback()
-      }
-    }
-  })
-}
-
-const loadVideoSource = (vid, pid, count = 0) => {
-  loadingBar.start()
-  httpVideoSource(vid, pid, appStore.source, count !== 0).then((resp) => {
-    if (count <= 1) {
-      checkSourceUrl(resp.data.url, () => {
-        loadVideoSource(vid, pid, ++count)
+const checkSourceUrlAsync = (url) => {
+  return new Promise((resolve, reject) => {
+    try {
+      axios.create({ baseURL: apiUrl, timeout: 1000 * 5, maxContentLength: 1000, }).head(url).then(resp => {
+        resolve(resp)
       })
+    } catch (e) {
     }
-    source.value = resp.data
-    if (resp.data.type === 'hls') {
-      artOption.value = {
-        url: resp.data.url,
-        fullscreen: true,
-        fullscreenWeb: true,
-        pip: true,
-        autoMini: true,
-        airplay: true,
-        autoOrientation: true,
-        autoplay: true,
 
-        ...getHlsOptions(),
-        ...getControls()
-      }
-    } else {
-      artOption.value = {
-        url: resp.data.url,
-        fullscreen: true,
-        fullscreenWeb: true
-        // ...getControls()
-      }
+    try {
+      axios.create({ baseURL: apiUrl, timeout: 1000 * 5, maxContentLength: 1000, }).get(url).then(resp => {
+        console.log('[debug] ok',)
+        resolve(resp)
+      }).catch(err => {
+        console.log('[debug] err', err)
+        reject(err)
+      })
+    } catch (e) {
+      reject(err)
     }
-  }).catch((err) => {
-    console.log('[httpVideoSource.Error]', err)
-    if (artInstance.value) {
-      artInstance.value.notice.show = `无法播放：${err}`
-    } else {
-      message.warning(`无法播放：${err}`)
-    }
-  }).finally(() => {
-    loadingBar.finish()
   })
 }
+
 const networkCheck = (playUrl) => {
   httpPlayUrlNetworkCheck(playUrl).then(resp => {
     // console.log('[httpPlayUrlNetworkCheck.resp]', resp.data.resolved)
@@ -404,6 +375,22 @@ const loadVideo = (vid) => {
     video.value = null
     console.log('[httpVideo.Error]', err)
   })
+}
+
+const loadVideoAsync = async (vid) => {
+  try {
+    const resp = await httpVideo(vid, appStore.source)
+
+    video.value = resp.data;
+    (resp.data.links || []).filter(item => {
+      if (item.id === pid.value) {
+        pname.value = item.name
+      }
+    })
+
+  } catch (e) {
+    console.log('[加载视频失败]', e)
+  }
 }
 
 // const videoSourceList = computed(formatVideoSourceMap(video.value?.links))
@@ -478,7 +465,7 @@ const playNextVideo = (nextSource) => {
 
   loadingBar.start()
   httpVideoSource(vid.value, nextSource.id, appStore.source, false).then((resp) => {
-    artOption.value.video = Object.assign({}, video.value, {title: `${video.value.name} ${nextSource.name || ''}`})
+    artOption.value.video = Object.assign({}, video.value, { title: `${video.value.name} ${nextSource.name || ''}` })
     artInstance.value.switchUrl(resp.data.url);
   }).catch((err) => {
     console.log('[httpVideoSource.Error]', err)
@@ -492,6 +479,69 @@ const playNextVideo = (nextSource) => {
   })
 
 }
+
+const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
+  let respSource;
+  try {
+    respSource = await httpVideoSource(vid, pid, appStore.source, _m3u8p)
+  } catch (e) {
+  }
+
+  try {
+    await checkSourceUrlAsync(respSource.data.url)
+  } catch (e) {
+    if (e.code === 'ERR_NETWORK' && !_m3u8p) {
+      return await tryHandlerVideoSource(vid, pid, true)
+    }
+  }
+
+  if (!respSource) {
+    return message.error('视频加载失败')
+  }
+
+  source.value = respSource.data
+
+  console.log('[播放文件测试OK]', {
+    url: respSource.data.url,
+    source: respSource.data,
+    artplayer: artInstance.value,
+  })
+
+
+  if (artInstance.value) {
+    console.log('[step1]')
+    artInstance.value.switchUrl(respSource.data.url);
+  } else if (respSource.data.type === 'hls') {
+    console.log('[step2]')
+    artOption.value = {
+      url: respSource.data.url,
+      ...getHlsOptions(),
+      ...getControls()
+    }
+  } else {
+    console.log('[step3]',)
+    artOption.value = {
+      url: respSource.data.url,
+      ...getControls()
+    }
+  }
+
+
+  const findLink = (video.value.links || []).find(item => {
+    return item.id === pid
+  })
+  artOption.value.video = Object.assign({
+    fullscreen: true,
+    fullscreenWeb: true,
+    pip: true,
+    autoMini: true,
+    airplay: true,
+    autoOrientation: true,
+    autoplay: true,
+  }, video.value, { title: `${video.value.name} ${findLink.name || ''}` })
+
+}
+
 
 const handlerTimeUpdate = () => {
   if (timer.value) {
@@ -613,9 +663,9 @@ const gotoAvp = () => {
   playType.value = playTypeOption.iframe
   artOption.value.url = `https://libmedia-avp.pages.dev/?config=${q}`
 
-  message.warning('解码资源加载较慢，请稍等', {duration: 12 * 1000})
-  message.warning('解码资源加载较慢，请稍等', {duration: 12 * 1000})
-  message.warning('解码资源加载较慢，请稍等', {duration: 12 * 1000})
+  message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
+  message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
+  message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
   // window.location.href = `https://libmedia-avp.pages.dev/?config=${q}`
 }
 
