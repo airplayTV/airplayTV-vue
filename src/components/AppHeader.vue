@@ -35,7 +35,10 @@
       <n-input-group>
         <n-input v-model:value="keyword" type="text" @keyup.enter="onClickSearch" placeholder="请输入关键字进行查找" />
 
-        <n-button type="primary" ghost @click="onClickSearch">全网搜</n-button>
+        <div style="padding: 5px"></div>
+        <n-button type="primary" ghost @click="onClickSearch(appStore.source)">搜索</n-button>
+        <div style="padding: 5px"></div>
+        <n-button type="warning" ghost @click="onClickSearch()">全网搜</n-button>
       </n-input-group>
     </div>
   </div>
@@ -62,9 +65,11 @@ const onToggleSearchBox = () => {
   showSearch.value = !showSearch.value
 }
 
-const onClickSearch = () => {
-  console.log('[keyword]', keyword.value)
-  router.push(`/video/search?page=1&keyword=` + encodeURIComponent(keyword.value))
+const onClickSearch = (_source = '') => {
+  if (_source && _source.code) {
+    _source = ''//键盘输入
+  }
+  router.push(`/video/search?page=1&keyword=${encodeURIComponent(keyword.value)}&source=${_source}`)
 }
 
 const onBeforeMountHandler = () => {

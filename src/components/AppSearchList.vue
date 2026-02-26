@@ -73,18 +73,18 @@ const onClickVideo = (video) => {
 }
 
 const onLoadThumbError = (video) => {
-  videoList.value = videoList.value.map(item => {
-    if (video.id === item.id) {
-      if (item.thumbp) {
-        return
-      }
-      item = Object.assign({}, item, {
-        thumbp: true,
-        thumb: `${apiUrl}/api/thumbp?url=${btoa(item.thumb)}&t=${Math.random()}`
-      })
-    }
-    return item
-  })
+  // videoList.value = videoList.value.map(item => {
+  //   if (video.id === item.id) {
+  //     if (item.thumbp) {
+  //       return
+  //     }
+  //     item = Object.assign({}, item, {
+  //       thumbp: true,
+  //       thumb: `${apiUrl}/api/thumbp?url=${btoa(item.thumb)}&t=${Math.random()}`
+  //     })
+  //   }
+  //   return item
+  // })
 }
 
 export default defineComponent({

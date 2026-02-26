@@ -66,6 +66,7 @@ const videoSearchResultKey = ref('')
 const searchEventSource = ref(null)
 const keyword = ref(null)
 const appStore = useAppStore()
+const tmpQuery = ref('')
 
 const onMountedHandler = () => {
   window.onresize = () => {
@@ -86,14 +87,17 @@ const onBeforeMountHandler = () => {
   doSearch()
 }
 
-const resetSearchEvent = (keyword) => {
+const resetSearchEvent = (keyword, source) => {
   loadingBar.start()
 
   noResult.value = false
   videoSearchResultList.value = []
   let tmpList = []
+  if (searchEventSource.value) {
+    searchEventSource.value.close()
+  }
 
-  const api = apiVideoSearchSSE(encodeURIComponent(keyword), 1, encodeURIComponent(appStore.source), encodeURIComponent(appStore.sourceSecret))
+  const api = apiVideoSearchSSE(encodeURIComponent(keyword), 1, encodeURIComponent(source), encodeURIComponent(appStore.source), encodeURIComponent(appStore.sourceSecret))
   searchEventSource.value = new EventSource(`${apiUrl}${api}`)
 
   searchEventSource.value.addEventListener('update', (e) => {
@@ -193,10 +197,12 @@ const resetVideoSearchResultMap = () => {
 }
 
 const doSearch = () => {
-  if (keyword.value !== route.query.keyword) {
-    resetVideoSearchResultMap()
+  if (tmpQuery.value !== JSON.stringify(route.query)) {
+    console.log('[doSearch]', route)
+    tmpQuery.value = JSON.stringify(route.query)
     keyword.value = route.query.keyword
-    resetSearchEvent(keyword.value)
+    resetVideoSearchResultMap()
+    resetSearchEvent(keyword.value, route.query.source)
   }
 }
 
