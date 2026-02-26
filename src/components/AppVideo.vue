@@ -160,7 +160,7 @@ const onLoadThumbError = (e) => {
   }
   video.value = Object.assign({}, video.value, {
     thumbp:true,
-    thumb: `${apiUrl}/api/thumbp?url=${btoa(video.value.thumb)}`
+    thumb: `${apiUrl}/api/thumbp?url=${btoa(video.value.thumb)}&t=${Math.random()}`
   })
 }
 
