@@ -1,10 +1,7 @@
 <template>
   <div class="flex-1 flex-column flex-justify-between">
 
-    <div v-if="videoList===false" class="flex-column flex-justify-center">
-      <div class="padding-30px"></div>
-      <div class="padding-30px"></div>
-      <div class="padding-30px"></div>
+    <div v-if="videoList===false" class="container flex-column flex-justify-center">
       <n-spin size="large" />
     </div>
     <div v-else-if="noVideoListMsg" class="xxx-4354 flex-1 flex-column flex-justify-center">
@@ -129,6 +126,11 @@ onBeforeMount(onBeforeMountHandler)
 </script>
 
 <style scoped>
+
+.container {
+  min-height: 360px;
+}
+
 .thumb {
   border-radius: 4px;
   background-color: #f2f2f2;
