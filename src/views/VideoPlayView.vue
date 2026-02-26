@@ -3,13 +3,7 @@
     <div>
       <AppHeader />
 
-      <div v-if="video === false" class="flex-column flex-justify-center">
-        <div class="padding-30px"></div>
-        <div class="padding-30px"></div>
-        <div class="padding-30px"></div>
-        <n-spin size="large" />
-      </div>
-      <div style="padding: 0 10px" v-else-if="video">
+      <div style="padding: 0 10px" v-if="video">
         <div class="flex-row flex-align-center flex-justify-center">
           <n-h2 class="text-align-center">{{ video.name }}</n-h2>
           <div class="padding-2px"></div>
@@ -31,12 +25,15 @@
               @get-instance="getArtInstance"
           />
           <iframe
-              v-if="playType===playTypeOption.iframe"
+              v-else-if="playType===playTypeOption.iframe"
               style="border:none; background-color: #f2f2f2;"
               allowfullscreen
               allow="fullscreen"
               :style="{height: artStyle.height, width : artStyle.width}"
               :src="artOption.url" />
+          <div v-else class="flex-column flex-justify-center flex-1">
+            <n-spin size="large" />
+          </div>
         </div>
 
         <div style="color: dimgray; word-wrap: break-word" v-if="source">
@@ -410,6 +407,7 @@ const getArtInstance = (art) => {
 
   })
   art.on('error', (error, reconnectTime) => {
+    console.log('[art.error]', error)
     noticeToVideo(`错误：${error}`)
     // if (reconnectTime >= Artplayer.RECONNECT_TIME_MAX) {
     //   playType.value++
