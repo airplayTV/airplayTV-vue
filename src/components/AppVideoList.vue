@@ -20,7 +20,7 @@
                   :height="height"
                   :src="video.thumb"
                   :key="video.thumb"
-                  @error="onLoadThumbError(video)"
+                  @error="onLoadThumbError(video, idx)"
                   class="thumb overflow-hidden"
                   :object-fit="getImageObjectFit(appStore.styleConfig)"
                   preview-disabled
@@ -121,19 +121,14 @@ const onClickVideo = (video) => {
   appStore.setLatestVideo(video)
 }
 
-const onLoadThumbError = (video) => {
-  videoList.value = videoList.value.map(item => {
-    if (video.id === item.id) {
-      if (item.thumbp) {
-        return
-      }
-      item = Object.assign({}, item, {
-        thumbp: true,
-        thumb: `${apiUrl}/api/thumbp?url=${btoa(item.thumb)}&t=${Math.random()}`
-      })
-    }
-    return item
-  })
+const onLoadThumbError = (video, idx) => {
+  const tmpVideo = videoList.value[idx] || null
+  if (tmpVideo && !tmpVideo.thumbp) {
+    videoList.value[idx] = Object.assign({}, tmpVideo, {
+      thumbp: true,
+      thumb: `${apiUrl}/api/thumbp?url=${btoa(tmpVideo.thumb)}&t=${Math.random()}`
+    })
+  }
 }
 
 defineProps(['cols', 'width', 'height'])

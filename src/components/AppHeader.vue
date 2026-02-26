@@ -67,7 +67,7 @@ const onToggleSearchBox = () => {
 
 const onClickSearch = (_source = '') => {
   if (_source && _source.code) {
-    _source = ''//键盘输入
+    _source = appStore.source//键盘输入
   }
   router.push(`/video/search?page=1&keyword=${encodeURIComponent(keyword.value)}&source=${_source}`)
 }

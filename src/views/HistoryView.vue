@@ -32,7 +32,7 @@
                   height="230"
                   :src="video.thumb"
                   :key="video.thumb"
-                  @error="onLoadThumbError(video)"
+                  @error="onLoadThumbError(video, idx)"
                   class="thumb overflow-hidden"
                   object-fit="cover"
                   preview-disabled
@@ -152,19 +152,14 @@ const onOpenClearHistoryTips = (video) => {
   showClearHistoryModal.value = true
 }
 
-const onLoadThumbError = (video) => {
-  historyList.value = historyList.value.map(item => {
-    if (video.id === item.id) {
-      if (item.thumbp) {
-        return
-      }
-      item = Object.assign({}, item, {
-        thumbp: true,
-        thumb: `${apiUrl}/api/thumbp?url=${btoa(item.thumb)}&t=${Math.random()}`
-      })
-    }
-    return item
-  })
+const onLoadThumbError = (video, idx) => {
+  const tmpVideo = historyList.value[idx] || null
+  if (tmpVideo && !tmpVideo.thumbp) {
+    historyList.value[idx] = Object.assign({}, tmpVideo, {
+      thumbp: true,
+      thumb: `${apiUrl}/api/thumbp?url=${btoa(tmpVideo.thumb)}&t=${Math.random()}`
+    })
+  }
 }
 
 onMounted(onMountedHandler)
