@@ -30,7 +30,7 @@
         </n-tabs>
 
         <div v-if="noResult" class="no-result flex-1 flex-column flex-justify-center text-center text-align-center">
-          <n-text class="color-grey">没有视频</n-text>
+          <n-text depth="3">没有视频</n-text>
         </div>
       </div>
     </div>
@@ -43,7 +43,7 @@
 import {onBeforeMount, onBeforeUpdate, onMounted, onUpdated, ref} from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
 import {useAppStore} from '@/stores/app'
-import {NResult, NTabPane, NTabs, useLoadingBar} from 'naive-ui'
+import {NResult, NTabPane, NTabs, NText, useLoadingBar} from 'naive-ui'
 import AppSearchList from '@/components/AppSearchList.vue'
 import {useRoute} from 'vue-router'
 import {apiUrl} from '@/config'
