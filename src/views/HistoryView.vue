@@ -32,6 +32,7 @@
                   height="230"
                   :src="video.thumb"
                   :key="video.thumb"
+                  @error="onLoadThumbError(video)"
                   class="thumb overflow-hidden"
                   object-fit="cover"
                   preview-disabled
@@ -85,6 +86,7 @@ import AppHeader from "@/components/AppHeader.vue";
 import AppFooter from "@/components/AppFooter.vue";
 import {CloseRound} from '@vicons/material'
 import {useAppStore} from "@/stores/app.js";
+import {apiUrl} from "@/config.js";
 
 const router = useRouter()
 const appStore = useAppStore()
@@ -148,6 +150,21 @@ const removeHistory = async () => {
 const onOpenClearHistoryTips = (video) => {
   selectedHistory.value = video
   showClearHistoryModal.value = true
+}
+
+const onLoadThumbError = (video) => {
+  historyList.value = historyList.value.map(item => {
+    if (video.id === item.id) {
+      if (item.thumbp) {
+        return
+      }
+      item = Object.assign({}, item, {
+        thumbp: true,
+        thumb: `${apiUrl}/api/thumbp?url=${btoa(item.thumb)}&t=${Math.random()}`
+      })
+    }
+    return item
+  })
 }
 
 onMounted(onMountedHandler)

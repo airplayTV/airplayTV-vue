@@ -20,6 +20,7 @@
                   :height="height"
                   :src="video.thumb"
                   :key="video.thumb"
+                  @error="onLoadThumbError(video)"
                   class="thumb overflow-hidden"
                   :object-fit="getImageObjectFit(appStore.styleConfig)"
                   preview-disabled
@@ -56,6 +57,7 @@ import {useRoute, useRouter} from 'vue-router'
 import {useAppStore} from "@/stores/app.js";
 import {FormatToDate} from "../helpers/time.js";
 import {getImageObjectFit, getRouterLinkType} from "../helpers/app.js";
+import {apiUrl} from "@/config.js";
 
 const videoList = ref(false)
 const pages = ref(0)
@@ -117,6 +119,21 @@ const onOpenVideo = (video) => {
 const onClickVideo = (video) => {
   // console.log('[onClickVideo]', video)
   appStore.setLatestVideo(video)
+}
+
+const onLoadThumbError = (video) => {
+  videoList.value = videoList.value.map(item => {
+    if (video.id === item.id) {
+      if (item.thumbp) {
+        return
+      }
+      item = Object.assign({}, item, {
+        thumbp: true,
+        thumb: `${apiUrl}/api/thumbp?url=${btoa(item.thumb)}&t=${Math.random()}`
+      })
+    }
+    return item
+  })
 }
 
 defineProps(['cols', 'width', 'height'])
