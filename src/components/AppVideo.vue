@@ -15,6 +15,7 @@
           :src="video.thumb"
           :key="video.thumb"
           :fallback-src="latestVideo.thumb"
+          @error="onLoadThumbError(video)"
           class="thumb"
       />
       <div class="padding-10px"></div>
@@ -27,6 +28,7 @@
           :src="video.thumb"
           :key="video.thumb"
           :fallback-src="latestVideo.thumb"
+          @error="onLoadThumbError(video)"
           class="thumb"
       />
     </div>
@@ -80,6 +82,7 @@ import AppSourceList from '@/components/AppSourceList.vue'
 import {formatVideoSourceMap} from '@/helpers/app'
 import {useAppStore} from "@/stores/app.js";
 import {computeWindowWidthColumn} from "@/helpers/utils.js";
+import {apiUrl} from "@/config.js";
 
 
 const video = ref(false)
@@ -150,6 +153,16 @@ onMounted(() => {
   width.value = _width
   height.value = _height
 })
+
+const onLoadThumbError = (e) => {
+  if (video.value.thumbp) {
+    return
+  }
+  video.value = Object.assign({}, video.value, {
+    thumbp:true,
+    thumb: `${apiUrl}/api/thumbp?url=${btoa(video.value.thumb)}`
+  })
+}
 
 onBeforeMount(onBeforeMountHandler)
 

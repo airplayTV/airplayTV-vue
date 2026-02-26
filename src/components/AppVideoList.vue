@@ -7,8 +7,7 @@
       <div class="padding-30px"></div>
       <n-spin size="large" />
     </div>
-    <div v-else-if="noVideoListMsg">
-      <div class="padding-30px"></div>
+    <div v-else-if="noVideoListMsg" class="xxx-4354 flex-1 flex-column flex-justify-center">
       <n-result status="404" title="暂无数据" :description="noVideoListMsg"></n-result>
     </div>
     <div v-else class="links">
