@@ -13,6 +13,7 @@
                 :height="height"
                 :src="video.thumb"
                 :key="video.thumb"
+                @error="onLoadThumbError(video)"
                 class="thumb"
                 object-fit="cover"
                 preview-disabled
@@ -55,6 +56,7 @@ import {useRouter} from 'vue-router'
 import {FormatToDate} from "@/helpers/time.js";
 import {getRouterLinkType} from "../helpers/app.js";
 import {useAppStore} from "@/stores/app.js";
+import {apiUrl} from "@/config.js";
 
 const router = ref(null)
 const pageModel = ref(null)
@@ -68,6 +70,21 @@ const onOpenVideo = (video) => {
 const onClickVideo = (video) => {
   // console.log('[onClickVideo]', video)
   appStore.setLatestVideo(video)
+}
+
+const onLoadThumbError = (video) => {
+  videoList.value = videoList.value.map(item => {
+    if (video.id === item.id) {
+      if (item.thumbp) {
+        return
+      }
+      item = Object.assign({}, item, {
+        thumbp: true,
+        thumb: `${apiUrl}/api/thumbp?url=${btoa(item.thumb)}&t=${Math.random()}`
+      })
+    }
+    return item
+  })
 }
 
 export default defineComponent({
