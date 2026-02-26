@@ -28,6 +28,10 @@
             </div>
           </n-tab-pane>
         </n-tabs>
+
+        <div v-if="noResult" class="no-result flex-1 flex-column flex-justify-center text-center text-align-center">
+          <n-text class="color-grey">没有视频</n-text>
+        </div>
       </div>
     </div>
 
@@ -56,6 +60,7 @@ const cols = ref(2)
 const width = ref(0)
 const height = ref(0)
 
+const noResult = ref(false)
 const videoSearchResultList = ref([])
 const videoSearchResultKey = ref('')
 const searchEventSource = ref(null)
@@ -84,6 +89,7 @@ const onBeforeMountHandler = () => {
 const resetSearchEvent = (keyword) => {
   loadingBar.start()
 
+  noResult.value = false
   videoSearchResultList.value = []
   let tmpList = []
 
@@ -126,6 +132,10 @@ const resetSearchEvent = (keyword) => {
     searchEventSource.value.close()
 
     loadingBar.finish()
+
+    if (videoSearchResultList.value.length <= 0) {
+      noResult.value = true
+    }
   })
 
   searchEventSource.value.onerror = () => {
@@ -196,3 +206,10 @@ onBeforeUpdate(onBeforeUpdateHandler)
 onUpdated(onUpdatedHandler)
 
 </script>
+
+<style scoped>
+
+.no-result {
+  min-height: 280px;
+}
+</style>
