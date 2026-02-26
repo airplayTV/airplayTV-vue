@@ -122,6 +122,7 @@ export default defineComponent({
       appStore,
       getRouterLinkType,
       onClickVideo,
+      onLoadThumbError,
     }
   },
 })
