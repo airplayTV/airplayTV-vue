@@ -220,7 +220,7 @@ const onBeforeMountHandler = () => {
 
   formattedSourceList.value = appStore.sourceList?.map((item, idx) => {
     return {
-      label: `(${idx + 1}) ${item.name}`,
+      label: `(${idx + 1}) ${item.name} [${item.id}]`,
       value: item.name,
       data: item,
     }
