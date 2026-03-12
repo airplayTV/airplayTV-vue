@@ -489,6 +489,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   try {
     respSource = await httpVideoSource(vid, pid, appStore.source, _m3u8p)
   } catch (e) {
+    console.log('[httpVideoSource.Error]', e)
   }
 
   try {
