@@ -489,12 +489,16 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   try {
     respSource = await httpVideoSource(vid, pid, appStore.source, _m3u8p)
   } catch (e) {
-    console.log('[httpVideoSource.Error]', e)
+    console.error('[httpVideoSource.Error]', e)
   }
 
   try {
-    await checkSourceUrlAsync(respSource.data.url)
+    if (respSource && respSource.data && respSource.data.url) {
+      await checkSourceUrlAsync(respSource.data.url)
+    }
   } catch (e) {
+    console.log('[checkSourceUrlAsync.Error]', e)
+
     if (e.code === 'ERR_NETWORK' && !_m3u8p) {
       return await tryHandlerVideoSource(vid, pid, true)
     }
