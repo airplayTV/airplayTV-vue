@@ -675,6 +675,10 @@ const addControlEventHandler = () => {
 }
 
 const gotoAvp = () => {
+  if (!source.value.url) {
+    return message.warning('没有可播放数据')
+  }
+
   const q = btoa(JSON.stringify({
     id: encodeURIComponent(`${source.value.vid},${source.value.id}`),
     name: encodeURIComponent(`${source.value.name} ${pname.value}`),
