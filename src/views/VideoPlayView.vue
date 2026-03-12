@@ -31,6 +31,9 @@
               allow="fullscreen"
               :style="{height: artStyle.height, width : artStyle.width}"
               :src="artOption.url" />
+          <div v-else-if="errMsg" class="flex-column flex-justify-center flex-1 flex-align-center">
+            <n-text depth="3">{{ errMsg }}</n-text>
+          </div>
           <div v-else class="flex-column flex-justify-center flex-1">
             <n-spin size="large" />
           </div>
@@ -482,6 +485,8 @@ const playNextVideo = (nextSource) => {
 }
 
 const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
+  errMsg.value = null
+
   if (artInstance.value) {
     artInstance.value.pause()
   }
@@ -489,6 +494,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   try {
     respSource = await httpVideoSource(vid, pid, appStore.source, _m3u8p)
   } catch (e) {
+    errMsg.value = e
     console.error('[httpVideoSource.Error]', e)
   }
 
@@ -505,7 +511,8 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   }
 
   if (!respSource) {
-    return message.error('视频加载失败')
+    errMsg.value = errMsg.value || '视频加载失败'
+    return
   }
 
   source.value = respSource.data
