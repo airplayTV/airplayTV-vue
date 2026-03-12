@@ -40,14 +40,17 @@
             </div>
 
             <div class="name text-align-center">
-              <n-ellipsis :line-clamp="1">
-                <router-link v-if="video.pname" class="flex-column" :to="onOpenVideoDetail(video)">
+              <router-link v-if="video.pname" class="flex-column" :to="onOpenVideoDetail(video)">
+                <n-ellipsis :line-clamp="1">
                   {{ video.name }} ({{ video.pname }})
-                </router-link>
-                <router-link v-else class="flex-column" :to="onOpenVideoDetail(video)">
+                </n-ellipsis>
+              </router-link>
+              <router-link v-else class="flex-column" :to="onOpenVideoDetail(video)">
+                <n-ellipsis :line-clamp="1">
                   {{ video.name }}
-                </router-link>
-              </n-ellipsis>
+                </n-ellipsis>
+              </router-link>
+
             </div>
           </n-gi>
         </n-grid>
@@ -174,7 +177,7 @@ onBeforeMount(onBeforeMountHandler)
 }
 
 .name {
-  padding: 5px 0;
+  padding: 4px 0 7px 0;
 }
 
 .thumb-warp {
