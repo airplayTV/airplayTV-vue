@@ -536,6 +536,11 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   const findLink = (video.value.links || []).find(item => {
     return item.id === pid
   })
+  // 如果是mp3且source.name空，则可能需要修正标题
+  if (source.value.type === sourceTypeOption.mp3 && !source.value.name && video.value.name !== findLink.name) {
+    video.value = Object.assign({}, video.value, {name: findLink.name})
+  }
+
   const tmpVideo = Object.assign(
       {},
       video.value,
