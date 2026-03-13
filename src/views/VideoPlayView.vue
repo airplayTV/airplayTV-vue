@@ -1,7 +1,7 @@
 <template>
   <div class="min-height-100vh flex-column flex-justify-between">
     <div>
-      <AppHeader />
+      <AppHeader/>
 
       <div style="padding: 0 10px" v-if="video">
         <div class="flex-row flex-align-center flex-justify-center">
@@ -9,15 +9,18 @@
           <div class="padding-2px"></div>
           <RouterLink :to="`/video/search?page=1&keyword=${video.name}`" target="_blank">
             <n-icon color="#5e5b5b" size="20">
-              <SearchSharp />
+              <SearchSharp/>
             </n-icon>
           </RouterLink>
         </div>
 
         <!--<video :src="video.url" style="width: 100%" />-->
         <div style="border-radius: 4px; display: flex; min-height: 180px" class="player-container">
+          <div v-if="source && source.type === sourceTypeOption.mp3" class="width-100">
+            <Aplayer autoplay :music="getAudioSource()" style="height: 97%;"/>
+          </div>
           <AppArtplayer
-              v-if="playType===playTypeOption.art && artOption"
+              v-else-if="playType===playTypeOption.art && artOption"
               :key="artOption"
               :option="artOption"
               :video="video"
@@ -30,12 +33,12 @@
               allowfullscreen
               allow="fullscreen"
               :style="{height: artStyle.height, width : artStyle.width}"
-              :src="artOption.url" />
+              :src="artOption.url"/>
           <div v-else-if="errMsg" class="flex-column flex-justify-center flex-1 flex-align-center">
             <n-text depth="3">{{ errMsg }}</n-text>
           </div>
           <div v-else class="flex-column flex-justify-center flex-1">
-            <n-spin size="large" />
+            <n-spin size="large"/>
           </div>
         </div>
 
@@ -67,7 +70,7 @@
             </div>
           </template>
           <n-collapse-item title="选集" name="1">
-            <AppSourceList v-if="video" :vid="vid" :pid="pid" :source-list="videoSourceList" />
+            <AppSourceList v-if="video" :vid="vid" :pid="pid" :source-list="videoSourceList"/>
           </n-collapse-item>
         </n-collapse>
       </div>
@@ -80,7 +83,7 @@
 
     </div>
 
-    <AppFooter />
+    <AppFooter/>
   </div>
 </template>
 
@@ -129,6 +132,7 @@ import {apiUrl} from '@/config'
 import {useAppStore} from "@/stores/app.js";
 import {SearchSharp} from '@vicons/material'
 import hotkeys from 'hotkeys-js';
+import Aplayer from 'vue3-aplayer'
 
 const route = useRoute()
 const router = useRouter()
@@ -140,6 +144,11 @@ const appStore = useAppStore()
 const playTypeOption = {
   art: 0,
   iframe: 1,
+}
+const sourceTypeOption = {
+  mp3: 'mp3',
+  mp4: 'mp4',
+  m3u8: 'm3u8',
 }
 
 const timer = ref(null)
@@ -220,7 +229,7 @@ const onMountedHandler = () => {
 }
 
 const onBeforeUpdateHandler = () => {
-  source.value = Object.assign({}, source.value, { id: route.params.pid })
+  source.value = Object.assign({}, source.value, {id: route.params.pid})
   if (tmpUrlPath.value !== route.path) {
     tmpUrlPath.value = route.path
     tryHandlerVideoSource(route.params.vid, route.params.pid)
@@ -301,7 +310,7 @@ const getControls = () => {
 const checkSourceUrlAsync = (url) => {
   return new Promise((resolve, reject) => {
     try {
-      axios.create({ baseURL: apiUrl, timeout: 1000 * 5, maxContentLength: 1000, }).head(url).then(resp => {
+      axios.create({baseURL: apiUrl, timeout: 1000 * 5, maxContentLength: 1000,}).head(url).then(resp => {
         resolve(resp)
       }).catch(e => {
       })
@@ -309,7 +318,7 @@ const checkSourceUrlAsync = (url) => {
     }
 
     try {
-      axios.create({ baseURL: apiUrl, timeout: 1000 * 5, maxContentLength: 1000, }).get(url).then(resp => {
+      axios.create({baseURL: apiUrl, timeout: 1000 * 5, maxContentLength: 1000,}).get(url).then(resp => {
         resolve(resp)
       }).catch(err => {
         reject(err)
@@ -376,7 +385,7 @@ const loadVideoAsync = async (vid) => {
     })
 
   } catch (e) {
-    console.log('[加载视频失败]', { e })
+    console.log('[加载视频失败]', {e})
   }
 }
 
@@ -499,7 +508,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   }
 
   try {
-    if (respSource && respSource.data && respSource.data.url) {
+    if (respSource && respSource.data && respSource.data.url && respSource.data.type !== sourceTypeOption.mp3) {
       await checkSourceUrlAsync(respSource.data.url)
     }
   } catch (e) {
@@ -530,7 +539,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   const tmpVideo = Object.assign(
       {},
       video.value,
-      { title: `${video.value.name} ${findLink.name || ''}` }
+      {title: `${video.value.name} ${findLink.name || ''}`}
   )
   const otherOption = Object.assign({}, {
     video: tmpVideo,
@@ -674,6 +683,18 @@ const addControlEventHandler = () => {
   })
 }
 
+const getAudioSource = () => {
+  return {
+    title: video.value.name,
+    artist: video.value.actors,
+    src: source.value.url,
+    pic: video.value.thumb,
+    autoplay: true,
+    loop: 'one',
+
+  }
+}
+
 const gotoAvp = () => {
   if (!source.value.url) {
     return message.warning('没有可播放数据')
@@ -689,9 +710,9 @@ const gotoAvp = () => {
   playType.value = playTypeOption.iframe
   artOption.value.url = `https://libmedia-avp.pages.dev/?config=${q}`
 
-  message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
-  message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
-  message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
+  message.warning('解码资源加载较慢，请稍等', {duration: 12 * 1000})
+  message.warning('解码资源加载较慢，请稍等', {duration: 12 * 1000})
+  message.warning('解码资源加载较慢，请稍等', {duration: 12 * 1000})
   // window.location.href = `https://libmedia-avp.pages.dev/?config=${q}`
 }
 
