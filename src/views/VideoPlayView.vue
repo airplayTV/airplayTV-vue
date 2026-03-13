@@ -16,8 +16,8 @@
 
         <!--<video :src="video.url" style="width: 100%" />-->
         <div style="border-radius: 4px; display: flex; min-height: 180px" class="player-container">
-          <div v-if="source && source.type === sourceTypeOption.mp3" class="width-100">
-            <Aplayer autoplay :music="getAudioSource()" style="height: 97%;"/>
+          <div v-if="source && source.type === sourceTypeOption.mp3" class="width-100 flex-column flex-justify-center">
+            <Aplayer autoplay :music="getAudioSource()"/>
           </div>
           <AppArtplayer
               v-else-if="playType===playTypeOption.art && artOption"
@@ -749,7 +749,7 @@ video {
 }
 
 .player-container {
-  background-color: rgba(246, 246, 246, 1)
+  background-color: rgba(246, 246, 246, 0.4)
 }
 
 @media (min-width: 0px) and (max-width: 600px) {
