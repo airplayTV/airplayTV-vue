@@ -663,14 +663,17 @@ const addControlEventHandler = () => {
         break
       case ControlEventFullscreen:
         artInstance.value.fullscreen = true
+        artInstance.value.fullscreenWeb = true
         break
       case ControlEventFullscreenExit:
         artInstance.value.fullscreen = false
+        artInstance.value.fullscreenWeb = false
         break
       case ControlEventQrcode:
         break
       case ControlEventInfo:
         artInstance.value.controls.show = true
+        noticeToVideo(`正在播放：${artOption.value.video.title}`)
         break
       case ControlEventVolume:
         if (data.value <= 0) {
