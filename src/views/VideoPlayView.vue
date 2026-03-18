@@ -706,8 +706,7 @@ const getAudioSource = () => {
     src: source.value.url,
     pic: video.value.thumb,
     autoplay: true,
-    loop: 'one',
-
+    loop: 'all',
   }
 }
 
