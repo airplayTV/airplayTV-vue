@@ -45,14 +45,23 @@
         <div style="color: dimgray; word-wrap: break-word" v-if="source">
           <div style="padding: 8px 0">
             <n-space>
-              <n-text v-if="source.url" depth="3" :title="source.source">{{ source.url }}</n-text>
+              <a
+                  v-if="source.url"
+                  :href="source.url"
+                  target="_blank"
+                  class="source-url bottom-dashed"
+                  :title="source.source">
+                {{ source.url }}
+              </a>
               <n-text class="bottom-dashed avp-link" @click="gotoAvp">
                 <b>libmedia(avp)解码</b>
               </n-text>
             </n-space>
           </div>
 
-          <n-ellipsis :line-clamp="5">
+          <div class="padding-2px"></div>
+
+          <n-ellipsis :line-clamp="5" expand-trigger="click" :tooltip="false">
             <b>
               <n-text depth="2">简介：</n-text>
             </b>
@@ -62,6 +71,8 @@
           </n-ellipsis>
         </div>
         <div v-else class="padding-5px"></div>
+
+        <div class="padding-5px"></div>
 
         <n-collapse accordion default-expanded-names="1">
           <template #header-extra>
@@ -751,6 +762,11 @@ video {
 .avp-link {
   color: #000000;
   font-family: DM Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+}
+
+.source-url {
+  color: rgb(118, 124, 130);
+  text-decoration: none;
 }
 
 .player-container {
