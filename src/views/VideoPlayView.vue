@@ -5,7 +5,8 @@
 
       <div style="padding: 0 10px;margin: 20px 0 0 0;" v-if="source && source.type === sourceTypeOption.mp3">
         <div class="audio-container width-100 flex-column flex-justify-between">
-          <div v-if="false" style="position:absolute; right: 20px;" class="flex-row flex-align-center flex-justify-center">
+          <div v-if="false" style="position:absolute; right: 20px;"
+               class="flex-row flex-align-center flex-justify-center">
             <n-icon color="red" size="26">
               <FavoriteFilled />
             </n-icon>
@@ -26,7 +27,7 @@
               </n-scrollbar>
             </div>
           </div>
-          <Aplayer autoplay :music="getAudioSource()" />
+          <Aplayer :music="getAudioSource()" :showlrc="true" repeat="repeat-all" />
         </div>
 
         <div style="color: dimgray; word-wrap: break-word">
@@ -743,15 +744,17 @@ const addControlEventHandler = () => {
 }
 
 const getAudioSource = () => {
+  // 文档参考：https://github.com/SevenOutman/vue-aplayer/blob/develop/docs/README.zh-CN.md
   return {
     title: video.value.name,
-    artist: video.value.actors,
+    artist: video.value.actors || '',
     src: source.value.url,
     pic: video.value.thumb,
     lrc: video.value.intro,
 
     autoplay: true,
-    loop: 'all',
+    showLrc: true,
+    repeat: 'music',
   }
 }
 
