@@ -41,7 +41,7 @@
         <div style="color: dimgray; word-wrap: break-word">
           <div class="padding-5px"></div>
           <div style="padding: 8px 0">
-            <n-text>下载地址：</n-text>
+            <n-text>地址：</n-text>
             <a v-if="source.url"
                :href="source.url"
                target="_blank"
