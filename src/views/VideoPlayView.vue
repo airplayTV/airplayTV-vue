@@ -27,7 +27,15 @@
               </n-scrollbar>
             </div>
           </div>
-          <Aplayer :music="getAudioSource()" :showlrc="true" repeat="repeat-all" />
+          <Aplayer
+              :music="getAudioSource()"
+              :showlrc="true"
+              @play="onEmptyEvent"
+              @pause="onEmptyEvent"
+              @ended="onEmptyEvent"
+              @error="onEmptyEvent"
+              @timeupdate="onAudioTimeUpdate"
+              repeat="repeat-all" />
         </div>
 
         <div style="color: dimgray; word-wrap: break-word">
@@ -211,6 +219,7 @@ const tmpQuery = ref(null)
 const tmpUrlPath = ref(null)
 const playType = ref(playTypeOption.art)
 const errMsg = ref('')
+let lrcTimeLine = []
 
 const source = ref(null)
 const video = ref(false)
@@ -743,7 +752,21 @@ const addControlEventHandler = () => {
   })
 }
 
+const parseLrcTimeLine = (lrcTxt) => {
+  const pattern = /(\d+):(\d+)[:|.](\d+)/;
+  return lrcTxt.split('\n').map(row => {
+    const m = row.match(pattern)
+    if (m && m.length >= 4) {
+      row = { time: (60 * m[1] + 1 * m[2]) * 1000 + 1 * m[3], text: row }
+    } else {
+      row = { time: -1, text: row }
+    }
+    return row
+  })
+}
+
 const getAudioSource = () => {
+  lrcTimeLine = parseLrcTimeLine(video.value.intro)
   // 文档参考：https://github.com/SevenOutman/vue-aplayer/blob/develop/docs/README.zh-CN.md
   return {
     title: video.value.name,
@@ -751,10 +774,6 @@ const getAudioSource = () => {
     src: source.value.url,
     pic: video.value.thumb,
     lrc: video.value.intro,
-
-    autoplay: true,
-    showLrc: true,
-    repeat: 'music',
   }
 }
 
@@ -778,6 +797,22 @@ const gotoAvp = () => {
   message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
   // window.location.href = `https://libmedia-avp.pages.dev/?config=${q}`
 }
+
+
+const onEmptyEvent = () => {
+
+}
+
+const onAudioTimeUpdate = (ctx) => {
+  // console.log('[onAudioTimeUpdate]', ctx.timeStamp)
+  for (let i = 0; i < lrcTimeLine.length; i++) {
+    if (lrcTimeLine[i].time >= ctx.timeStamp) {
+      console.log('[找到歌词]', lrcTimeLine[i])
+      break
+    }
+  }
+}
+
 
 onBeforeMount(onBeforeMountHandler)
 onMounted(onMountedHandler)
