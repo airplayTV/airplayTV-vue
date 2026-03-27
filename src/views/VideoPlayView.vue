@@ -19,12 +19,16 @@
             <div class="side">
               <n-image :src="video.thumb" style="width: 260px; height: 260px; border-radius: 10px" />
             </div>
-            <div class="lrc flex-1">
+            <div class="lrc flex-1 flex-column">
               <n-h2>{{ video.name }}</n-h2>
               <div>{{ video.actors }}</div>
-              <n-scrollbar class="lrc-scroller pre-wrap aplayer-lrc-content">
+              <n-scrollbar v-if="video.intro" class="lrc-scroller pre-wrap aplayer-lrc-content">
                 {{ video.intro }}
               </n-scrollbar>
+              <div v-else class="flex-1 flex-column" style="padding: 120px 0 0 0">
+                暂无歌词
+              </div>
+
             </div>
           </div>
           <Aplayer
@@ -883,10 +887,11 @@ video {
   position: relative;
 
   .side {
+    padding: 20px 0;
     //min-width: 480px;
     display: flex;
     justify-content: center;
-    align-items: center;
+    //align-items: center;
   }
 
   .lrc {
