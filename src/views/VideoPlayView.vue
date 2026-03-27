@@ -21,7 +21,7 @@
             </div>
             <div class="lrc flex-1 flex-column">
               <n-h2>{{ video.name }}</n-h2>
-              <div>{{ video.actors }}</div>
+              <div v-if="video.actors">{{ video.actors }}</div>
               <n-scrollbar v-if="video.intro" class="lrc-scroller pre-wrap aplayer-lrc-content">
                 {{ video.intro }}
               </n-scrollbar>
