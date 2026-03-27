@@ -5,6 +5,15 @@
 
       <div style="padding: 0 10px;margin: 20px 0 0 0;" v-if="source && source.type === sourceTypeOption.mp3">
         <div class="audio-container width-100 flex-column flex-justify-between">
+          <div v-if="false" style="position:absolute; right: 20px;" class="flex-row flex-align-center flex-justify-center">
+            <n-icon color="red" size="26">
+              <FavoriteFilled />
+            </n-icon>
+            <n-icon v-if="false" color="#999999" size="26">
+              <FavoriteBorderFilled />
+            </n-icon>
+            <n-text depth="3">&nbsp;收藏</n-text>
+          </div>
           <div class="flex-row flex-1">
             <div class="side">
               <n-image :src="video.thumb" style="width: 260px; height: 260px; border-radius: 10px" />
@@ -172,7 +181,7 @@ import {
 import axios from 'axios'
 import {apiUrl} from '@/config'
 import {useAppStore} from "@/stores/app.js";
-import {SearchSharp} from '@vicons/material'
+import {FavoriteBorderFilled, FavoriteFilled, SearchSharp} from '@vicons/material'
 import hotkeys from 'hotkeys-js';
 import Aplayer from 'vue3-aplayer'
 
@@ -833,6 +842,7 @@ video {
 
 .audio-container {
   background-color: rgba(246, 246, 246, 0.5);
+  position: relative;
 
   .side {
     //min-width: 480px;
