@@ -57,6 +57,10 @@
     justify-content: center;
 }
 
+.flex-justify-end {
+    justify-content: flex-end;
+}
+
 .flex-align-center {
     align-items: center;
 }
@@ -137,6 +141,10 @@
 
 .no-wrap {
     white-space: nowrap;
+}
+
+.pre-wrap {
+    white-space: pre-wrap;
 }
 
 .width-100 {

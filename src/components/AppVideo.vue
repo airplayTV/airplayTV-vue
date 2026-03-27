@@ -44,7 +44,7 @@
 
     </div>
 
-    <n-ellipsis :line-clamp="6">
+    <n-ellipsis :line-clamp="6" expand-trigger="click" :tooltip="false">
       <b>
         <n-text depth="2">简介：</n-text>
       </b>
@@ -54,7 +54,7 @@
     </n-ellipsis>
 
     <div style="padding: 5px"></div>
-    <div>
+    <div v-if="video.updated_at">
       <b>
         <n-text depth="2">更新：</n-text>
       </b>
@@ -159,7 +159,7 @@ const onLoadThumbError = (e) => {
     return
   }
   video.value = Object.assign({}, video.value, {
-    thumbp:true,
+    thumbp: true,
     thumb: `${apiUrl}/api/thumbp?url=${btoa(video.value.thumb)}&t=${Math.random()}`
   })
 }

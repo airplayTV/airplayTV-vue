@@ -3,7 +3,41 @@
     <div>
       <AppHeader />
 
-      <div style="padding: 0 10px" v-if="source && source.type !== sourceTypeOption.mp3">
+      <div style="padding: 0 10px;margin: 20px 0 0 0;" v-if="source && source.type === sourceTypeOption.mp3">
+        <div class="audio-container width-100 flex-column flex-justify-between">
+          <div class="flex-row flex-1">
+            <div class="side">
+              <n-image :src="video.thumb" style="width: 260px; height: 260px; border-radius: 10px" />
+            </div>
+            <div class="lrc flex-1">
+              <n-h2>{{ video.name }}</n-h2>
+              <div>{{ video.actors }}</div>
+              <n-scrollbar class="lrc-scroller pre-wrap aplayer-lrc-content">
+                {{ video.intro }}
+              </n-scrollbar>
+            </div>
+          </div>
+          <Aplayer autoplay :music="getAudioSource()" />
+        </div>
+
+        <div style="color: dimgray; word-wrap: break-word">
+          <div class="padding-5px"></div>
+          <div style="padding: 8px 0">
+            <n-text>下载地址：</n-text>
+            <a v-if="source.url"
+               :href="source.url"
+               target="_blank"
+               class="source-url bottom-dashed"
+               :title="source.source">
+              {{ source.url }}
+            </a>
+          </div>
+        </div>
+
+        <div class="padding-20px"></div>
+
+      </div>
+      <div style="padding: 0 10px" v-else-if="source && source.url">
         <div class="flex-row flex-align-center flex-justify-center">
           <n-h2 class="text-align-center">{{ video.name }}</n-h2>
           <div class="padding-2px"></div>
@@ -104,7 +138,9 @@ import {
   NEllipsis,
   NH2,
   NIcon,
+  NImage,
   NResult,
+  NScrollbar,
   NSpace,
   NSpin,
   NText,
@@ -138,6 +174,7 @@ import {apiUrl} from '@/config'
 import {useAppStore} from "@/stores/app.js";
 import {SearchSharp} from '@vicons/material'
 import hotkeys from 'hotkeys-js';
+import Aplayer from 'vue3-aplayer'
 
 const route = useRoute()
 const router = useRouter()
@@ -702,6 +739,8 @@ const getAudioSource = () => {
     artist: video.value.actors,
     src: source.value.url,
     pic: video.value.thumb,
+    lrc: video.value.intro,
+
     autoplay: true,
     loop: 'all',
   }
@@ -785,6 +824,63 @@ video {
   .player-container {
     min-height: 380px !important;
   }
+}
+
+</style>
+
+<style>
+
+
+.audio-container {
+  background-color: rgba(246, 246, 246, 0.5);
+
+  .side {
+    //min-width: 480px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .lrc {
+    padding: 10px 10px;
+    line-height: 180%;
+    color: rgb(118, 124, 130);
+  }
+
+  .lrc-scroller {
+    max-height: 444px !important;
+    line-height: 200%;
+  }
+
+}
+
+@media (min-width: 0px) and (max-width: 600px) {
+  .audio-container {
+    min-height: 280px !important;
+  }
+
+  .side {
+    min-width: 100%;
+    padding: 20px 0 10px 0;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 900px) {
+  .audio-container {
+    min-height: 320px !important;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 9000px) {
+  .audio-container {
+    min-height: 520px !important;
+    padding-top: 20px;
+  }
+
+  .side {
+    min-width: 480px;
+  }
+
 }
 
 </style>
