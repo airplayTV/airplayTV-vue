@@ -879,7 +879,7 @@ video {
 
 
 .audio-container {
-  background-color: rgba(246, 246, 246, 0.5);
+  background-color: rgba(246, 246, 246, 0.25);
   position: relative;
 
   .side {
