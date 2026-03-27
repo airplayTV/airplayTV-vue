@@ -17,7 +17,7 @@
           </div>
           <div class="flex-row flex-1">
             <div class="side">
-              <n-image :src="video.thumb" style="width: 260px; height: 260px; border-radius: 10px" />
+              <n-image :src="video.thumb" class="thumb" />
             </div>
             <div class="lrc flex-1 flex-column">
               <n-h2>{{ video.name }}</n-h2>
@@ -892,6 +892,13 @@ video {
     display: flex;
     justify-content: center;
     //align-items: center;
+  }
+
+  .thumb {
+    width: 260px;
+    height: 260px;
+    border-radius: 10px;
+    background-color: #f5f5f5;
   }
 
   .lrc {
