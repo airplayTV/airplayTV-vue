@@ -5,7 +5,7 @@
 
       <div style="padding: 0 10px;margin: 5px 0 0 0;" v-if="source && source.type === sourceTypeOption.mp3">
         <div class="audio-container width-100 flex-column flex-justify-between">
-          <div v-if="false" style="position:absolute; right: 20px;"
+          <div v-if="true" style="position:absolute; right: 15px; top: 10px;cursor: pointer"
                class="flex-row flex-align-center flex-justify-center">
             <n-icon color="red" size="26">
               <FavoriteFilled />
@@ -49,6 +49,9 @@
               @ended="onAudioEvent"
               @error="onAudioEvent"
               @timeupdate="onAudioEvent"
+              @load="onAudioEvent"
+              @loadedmetadata="onAudioEvent"
+              @loadeddata="onAudioEvent"
               repeat="repeat-all" />
         </div>
 
@@ -260,6 +263,8 @@ const artStyle = ref({
   width: '100%',
   height: '180px',
 })
+
+const apInstance = ref(null)
 
 const _pageKey = '_key_app_page_video_play_'
 
@@ -853,12 +858,16 @@ const gotoAvp = () => {
 
 
 const onEmptyEvent = (ctx) => {
-  console.log('[onEmptyEvent]', ctx)
+  // console.log('[onEmptyEvent]', ctx)
 }
 
 const onAudioEvent = (ctx) => {
-  console.log('[onEmptyEvent]', ctx)
+  // console.log('[onAudioEvent]', ctx)
   switch (ctx.type) {
+    case 'play':
+      break
+    case 'pause':
+      break
     case 'ended':
       if (ctx.timeStamp > 5000) {
         handleNextVideo(1)
@@ -869,6 +878,9 @@ const onAudioEvent = (ctx) => {
         addTimelineWarp(ctx)
         addHistoryWarp(ctx)
       }
+      break
+    case 'loadeddata':
+      apInstance.value = ctx.target
       break
   }
 }
@@ -883,6 +895,16 @@ const onAudioTimeUpdate = (ctx) => {
   }
 }
 
+const onPlayAudio = () => {
+  console.log('[onPlayAudio]', apInstance.value.play())
+  console.log('[inst]', apInstance.value)
+}
+
+const onPauseAudio = () => {
+  console.log('[onPauseAudio]', apInstance.value.pause())
+  console.log('[inst]', apInstance.value)
+
+}
 
 onBeforeMount(onBeforeMountHandler)
 onMounted(onMountedHandler)
