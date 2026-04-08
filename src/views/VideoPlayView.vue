@@ -627,10 +627,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
     artplayer: artInstance.value,
   })
 
-
-  const findLink = (video.value.links || []).find(item => {
-    return item.id === pid
-  })
+  const findLink = (video.value.links || []).find(item => item.id === pid) || {}
   // 如果是mp3且source.name空，则可能需要修正标题
   if (source.value.type === sourceTypeOption.mp3 && !source.value.name && video.value.name !== findLink.name) {
     video.value = Object.assign({}, video.value, { name: findLink.name })
@@ -690,11 +687,12 @@ const handlerTimeUpdate = () => {
   }, 5000)
 }
 
-const getPlayerTimeCtx = () => {
+const getPlayerTimeCtx = (ctx) => {
   let duration = 0
   let lastTime = 0
-  if (source.value.type === sourceTypeOption.mp3) {
-    duration = 0
+  if (source.value.type === sourceTypeOption.mp3 && ctx.target) {
+    duration = ctx.target.duration
+    lastTime = ctx.target.currentTime
   } else if (artInstance.value) {
     duration = artInstance.value.duration
     lastTime = artInstance.value.currentTime
@@ -702,8 +700,8 @@ const getPlayerTimeCtx = () => {
   return { duration, lastTime }
 }
 
-const addTimelineWarp = async () => {
-  const { duration, lastTime } = getPlayerTimeCtx()
+const addTimelineWarp = async (ctx) => {
+  const { duration, lastTime } = getPlayerTimeCtx(ctx)
   const _source = appStore.source
   const find = await findTimeline(_source, vid.value, pid.value)
   if (!find) {
@@ -724,8 +722,8 @@ const addTimelineWarp = async () => {
   }
 }
 
-const addHistoryWarp = async () => {
-  const { duration, lastTime } = getPlayerTimeCtx()
+const addHistoryWarp = async (ctx) => {
+  const { duration, lastTime } = getPlayerTimeCtx(ctx)
 
   const _source = appStore.source
   const find = await findHistory(_source, vid.value, pid.value)
@@ -859,7 +857,7 @@ const onEmptyEvent = (ctx) => {
 }
 
 const onAudioEvent = (ctx) => {
-  console.log('[onAudioEvent]', ctx.type, ctx.timeStamp)
+  console.log('[onEmptyEvent]', ctx)
   switch (ctx.type) {
     case 'ended':
       if (ctx.timeStamp > 5000) {
@@ -867,8 +865,10 @@ const onAudioEvent = (ctx) => {
       }
       break
     case 'timeupdate':
-      addTimelineWarp()
-      addHistoryWarp()
+      if (ctx.timeStamp > 5000) {
+        addTimelineWarp(ctx)
+        addHistoryWarp(ctx)
+      }
       break
   }
 }
