@@ -5,20 +5,25 @@
 
       <div style="padding: 0 10px;margin: 5px 0 0 0;" v-if="source && source.type === sourceTypeOption.mp3">
         <div class="audio-container width-100 flex-column flex-justify-between">
-          <div v-if="true" style="position:absolute; right: 15px; top: 10px;cursor: pointer"
-               class="flex-row flex-align-center flex-justify-center">
-            <n-icon color="red" size="26">
-              <FavoriteFilled />
-            </n-icon>
-            <n-icon v-if="false" color="#999999" size="26">
-              <FavoriteBorderFilled />
-            </n-icon>
-            <n-text depth="3">&nbsp;收藏</n-text>
+          <div class="fav">
+            <div v-if="false" @click="onRemoveCollect" class="flex-row flex-align-center flex-justify-center">
+              <n-icon color="red" size="24">
+                <FavoriteFilled />
+              </n-icon>
+              <n-text depth="3">&nbsp;取消收藏</n-text>
+            </div>
+            <div v-if="true" @click="onAddCollect" class="flex-row flex-align-center flex-justify-center">
+              <n-icon color="#999999" size="24">
+                <FavoriteBorderFilled />
+              </n-icon>
+              <n-text depth="3">&nbsp;收藏</n-text>
+            </div>
+
           </div>
           <div class="flex-row flex-1">
             <div class="side">
               <div class="thumb-container">
-                <n-image :src="video.thumb" class="thumb" />
+                <n-image :src="video.thumb" class="thumb" object-fit="fill" />
                 <div v-if="false" class="action-container flex-column flex-justify-center flex-align-center">
                   <n-icon v-if="false" color="#ffffff" size="126" @click="onPauseAudio">
                     <PauseCircleOutlineOutlined />
@@ -169,6 +174,36 @@
     </div>
 
     <AppFooter />
+
+    <n-modal
+        v-model:show="showCollectModal"
+        style="width: 520px"
+        preset="card"
+        title="添加到收藏夹"
+        :show-mask="true">
+
+      <n-form :label-width="80">
+        <n-form-item label="用户" path="phone" required>
+          <n-input v-model:value="formCollect.user" placeholder="输入用户账号/手机号" />
+        </n-form-item>
+        <n-form-item label="收藏夹" path="name" required>
+          <n-select
+              v-model:value="formCollect.name"
+              clearable filterable
+              :tag="true"
+              :options="collectOptions"
+              placeholder="请选择收藏夹/输入新建收藏夹" />
+        </n-form-item>
+        <n-space justify="end">
+          <n-button type="primary" @click="handleCreateCollect">
+            添加
+          </n-button>
+        </n-space>
+
+      </n-form>
+
+    </n-modal>
+
   </div>
 </template>
 
@@ -176,16 +211,22 @@
 import {computed, onBeforeMount, onBeforeUnmount, onBeforeUpdate, onMounted, onUpdated, ref, watch,} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
-import {httpPlayUrlNetworkCheck, httpVideo, httpVideoSource} from '../helpers/api'
+import {httpCollectAdd, httpPlayUrlNetworkCheck, httpVideo, httpVideoSource} from '../helpers/api'
 import {
+  NButton,
   NCollapse,
   NCollapseItem,
   NEllipsis,
+  NForm,
+  NFormItem,
   NH2,
   NIcon,
   NImage,
+  NInput,
+  NModal,
   NResult,
   NScrollbar,
+  NSelect,
   NSpace,
   NSpin,
   NText,
@@ -265,6 +306,19 @@ const artStyle = ref({
 })
 
 const apInstance = ref(null)
+
+const showCollectModal = ref(false)
+
+const formCollect = ref({
+  user: null,// 用户
+  name: null// 收藏夹名称
+})
+
+const collectOptions = [
+  { label: '默认收藏夹', value: '默认收藏夹' },
+  { label: '我喜欢的音乐', value: '我喜欢的音乐' },
+  { label: '私藏', value: '私藏' },
+]
 
 const _pageKey = '_key_app_page_video_play_'
 
@@ -903,6 +957,50 @@ const onPlayAudio = () => {
 const onPauseAudio = () => {
   console.log('[onPauseAudio]', apInstance.value.pause())
   console.log('[inst]', apInstance.value)
+}
+
+const onAddCollect = () => {
+  showCollectModal.value = true
+  console.log('[onAddCollect]', JSON.parse(JSON.stringify({
+    video: video.value,
+    source: source.value,
+  })))
+}
+
+const onRemoveCollect = () => {
+  showCollectModal.value = true
+  console.log('[onRemoveCollect]', JSON.parse(JSON.stringify({
+    video: video.value,
+    source: source.value,
+  })))
+}
+
+const handleCreateCollect = () => {
+  message.error('功能暂未实现')
+  if (!formCollect.value.user || formCollect.value.user.length < 6) {
+    return message.warning('请输入6位以上用户账号', { duration: 12 * 1000 })
+  }
+  if (!formCollect.value.name || formCollect.value.name.length < 2) {
+    return message.warning('收藏夹名称太短', { duration: 12 * 1000 })
+  }
+
+  const p = {
+    user: formCollect.value.user,
+    collect_name: formCollect.value.name,
+    source: appStore.source,
+    vid: video.value.id,
+    pid: source.value.id,
+    name: video.value.name,
+    thumb: video.value.thumb,
+    url: source.value.source,
+  }
+
+  httpCollectAdd(p).then(resp => {
+    console.log('[resp]', resp)
+  }).catch(err => {
+    console.log('[err]', err)
+    message.warning(`${err}`)
+  })
 
 }
 
@@ -986,7 +1084,7 @@ video {
     width: 360px;
     height: 360px;
     border-radius: 10px;
-    background-color: #f5f5f5;
+    background-color: #faf9f9;
   }
 
   .thumb-container {
@@ -1016,6 +1114,13 @@ video {
   .lrc-scroller {
     max-height: 444px !important;
     line-height: 200%;
+  }
+
+  .fav {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    cursor: pointer;
   }
 
 }

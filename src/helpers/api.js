@@ -32,6 +32,18 @@ const apiSourceStat = (query) => {
   return httpInstance.get(`/api/source/stat?${query}`)
 }
 
+const httpCollectAdd = (data) => {
+  return httpInstance.post(`/api/collect/add`, data)
+}
+
+const httpCollectList = () => {
+  return httpInstance.get(`/api/collect/list`)
+}
+
+const httpCollectDetail = (collectId, limit = 0) => {
+  return httpInstance.get(`/api/collect/detail?collect_id=${collectId}&limit=${limit}`)
+}
+
 export {
   httpSourceList,
   httpVideoList,
@@ -41,4 +53,7 @@ export {
   apiVideoSearchSSE,
   httpPlayUrlNetworkCheck,
   apiSourceStat,
+  httpCollectAdd,
+  httpCollectList,
+  httpCollectDetail,
 }

@@ -23,6 +23,10 @@ httpInstance.interceptors.request.use(
       config.headers.set('X-Source-Mode', appStore.sourceSecret)
     }
 
+    if (!config.headers.has('_username')) {
+      config.headers.set('X-Username', appStore.username)
+    }
+
     return config
   },
   (error) => {
