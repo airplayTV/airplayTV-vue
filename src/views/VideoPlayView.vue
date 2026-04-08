@@ -66,7 +66,18 @@
           </div>
         </div>
 
-        <div class="padding-20px"></div>
+        <div class="padding-10px"></div>
+
+        <n-collapse accordion default-expanded-names="1">
+          <template #header-extra>
+            <div class="color-grey font-size-12px">
+              快捷键：上一集(p)，下一集(n)，全屏切换(f)
+            </div>
+          </template>
+          <n-collapse-item title="选集" name="1">
+            <AppSourceList v-if="video" :vid="vid" :pid="pid" :source-list="videoSourceList" />
+          </n-collapse-item>
+        </n-collapse>
 
       </div>
       <div style="padding: 0 10px" v-else-if="source && source.url">
