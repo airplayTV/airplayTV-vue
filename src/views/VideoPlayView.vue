@@ -639,6 +639,10 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   }
   video.value.name = video.value.name || latestVideo.value.name// 修正图片显示
   video.value.thumb = video.value.thumb || latestVideo.value.thumb// 修正图片显示
+  video.value.links = video.value.links.map(row => {
+    row.name = row.name || video.value.name
+    return row
+  })
 
   const tmpVideo = Object.assign(
       {},
