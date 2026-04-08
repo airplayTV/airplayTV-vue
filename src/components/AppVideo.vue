@@ -106,7 +106,12 @@ const loadVideo = (id) => {
   loadingBar.start()
   httpVideo(id, appStore.source).then((resp) => {
     video.value = resp.data
+    video.value.name = video.value.name || latestVideo.value.name// 修正图片显示
     video.value.thumb = video.value.thumb || latestVideo.value.thumb// 修正图片显示
+    video.value.links = video.value.links.map(row => {
+      row.name = row.name || video.value.name
+      return row
+    })
   }).catch((err) => {
     errMsg.value = err
     video.value = null

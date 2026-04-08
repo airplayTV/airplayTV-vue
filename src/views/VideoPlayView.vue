@@ -3,7 +3,7 @@
     <div>
       <AppHeader />
 
-      <div style="padding: 0 10px;margin: 20px 0 0 0;" v-if="source && source.type === sourceTypeOption.mp3">
+      <div style="padding: 0 10px;margin: 5px 0 0 0;" v-if="source && source.type === sourceTypeOption.mp3">
         <div class="audio-container width-100 flex-column flex-justify-between">
           <div v-if="false" style="position:absolute; right: 20px;"
                class="flex-row flex-align-center flex-justify-center">
@@ -17,15 +17,25 @@
           </div>
           <div class="flex-row flex-1">
             <div class="side">
-              <n-image :src="video.thumb" class="thumb" />
+              <div class="thumb-container">
+                <n-image :src="video.thumb" class="thumb" />
+                <div v-if="false" class="action-container flex-column flex-justify-center flex-align-center">
+                  <n-icon v-if="false" color="#ffffff" size="126" @click="onPauseAudio">
+                    <PauseCircleOutlineOutlined />
+                  </n-icon>
+                  <n-icon v-else color="#ffffff" size="126" @click="onPlayAudio">
+                    <PlayCircleFilledWhiteOutlined />
+                  </n-icon>
+                </div>
+              </div>
             </div>
             <div class="lrc flex-1 flex-column">
-              <n-h2>{{ video.name }}</n-h2>
+              <n-h2>{{ video.name || 'Untitled' }}</n-h2>
               <div v-if="video.actors">{{ video.actors }}</div>
               <n-scrollbar v-if="video.intro" class="lrc-scroller pre-wrap aplayer-lrc-content">
                 {{ video.intro }}
               </n-scrollbar>
-              <div v-else class="flex-1 flex-column" style="padding: 120px 0 0 0">
+              <div v-else class="flex-1 flex-column" style="padding: 60px 0 0 0">
                 暂无歌词
               </div>
 
@@ -194,7 +204,13 @@ import {
 import axios from 'axios'
 import {apiUrl} from '@/config'
 import {useAppStore} from "@/stores/app.js";
-import {FavoriteBorderFilled, FavoriteFilled, SearchSharp} from '@vicons/material'
+import {
+  FavoriteBorderFilled,
+  FavoriteFilled,
+  PauseCircleOutlineOutlined,
+  PlayCircleFilledWhiteOutlined,
+  SearchSharp
+} from '@vicons/material'
 import hotkeys from 'hotkeys-js';
 import Aplayer from 'vue3-aplayer'
 
@@ -223,6 +239,7 @@ const tmpQuery = ref(null)
 const tmpUrlPath = ref(null)
 const playType = ref(playTypeOption.art)
 const errMsg = ref('')
+const latestVideo = ref({})
 let lrcTimeLine = []
 
 const source = ref(null)
@@ -237,6 +254,8 @@ const artStyle = ref({
 const _pageKey = '_key_app_page_video_play_'
 
 const onBeforeMountHandler = () => {
+  latestVideo.value = appStore.latestVideo || {}
+
   addControlEventHandler()
 
   tmpUrlPath.value = route.path
@@ -443,7 +462,9 @@ const loadVideoAsync = async (vid) => {
     const resp = await httpVideo(vid, appStore.source)
 
     video.value = resp.data;
-    (resp.data.links || []).filter(item => {
+    video.value.name = video.value.name || latestVideo.value.name// 修正图片显示
+    video.value.thumb = video.value.thumb || latestVideo.value.thumb// 修正图片显示
+    ;(resp.data.links || []).filter(item => {
       if (item.id === pid.value) {
         pname.value = item.name
       }
@@ -605,6 +626,8 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   if (source.value.type === sourceTypeOption.mp3 && !source.value.name && video.value.name !== findLink.name) {
     video.value = Object.assign({}, video.value, { name: findLink.name })
   }
+  video.value.name = video.value.name || latestVideo.value.name// 修正图片显示
+  video.value.thumb = video.value.thumb || latestVideo.value.thumb// 修正图片显示
 
   const tmpVideo = Object.assign(
       {},
@@ -803,8 +826,8 @@ const gotoAvp = () => {
 }
 
 
-const onEmptyEvent = () => {
-
+const onEmptyEvent = (ctx) => {
+  console.log('[onEmptyEvent]', ctx)
 }
 
 const onAudioTimeUpdate = (ctx) => {
@@ -895,10 +918,28 @@ video {
   }
 
   .thumb {
-    width: 260px;
-    height: 260px;
+    width: 360px;
+    height: 360px;
     border-radius: 10px;
     background-color: #f5f5f5;
+  }
+
+  .thumb-container {
+    width: 360px;
+    height: 360px;
+    border-radius: 10px;
+    position: relative;
+
+    .action-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, .2);
+      border-radius: 10px;
+      cursor: pointer;
+    }
   }
 
   .lrc {
@@ -934,7 +975,7 @@ video {
 @media (min-width: 900px) and (max-width: 9000px) {
   .audio-container {
     min-height: 520px !important;
-    padding-top: 20px;
+    //padding-top: 20px;
   }
 
   .side {
