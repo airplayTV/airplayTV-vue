@@ -44,11 +44,11 @@
           <Aplayer
               :music="getAudioSource()"
               :showlrc="true"
-              @play="onEmptyEvent"
-              @pause="onEmptyEvent"
-              @ended="onEmptyEvent"
-              @error="onEmptyEvent"
-              @timeupdate="onAudioTimeUpdate"
+              @play="onAudioEvent"
+              @pause="onAudioEvent"
+              @ended="onAudioEvent"
+              @error="onAudioEvent"
+              @timeupdate="onAudioEvent"
               repeat="repeat-all" />
         </div>
 
@@ -485,7 +485,6 @@ const loadVideoAsync = async (vid) => {
   }
 }
 
-// const videoSourceList = computed(formatVideoSourceMap(video.value?.links))
 const videoSourceList = computed(() => {
   return formatVideoSourceMap(video.value.links)
 })
@@ -691,7 +690,20 @@ const handlerTimeUpdate = () => {
   }, 5000)
 }
 
+const getPlayerTimeCtx = () => {
+  let duration = 0
+  let lastTime = 0
+  if (source.value.type === sourceTypeOption.mp3) {
+    duration = 0
+  } else if (artInstance.value) {
+    duration = artInstance.value.duration
+    lastTime = artInstance.value.currentTime
+  }
+  return { duration, lastTime }
+}
+
 const addTimelineWarp = async () => {
+  const { duration, lastTime } = getPlayerTimeCtx()
   const _source = appStore.source
   const find = await findTimeline(_source, vid.value, pid.value)
   if (!find) {
@@ -699,20 +711,22 @@ const addTimelineWarp = async () => {
       source: _source,
       vid: vid.value,
       pid: pid.value,
-      duration: artInstance.value.duration,
-      lastTime: artInstance.value.currentTime,
+      duration: duration,
+      lastTime: lastTime,
       updated_at: Date.now(),
     })
   } else {
     await updateTimeline(find.id, {
-      duration: artInstance.value.duration,
-      lastTime: artInstance.value.currentTime,
+      duration: duration,
+      lastTime: lastTime,
       updated_at: Date.now(),
     })
   }
 }
 
 const addHistoryWarp = async () => {
+  const { duration, lastTime } = getPlayerTimeCtx()
+
   const _source = appStore.source
   const find = await findHistory(_source, vid.value, pid.value)
   if (!find) {
@@ -725,15 +739,15 @@ const addHistoryWarp = async () => {
       thumb: video.value.thumb,
       url: source.value.url,
       type: source.value.type,
-      duration: artInstance.value.duration,
-      lastTime: artInstance.value.currentTime,
+      duration: duration,
+      lastTime: lastTime,
       updated_at: Date.now(),
     })
   } else {
     await updateHistory(find.id, {
       pid: pid.value,
       pname: pname.value,
-      lastTime: artInstance.value.currentTime,
+      lastTime: lastTime,
       updated_at: Date.now(),
     })
   }
@@ -842,6 +856,21 @@ const gotoAvp = () => {
 
 const onEmptyEvent = (ctx) => {
   console.log('[onEmptyEvent]', ctx)
+}
+
+const onAudioEvent = (ctx) => {
+  console.log('[onAudioEvent]', ctx.type, ctx.timeStamp)
+  switch (ctx.type) {
+    case 'ended':
+      if (ctx.timeStamp > 5000) {
+        handleNextVideo(1)
+      }
+      break
+    case 'timeupdate':
+      addTimelineWarp()
+      addHistoryWarp()
+      break
+  }
 }
 
 const onAudioTimeUpdate = (ctx) => {
