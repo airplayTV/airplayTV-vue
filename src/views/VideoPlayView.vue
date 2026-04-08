@@ -71,7 +71,6 @@
         <n-collapse accordion default-expanded-names="1">
           <template #header-extra>
             <div class="color-grey font-size-12px">
-              快捷键：上一集(p)，下一集(n)，全屏切换(f)
             </div>
           </template>
           <n-collapse-item title="选集" name="1">
