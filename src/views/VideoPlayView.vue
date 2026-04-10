@@ -912,18 +912,6 @@ const parseLrcTimeLine = (lrcTxt) => {
   })
 }
 
-const getAudioSource = () => {
-  lrcTimeLine = parseLrcTimeLine(video.value.intro)
-  // 文档参考：https://github.com/SevenOutman/vue-aplayer/blob/develop/docs/README.zh-CN.md
-  return {
-    title: video.value.name,
-    artist: video.value.actors || '',
-    src: source.value.url,
-    pic: video.value.thumb,
-    lrc: video.value.intro,
-  }
-}
-
 const gotoAvp = () => {
   if (!source.value.url) {
     return message.warning('没有可播放数据')
