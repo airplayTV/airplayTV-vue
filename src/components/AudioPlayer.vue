@@ -135,12 +135,12 @@ const emits = defineEmits([
 ])
 
 watch(() => props.index, (newVal, oldVal) => {
-  console.log('[watch.index]', { newVal, oldVal })
+  // console.log('[watch.index]', { newVal, oldVal })
   switchAudio(newVal)
 })
 
 watch(() => props.music, (newVal, oldVal) => {
-  console.log('[watch.music]', { newVal, oldVal })
+  // console.log('[watch.music]', { newVal, oldVal })
 })
 
 const onToggleLrc = () => {

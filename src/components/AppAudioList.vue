@@ -103,7 +103,7 @@ const emits = defineEmits(['changed'])
 
 
 watch(() => props.playIndex, (newVal, oldVal) => {
-  console.log('[watch.music]', { newVal, oldVal })
+  // console.log('[watch.music]', { newVal, oldVal })
 })
 
 const onOpenVideoPlay = (idx, source) => {
