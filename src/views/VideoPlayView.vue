@@ -46,9 +46,12 @@
 
             </div>
           </div>
+
+          <AudioPlayer :key="audioCtx" :options="audioCtx" @next="onNextAudio" @prev="onPrevAudio" />
+
           <Aplayer
-              :music="getAudioSource()"
-              :showlrc="true"
+              v-if="false"
+              :music="audioCtx"
               @play="onAudioEvent"
               @pause="onAudioEvent"
               @ended="onAudioEvent"
@@ -175,6 +178,8 @@
 
     <AppFooter />
 
+    <div v-if="source && source.type === sourceTypeOption.mp3" style="width: 100%; height: 80px;"></div>
+
     <n-modal
         v-model:show="showCollectModal"
         style="width: 520px"
@@ -267,6 +272,7 @@ import {
 } from '@vicons/material'
 import hotkeys from 'hotkeys-js';
 import Aplayer from 'vue3-aplayer'
+import AudioPlayer from "@/components/AudioPlayer.vue";
 
 const route = useRoute()
 const router = useRouter()
@@ -306,6 +312,7 @@ const artStyle = ref({
 })
 
 const apInstance = ref(null)
+const audioCtx = ref({})
 
 const showCollectModal = ref(false)
 
@@ -715,23 +722,51 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   })
 
 
-  if (artInstance.value) {
+  if (source.value.type === sourceTypeOption.mp3) {
+    audioCtx.value = {
+      music: video.value.links.map(row => {
+        if (row.ctx && row.ctx.collect_id) {
+          return {
+            id: row.id,
+            title: row.name,
+            artist: row.ctx.name,
+            src: async () => {
+              console.log('[req]', JSON.parse(JSON.stringify(row.ctx)))
+              const resp = await httpVideoSource(row.ctx.collect_id, row.ctx.id, appStore.source)
+              return resp.data.url
+            },
+            pic: row.ctx.thumb,
+            lrc: '',
+          }
+        }
+        return {
+          title: video.value.name,
+          artist: video.value.actors,
+          src: source.value.url,
+          pic: video.value.thumb,
+          lrc: '',
+        }
+      })
+    }
+  } else if (artInstance.value) {
     artOption.value.video = tmpVideo
     await artInstance.value.switchUrl(respSource.data.url);
+    showVideoTitle()
   } else if (respSource.data.type === 'hls') {
     artOption.value = Object.assign({}, otherOption, {
       url: respSource.data.url,
       ...getHlsOptions(),
       ...getControls()
     })
+    showVideoTitle()
   } else {
     artOption.value = Object.assign({}, otherOption, {
       url: respSource.data.url,
       ...getControls()
     })
+    showVideoTitle()
   }
 
-  showVideoTitle()
 
 }
 
@@ -961,6 +996,9 @@ const onPauseAudio = () => {
 
 const onAddCollect = () => {
   showCollectModal.value = true
+  if (!formCollect.value.user) {
+    formCollect.value.user = appStore.username
+  }
   console.log('[onAddCollect]', JSON.parse(JSON.stringify({
     video: video.value,
     source: source.value,
@@ -976,7 +1014,6 @@ const onRemoveCollect = () => {
 }
 
 const handleCreateCollect = () => {
-  message.error('功能暂未实现')
   if (!formCollect.value.user || formCollect.value.user.length < 6) {
     return message.warning('请输入6位以上用户账号', { duration: 12 * 1000 })
   }
@@ -997,11 +1034,23 @@ const handleCreateCollect = () => {
 
   httpCollectAdd(p).then(resp => {
     console.log('[resp]', resp)
+    message.info('已添加到收藏夹')
+
   }).catch(err => {
     console.log('[err]', err)
     message.warning(`${err}`)
+  }).finally(() => {
+    appStore.setUsername(formCollect.value.user)
+    showCollectModal.value = false
   })
+}
 
+const onNextAudio = (ctx) => {
+  console.log('[onNextAudio]', ctx)
+}
+
+const onPrevAudio = (ctx) => {
+  console.log('[onPrevAudio]', ctx)
 }
 
 onBeforeMount(onBeforeMountHandler)
