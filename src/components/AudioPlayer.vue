@@ -76,7 +76,7 @@
               <n-slider v-model:value="audioCtx.volume" :max="100" @update-value="onChangeVolume" />
             </div>
           </div>
-          <button class="lyric-btn " @click="onToggleLrc" :class="{'active':showLrc}"> 词</button>
+          <button v-if="false" class="lyric-btn " @click="onToggleLrc" :class="{'active':showLrc}"> 词</button>
         </div>
       </div>
     </div>
@@ -89,60 +89,9 @@
       <div class="lyric-page-content" style="--player-height: 80px;">
         <div class="lyric-display-area">
           <div class="lyric-spacer" style="height: 150.15px;"></div>
-          <div class="lyric-display-line"> 知我（剑来）-国风棠（哦屚）</div>
-          <div class="lyric-display-line"> 作词：林泽</div>
-          <div class="lyric-display-line"> 作曲：林泽</div>
-          <div class="lyric-display-line"> 剩几段月儿忆</div>
-          <div class="lyric-display-line"> 风儿吹醒</div>
-          <div class="lyric-display-line"> 拂琴又与谁起</div>
-          <div class="lyric-display-line"> 试问苍下有几人</div>
-          <div class="lyric-display-line"> 琴声知我意</div>
-          <div class="lyric-display-line"> 窗外雨声吵醒</div>
-          <div class="lyric-display-line"> 谁的孤寂</div>
-          <div class="lyric-display-line"> 凉了半生再续</div>
-          <div class="lyric-display-line"> 琴瑟鸣</div>
-          <div class="lyric-display-line"> 谁又知我心</div>
-          <div class="lyric-display-line"> 清风拂柳絮</div>
-          <div class="lyric-display-line active"> 江岸风入梦里</div>
-          <div class="lyric-display-line playing"> 散落星辰忆往昔</div>
-          <div class="lyric-display-line"> 曾几时的梦里</div>
-          <div class="lyric-display-line"> 那飘飘身影</div>
-          <div class="lyric-display-line"> 而如今</div>
-          <div class="lyric-display-line"> 沉入风平</div>
-          <div class="lyric-display-line"> 红尘几时里</div>
-          <div class="lyric-display-line"> 几多风几时雨</div>
-          <div class="lyric-display-line"> 几声琴弦碎了心</div>
-          <div class="lyric-display-line"> 一场梦的宿命</div>
-          <div class="lyric-display-line"> 潮落又潮起</div>
-          <div class="lyric-display-line"> 过路人</div>
-          <div class="lyric-display-line"> 皆声叹起</div>
-          <div class="lyric-display-line"> 剩几段月儿忆</div>
-          <div class="lyric-display-line"> 风儿吹醒</div>
-          <div class="lyric-display-line"> 拂琴又与谁起</div>
-          <div class="lyric-display-line"> 试问苍下有几人</div>
-          <div class="lyric-display-line"> 琴声知我意</div>
-          <div class="lyric-display-line"> 窗外雨声吵醒</div>
-          <div class="lyric-display-line"> 谁的孤寂</div>
-          <div class="lyric-display-line"> 凉了半生再续</div>
-          <div class="lyric-display-line"> 琴瑟鸣</div>
-          <div class="lyric-display-line"> 谁又知我心</div>
-          <div class="lyric-display-line"> 红尘几时里</div>
-          <div class="lyric-display-line"> 几多风几时雨</div>
-          <div class="lyric-display-line"> 几声琴弦碎了心</div>
-          <div class="lyric-display-line"> 一场梦的宿命</div>
-          <div class="lyric-display-line"> 潮落又潮起</div>
-          <div class="lyric-display-line"> 过路人</div>
-          <div class="lyric-display-line"> 皆声叹起</div>
-          <div class="lyric-display-line"> 剩几段月儿忆</div>
-          <div class="lyric-display-line"> 风儿吹醒</div>
-          <div class="lyric-display-line"> 拂琴又与谁起</div>
-          <div class="lyric-display-line"> 试问苍下有几人</div>
-          <div class="lyric-display-line"> 琴声知我意</div>
-          <div class="lyric-display-line"> 窗外雨声吵醒</div>
-          <div class="lyric-display-line"> 谁的孤寂</div>
-          <div class="lyric-display-line"> 凉了半生再续</div>
-          <div class="lyric-display-line"> 琴瑟鸣</div>
-          <div class="lyric-display-line"> 谁又知我心</div>
+          <div class="lyric-display-line">标题</div>
+          <div class="lyric-display-line active">歌词1</div>
+          <div class="lyric-display-line playing">歌词2</div>
           <div class="lyric-spacer" style="height: 150.15px;"></div>
         </div>
       </div>
@@ -310,7 +259,7 @@ const onMountedHandler = () => {
           break
       }
       if (event !== 'timeupdate' && event !== 'progress') {
-        console.log('[emits]', event, ctx)
+        // console.log('[emits]', event, ctx)
       } else {
         updateAudioProgress(ctx.target)
       }

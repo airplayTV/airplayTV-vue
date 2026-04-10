@@ -5,21 +5,7 @@
 
       <div style="padding: 0 10px;margin: 0 0 0 0;" v-if="source && source.type === sourceTypeOption.mp3">
         <div class="audio-container width-100 flex-column flex-justify-between">
-          <div class="fav">
-            <div v-if="false" @click="onRemoveCollect" class="flex-row flex-align-center flex-justify-center">
-              <n-icon color="red" size="24">
-                <FavoriteFilled />
-              </n-icon>
-              <n-text depth="3">&nbsp;取消收藏</n-text>
-            </div>
-            <div v-if="true" @click="onAddCollect" class="flex-row flex-align-center flex-justify-center">
-              <n-icon color="#999999" size="24">
-                <FavoriteBorderFilled />
-              </n-icon>
-              <n-text depth="3">&nbsp;收藏</n-text>
-            </div>
 
-          </div>
           <div class="flex-row flex-1">
             <div class="side">
               <div class="thumb-container">
@@ -35,7 +21,24 @@
               </div>
             </div>
             <div class="lrc flex-1 flex-column" style="width: 0">
-              <n-h2>{{ video.name || 'Untitled' }}</n-h2>
+              <div class="flex-row">
+                <n-h2>{{ video.name || 'Untitled' }}</n-h2>
+                <div class="fav flex-row">
+                  <div v-if="false" @click="onRemoveCollect" class="flex-row flex-align-center flex-justify-center">
+                    <n-icon color="red" size="20">
+                      <FavoriteFilled />
+                    </n-icon>
+                    <n-text depth="3">&nbsp;取消收藏</n-text>
+                  </div>
+                  <div v-if="true" @click="onAddCollect" class="flex-row flex-align-center flex-justify-center">
+                    <n-icon color="#999999" size="20">
+                      <FavoriteBorderFilled />
+                    </n-icon>
+                    <n-text depth="3">&nbsp;收藏</n-text>
+                  </div>
+
+                </div>
+              </div>
               <div v-if="video.actors">{{ video.actors }}</div>
               <div class="padding-5px"></div>
               <n-scrollbar class="  ">
@@ -1168,9 +1171,8 @@ video {
   }
 
   .fav {
-    position: absolute;
-    right: 15px;
-    top: 10px;
+    font-size: 14px;
+    margin: 0 0 0 10px;
     cursor: pointer;
   }
 

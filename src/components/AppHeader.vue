@@ -23,10 +23,10 @@
       </div>
       <div class="flex-row flex-align-center">
         <n-space class="xxx flex-row">
-          <n-icon color="#18a058" size="20" class="cursor-pointer" @click="onGotoCollect">
+          <n-icon color="#000000" size="20" class="cursor-pointer" @click="onGotoCollect" title="我的收藏">
             <FavoriteFilled />
           </n-icon>
-          <n-icon color="#000000" size="20" class="cursor-pointer" @click="onToggleSearchBox">
+          <n-icon color="#000000" size="20" class="cursor-pointer" @click="onToggleSearchBox" title="搜索">
             <SearchSharp />
           </n-icon>
         </n-space>

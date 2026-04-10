@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "aplayer": "^1.10.1",
     "artplayer": "^5.2.2",
     "artplayer-plugin-hls-control": "^1.0.1",
     "axios": "^1.7.9",
@@ -29,6 +30,8 @@
     "vue3-aplayer": "^1.7.3"
   },
   "devDependencies": {
+    "@vicons/fa": "^0.13.0",
+    "@vicons/fluent": "^0.13.0",
     "@vicons/material": "^0.13.0",
     "@vicons/tabler": "^0.13.0",
     "@vitejs/plugin-vue": "^5.2.3",
