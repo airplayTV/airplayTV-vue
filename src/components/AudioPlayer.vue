@@ -3,8 +3,8 @@
   <!--
       播放器UI参考：https://www.blmp3.cn/
   -->
+  <audio autoplay ref="appAudio" :src="music.src" preload="auto"></audio>
   <div class="music-player lyric-active" v-if="music">
-    <audio autoplay ref="appAudio" :src="music.src" preload="auto"></audio>
     <div class="player-container" style="height: 80px;">
       <div class="top-progress-bar">
         <n-slider
@@ -16,8 +16,10 @@
 
       <div class="player-wrapper">
         <div class="player-left">
-          <img :src="music.pic" :alt="music.title"
-               class="song-cover">
+          <img
+              :src="music.pic || 'https://h5s.kuwo.cn/www/kw-www/img/dialog_pic_vinyl@2x.b683ac0.png'"
+              :alt="music.title"
+              class="song-cover">
           <div class="song-info">
             <div class="song-name">{{ music.title || 'Untitled' }}</div>
             <div class="song-artist">{{ music.artist || 'Unknown' }}</div>
@@ -157,45 +159,34 @@ import {NSlider} from 'naive-ui'
 
 const showLrc = ref(false)
 const appAudio = ref(null)
+const music = ref({})//当前播放的音乐信息
+const playList = ref([])// 播放列表
 const audioCtx = ref({
+  index: 0,
   paused: true,
   muted: false,
   duration: 0,
   currentTime: 0,
   volume: 100, // 进度条：[0-100]
-
 })
 
 const props = defineProps({
-  music: {
-    title: {
-      type: String,
-    },
-    artist: {
-      type: String,
-    },
-    src: {
-      type: String,
-      required: true,
-    },
-    pic: {
-      type: String,
-    },
-    lrc: {
-      type: String,
+  options: {
+    // 播放列表、或者单一音乐,src 可以是异步回调
+    music: {
+      id: null, title: null, artist: null, src: null, pic: null, lrc: null,
     },
   },
 })
 
 const emits = defineEmits([
-  'next', 'prev',
+  'next', 'prev', 'changed',
   'error', 'load', 'loadedmetadata', 'loadeddata', 'play', 'pause', 'timeupdate', 'ended',
   'playing', 'progress', 'readystatechange', 'seeked', 'seeking', 'volumechange', 'waiting',
 ])
 
-
-watch(() => props.music, (newVal, oldVal) => {
-  console.log('[watch.music]', { newVal, oldVal })
+watch(() => props.options, (newVal, oldVal) => {
+  console.log('[watch.options]', { newVal, oldVal })
 })
 
 const onToggleLrc = () => {
@@ -203,33 +194,34 @@ const onToggleLrc = () => {
 }
 
 const playAudio = () => {
-  const a = appAudio.value.play()
-  console.log('[playAudio]', a)
+  appAudio.value.play()
 }
 
 const pauseAudio = () => {
-  const a = appAudio.value.pause()
-  console.log('[pauseAudio]', a)
+  appAudio.value.pause()
 }
 
 const muteAudio = () => {
-  const a = appAudio.value.muted = false
-  console.log('[muteAudio]', a)
+  appAudio.value.muted = false
 }
 
 const unmuteAudio = () => {
-  const a = appAudio.value.muted = true
-  console.log('[unmuteAudio]', a)
+  appAudio.value.muted = true
 }
 
 const onPrevAudio = () => {
   emits('prev', props.music)
-  console.log('[onPrevAudio]', props.music)
+  switchAudio(audioCtx.value.index - 1)
 }
 
 const onNextAudio = () => {
   emits('next', props.music)
-  console.log('[onNextAudio]', props.music)
+  if (audioCtx.value.index + 1 >= playList.value.length) {
+    audioCtx.value.index = 0
+    switchAudio(audioCtx.value.index)
+  } else {
+    switchAudio(audioCtx.value.index + 1)
+  }
 }
 
 const updateAudioProgress = (elementCtx) => {
@@ -246,6 +238,9 @@ const updateAudioVolume = (elementCtx) => {
 }
 
 const formatTime = (seconds) => {
+  if (!seconds) {
+    seconds = 0
+  }
   let h = parseInt(seconds / 60 / 60)
   let m = parseInt(seconds / 60)
   let s = parseInt(seconds - h * 60 * 60 - m * 60)
@@ -273,7 +268,6 @@ const onChangeVolume = (ctx) => {
 }
 
 const onMountedHandler = () => {
-  console.log('[emits]', emits)
   ;[
     'error', 'load', 'loadedmetadata', 'loadeddata', 'play', 'pause', 'timeupdate',
     'ended', 'playing', 'progress', 'readystatechange', 'seeked', 'seeking',
@@ -293,6 +287,7 @@ const onMountedHandler = () => {
           break
         case 'ended':
           audioCtx.value.paused = true
+          onNextAudio()
           break
         case 'error':
           audioCtx.value.paused = true
@@ -307,7 +302,7 @@ const onMountedHandler = () => {
           updateAudioVolume(ctx.target)
           break
       }
-      if (event !== 'timeupdate') {
+      if (event !== 'timeupdate' && event !== 'progress') {
         console.log('[emits]', event, ctx)
       } else {
         updateAudioProgress(ctx.target)
@@ -316,10 +311,46 @@ const onMountedHandler = () => {
       audioCtx.value.muted = !!ctx.target.muted
     })
   })
-
+  parseMusic()
 }
 
-// appAudio
+const parseMusic = () => {
+  if (props.options.music.src) {
+    playList.value.push(props.options.music)
+  }
+  for (let i = 0; i < props.options.music.length; i++) {
+    if (props.options.music[i].src) {
+      playList.value.push(props.options.music[i])
+    }
+  }
+  if (playList.value.length <= 0) {
+    emits('error', '暂无播放数据')
+  } else {
+    switchAudio(0)
+  }
+}
+
+const switchAudio = async (index = 0) => {
+  if (index >= playList.value.length || index < 0) {
+    return emits('error', '切换音频失败，音频不在列表中')
+  }
+  let tmpMusic = playList.value[index]
+  if (typeof tmpMusic.src === 'function') {
+    try {
+      tmpMusic.src = await tmpMusic.src()
+    } catch (e) {
+      tmpMusic.src = ''
+    }
+  }
+
+  updateAudioProgress({ duration: 100, currentTime: 0 })
+
+  music.value = Object.assign({}, tmpMusic)
+  audioCtx.value.index = index
+  emits('changed', tmpMusic)
+}
+
+
 onMounted(onMountedHandler)
 
 
