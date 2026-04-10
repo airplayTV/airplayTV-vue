@@ -47,7 +47,14 @@
             </div>
           </div>
 
-          <AudioPlayer :key="audioCtx" :options="audioCtx" @next="onNextAudio" @prev="onPrevAudio" />
+          <AudioPlayer
+              :key="audioCtx"
+              :options="audioCtx"
+              @next="onNextAudio"
+              @prev="onPrevAudio"
+              @timeupdate="onAudioEvent"
+              @changed="onAudioChange"
+          />
 
           <Aplayer
               v-if="false"
@@ -960,6 +967,17 @@ const onAudioEvent = (ctx) => {
       apInstance.value = ctx.target
       break
   }
+}
+
+const onAudioChange = (ctx) => {
+  video.value = Object.assign({}, video.value, {
+    name: ctx.title,
+    thumb: ctx.pic,
+    actors: ctx.actors,
+  })
+  source.value = Object.assign({}, source.value, {
+    url: ctx.src
+  })
 }
 
 const onAudioTimeUpdate = (ctx) => {

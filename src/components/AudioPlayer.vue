@@ -306,7 +306,7 @@ const onMountedHandler = () => {
           break
       }
       if (event !== 'timeupdate' && event !== 'progress') {
-        console.log('[emits]', event, ctx)
+        // console.log('[emits]', event, ctx)
       } else {
         updateAudioProgress(ctx.target)
       }
