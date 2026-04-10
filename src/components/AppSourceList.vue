@@ -22,10 +22,11 @@
           <n-tag
               :type="pid === item.id ? 'info' : ''"
               :bordered="false"
+              class="cursor-pointer"
               @click="onOpenVideoPlay(vid, item)"
           >
             <RouterLink :to="`/video/play/${vid}/${item.id}?_source=${appStore.source}`" class="flex-column">
-              <div class="xx-uu" style="display: flex; align-items: center">
+              <div class="" style="display: flex; align-items: center">
                 {{ item.name }}
                 <n-icon v-if="room" size="18" color="#0e7a0d" style="margin-left: 5px">
                   <CastRound />
@@ -79,17 +80,19 @@ const message = ref(null)
 const appStore = useAppStore()
 
 const onOpenVideoPlay = (vid, source) => {
+  let tmpSource = appStore.source, tmpVid = vid, tmpPid = source.id;
+
   if (!room.value) {
-    router.value.push(`/video/play/${vid}/${source.id}?_source=${appStore.source}`)
+    router.value.push(`/video/play/${tmpVid}/${tmpPid}?_source=${tmpSource}`)
   } else {
     // 投射播放
     sendControl(room.value, {
       event: ControlEventLoadVideo,
       group: room.value,
-      vid: vid,
-      pid: source.id,
+      vid: tmpVid,
+      pid: tmpPid,
       // name: source.name,
-      source: appStore.source,
+      source: tmpSource,
       mode: appStore.sourceSecret,
     })
     // message.value.info('已发送投射播放请求')
@@ -166,5 +169,10 @@ export default defineComponent({
   ::v-deep(.router-link-active) {
     border-bottom: unset !important;
   }
+
+  .xx-uu {
+    padding: 6px;
+  }
 }
+
 </style>

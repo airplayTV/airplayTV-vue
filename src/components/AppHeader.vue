@@ -22,11 +22,14 @@
         </ul>
       </div>
       <div class="flex-row flex-align-center">
-        <div class="xxx flex-row" @click="onToggleSearchBox">
-          <n-icon color="#000000" size="20">
+        <n-space class="xxx flex-row">
+          <n-icon color="#18a058" size="20" class="cursor-pointer" @click="onGotoCollect">
+            <FavoriteFilled />
+          </n-icon>
+          <n-icon color="#000000" size="20" class="cursor-pointer" @click="onToggleSearchBox">
             <SearchSharp />
           </n-icon>
-        </div>
+        </n-space>
       </div>
     </div>
 
@@ -46,8 +49,8 @@
 
 <script setup>
 import {onBeforeMount, onBeforeUpdate, ref} from 'vue'
-import {NButton, NIcon, NInput, NInputGroup} from 'naive-ui'
-import {SearchSharp} from '@vicons/material'
+import {NButton, NIcon, NInput, NInputGroup, NSpace} from 'naive-ui'
+import {FavoriteFilled, SearchSharp} from '@vicons/material'
 import {useRoute, useRouter} from 'vue-router'
 import {getStorageSync} from '@/helpers/utils'
 import {KEY_ROOM_ID} from '@/helpers/constant'
@@ -63,6 +66,10 @@ const appStore = useAppStore()
 
 const onToggleSearchBox = () => {
   showSearch.value = !showSearch.value
+}
+
+const onGotoCollect = () => {
+  router.push('/?_source=我的收藏')
 }
 
 const onClickSearch = (_source = '') => {

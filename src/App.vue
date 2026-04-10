@@ -36,6 +36,7 @@ import {useAppStore} from '@/stores/app'
 import {v4 as uuidv4} from 'uuid'
 import {arrayContainsValue, getStorageSync, setStorageSync} from '@/helpers/utils'
 import {
+  KEY_APP_USERNAME,
   KEY_CLIENT_ID,
   KEY_VIDEO_LATEST_VIDEO,
   KEY_VIDEO_SOURCE,
@@ -100,6 +101,7 @@ const initAppStore = async () => {
   appStore.setSourceSecret(getStorageSync(KEY_VIDEO_SOURCE_SECRET))
   appStore.setStyleConfig(getStorageSync(KEY_VIDEO_STYLE_CONFIG))
   appStore.setLatestVideo(getStorageSync(KEY_VIDEO_LATEST_VIDEO))
+  appStore.setUsername(getStorageSync(KEY_APP_USERNAME))
   if (!appStore.sourceList) {
     try {
       const resp = await httpSourceList()

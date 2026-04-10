@@ -1,7 +1,7 @@
 <script setup>
 import AppHeader from '../components/AppHeader.vue'
 import AppVideoList from '@/components/AppVideoList.vue'
-import {onBeforeUpdate, onMounted, ref} from 'vue'
+import {onBeforeUpdate, onMounted, onUpdated, ref} from 'vue'
 import AppFooter from '@/components/AppFooter.vue'
 import {computeWindowWidthColumn, setStorageSync} from '@/helpers/utils'
 import {storeToRefs} from 'pinia'
@@ -39,7 +39,12 @@ onMounted(() => {
   loadTagList()
 })
 
+onUpdated(() => {
+  loadTagList()
+})
+
 const loadTagList = () => {
+  tagList.value = []
   const { sourceList } = storeToRefs(useAppStore())
   const tmpSource = appStore.source
   tag.value = appStore.tags
@@ -85,7 +90,7 @@ onBeforeUpdate(onBeforeUpdateHandler)
       <AppHeader />
       <div class="tags-container">
         <n-space :key="_pageKey">
-          <n-tag type="success" disabled>{{appStore.source}}</n-tag>
+          <n-tag type="success" disabled>{{ appStore.source }}</n-tag>
           <n-tag v-for="(item,idx) in tagList" :key="idx" @click="onUpdateTag(item.value)"
                  :type="tag===item.value?'warning':''" :disabled="tag===item.value">
             {{ item.label }}
