@@ -3,7 +3,7 @@
     <div>
       <AppHeader />
 
-      <div style="padding: 0 10px;margin: 5px 0 0 0;" v-if="source && source.type === sourceTypeOption.mp3">
+      <div style="padding: 0 10px;margin: 0 0 0 0;" v-if="source && source.type === sourceTypeOption.mp3">
         <div class="audio-container width-100 flex-column flex-justify-between">
           <div class="fav">
             <div v-if="false" @click="onRemoveCollect" class="flex-row flex-align-center flex-justify-center">
@@ -34,67 +34,49 @@
                 </div>
               </div>
             </div>
-            <div class="lrc flex-1 flex-column">
+            <div class="lrc flex-1 flex-column" style="width: 0">
               <n-h2>{{ video.name || 'Untitled' }}</n-h2>
               <div v-if="video.actors">{{ video.actors }}</div>
-              <n-scrollbar v-if="video.intro" class="lrc-scroller pre-wrap aplayer-lrc-content">
-                {{ video.intro }}
+              <div class="padding-5px"></div>
+              <n-scrollbar class="  ">
+                {{ video.intro || '暂无简介' }}
               </n-scrollbar>
-              <div v-else class="flex-1 flex-column" style="padding: 60px 0 0 0">
-                暂无歌词
-              </div>
+
+              <n-text>地址：</n-text>
+              <a
+                  v-if="source.url"
+                  :href="source.url"
+                  target="_blank"
+                  class="source-url bottom-dashed text-ellipsis"
+                  :title="source.source">
+                {{ source.url }}
+              </a>
 
             </div>
           </div>
 
           <AudioPlayer
-              :key="audioCtx"
-              :options="audioCtx"
+              :key="playList"
+              :music="playList"
+              :index="playIndex"
               @next="onNextAudio"
               @prev="onPrevAudio"
               @timeupdate="onAudioEvent"
+              @playing="onAudioEvent"
               @changed="onAudioChange"
           />
 
-          <Aplayer
-              v-if="false"
-              :music="audioCtx"
-              @play="onAudioEvent"
-              @pause="onAudioEvent"
-              @ended="onAudioEvent"
-              @error="onAudioEvent"
-              @timeupdate="onAudioEvent"
-              @load="onAudioEvent"
-              @loadedmetadata="onAudioEvent"
-              @loadeddata="onAudioEvent"
-              repeat="repeat-all" />
         </div>
 
-        <div style="color: dimgray; word-wrap: break-word">
-          <div class="padding-5px"></div>
-          <div style="padding: 8px 0">
-            <n-text>地址：</n-text>
-            <a v-if="source.url"
-               :href="source.url"
-               target="_blank"
-               class="source-url bottom-dashed"
-               :title="source.source">
-              {{ source.url }}
-            </a>
-          </div>
-        </div>
+        <div class="padding-5px"></div>
 
-        <div class="padding-10px"></div>
-
-        <n-collapse accordion default-expanded-names="1">
-          <template #header-extra>
-            <div class="color-grey font-size-12px">
-            </div>
-          </template>
-          <n-collapse-item title="选集" name="1">
-            <AppSourceList v-if="video" :vid="vid" :pid="pid" :source-list="videoSourceList" />
-          </n-collapse-item>
-        </n-collapse>
+        <AppAudioList
+            v-if="video"
+            :vid="vid"
+            :pid="pid"
+            :play-index="playIndex"
+            :source-list="videoSourceList"
+            @changed="onAudioListChange" />
 
       </div>
       <div style="padding: 0 10px" v-else-if="source && source.url">
@@ -278,8 +260,8 @@ import {
   SearchSharp
 } from '@vicons/material'
 import hotkeys from 'hotkeys-js';
-import Aplayer from 'vue3-aplayer'
 import AudioPlayer from "@/components/AudioPlayer.vue";
+import AppAudioList from "@/components/AppAudioList.vue";
 
 const route = useRoute()
 const router = useRouter()
@@ -319,7 +301,8 @@ const artStyle = ref({
 })
 
 const apInstance = ref(null)
-const audioCtx = ref({})
+const playList = ref({})
+const playIndex = ref(0)
 
 const showCollectModal = ref(false)
 
@@ -730,31 +713,33 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
 
 
   if (source.value.type === sourceTypeOption.mp3) {
-    audioCtx.value = {
-      music: video.value.links.map(row => {
-        if (row.ctx && row.ctx.collect_id) {
-          return {
-            id: row.id,
-            title: row.name,
-            artist: row.ctx.name,
-            src: async () => {
-              console.log('[req]', JSON.parse(JSON.stringify(row.ctx)))
-              const resp = await httpVideoSource(row.ctx.collect_id, row.ctx.id, appStore.source)
-              return resp.data.url
-            },
-            pic: row.ctx.thumb,
-            lrc: '',
-          }
-        }
+    ;(video.value.links || []).filter((row, idx) => {
+      if (row.id === pid) {
+        playIndex.value = idx
+      }
+    })
+    playList.value = (video.value.links || []).map(row => {
+      if (row.ctx && row.ctx.collect_id) {
         return {
-          title: video.value.name,
-          artist: video.value.actors,
-          src: source.value.url,
-          pic: video.value.thumb,
+          id: row.id,
+          title: row.name,
+          artist: row.ctx.name,
+          src: async () => {
+            const resp = await httpVideoSource(row.ctx.collect_id, row.ctx.id, appStore.source)
+            return resp.data.url
+          },
+          pic: row.ctx.thumb,
           lrc: '',
         }
-      })
-    }
+      }
+      return {
+        title: video.value.name,
+        artist: video.value.actors,
+        src: source.value.url,
+        pic: video.value.thumb,
+        lrc: '',
+      }
+    })
   } else if (artInstance.value) {
     artOption.value.video = tmpVideo
     await artInstance.value.switchUrl(respSource.data.url);
@@ -845,7 +830,9 @@ const addHistoryWarp = async (ctx) => {
   } else {
     await updateHistory(find.id, {
       pid: pid.value,
+      name: video.value.name,
       pname: pname.value,
+      thumb: video.value.thumb,
       lastTime: lastTime,
       updated_at: Date.now(),
     })
@@ -969,7 +956,8 @@ const onAudioEvent = (ctx) => {
   }
 }
 
-const onAudioChange = (ctx) => {
+const onAudioChange = (idx, ctx) => {
+  playIndex.value = idx
   video.value = Object.assign({}, video.value, {
     name: ctx.title,
     thumb: ctx.pic,
@@ -978,6 +966,11 @@ const onAudioChange = (ctx) => {
   source.value = Object.assign({}, source.value, {
     url: ctx.src
   })
+  pname.value = ''
+}
+
+const onAudioListChange = (idx, ctx) => {
+  playIndex.value = idx
 }
 
 const onAudioTimeUpdate = (ctx) => {
@@ -1094,6 +1087,9 @@ video {
 .source-url {
   color: rgb(118, 124, 130);
   text-decoration: none;
+
+  display: inline-block;
+  word-wrap: break-word;
 }
 
 .player-container {
@@ -1124,14 +1120,14 @@ video {
 
 
 .audio-container {
-  background-color: rgba(246, 246, 246, 0.25);
+  //background-color: rgba(246, 246, 246, 0.25);
   position: relative;
 
   .side {
-    padding: 20px 0;
+    padding: 10px 0;
     //min-width: 480px;
     display: flex;
-    justify-content: center;
+    //justify-content: center;
     //align-items: center;
   }
 
@@ -1182,7 +1178,7 @@ video {
 
 @media (min-width: 0px) and (max-width: 600px) {
   .audio-container {
-    min-height: 280px !important;
+    //min-height: 280px !important;
   }
 
   .side {
@@ -1193,18 +1189,18 @@ video {
 
 @media (min-width: 600px) and (max-width: 900px) {
   .audio-container {
-    min-height: 320px !important;
+    //min-height: 320px !important;
   }
 }
 
 @media (min-width: 900px) and (max-width: 9000px) {
   .audio-container {
-    min-height: 520px !important;
+    //min-height: 520px !important;
     //padding-top: 20px;
   }
 
   .side {
-    min-width: 480px;
+    min-width: 400px;
   }
 
 }

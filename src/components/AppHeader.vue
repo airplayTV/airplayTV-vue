@@ -1,5 +1,5 @@
 <template>
-  <div class="padding-10px">
+  <div class="padding-10px header-container">
     <div class="flex-row flex-align-center flex-justify-between">
       <div class="flex-row flex-align-center">
         <div class="logo links" @click="router.push('/')">

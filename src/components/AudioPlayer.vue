@@ -171,11 +171,11 @@ const audioCtx = ref({
 })
 
 const props = defineProps({
-  options: {
-    // 播放列表、或者单一音乐,src 可以是异步回调
-    music: {
-      id: null, title: null, artist: null, src: null, pic: null, lrc: null,
-    },
+  // 当前播放哪一个
+  index: 0,
+  // 播放列表、或者单一音乐,src 可以是异步回调
+  music: {
+    id: null, title: null, artist: null, src: null, pic: null, lrc: null,
   },
 })
 
@@ -185,8 +185,13 @@ const emits = defineEmits([
   'playing', 'progress', 'readystatechange', 'seeked', 'seeking', 'volumechange', 'waiting',
 ])
 
-watch(() => props.options, (newVal, oldVal) => {
-  console.log('[watch.options]', { newVal, oldVal })
+watch(() => props.index, (newVal, oldVal) => {
+  console.log('[watch.index]', { newVal, oldVal })
+  switchAudio(newVal)
+})
+
+watch(() => props.music, (newVal, oldVal) => {
+  console.log('[watch.music]', { newVal, oldVal })
 })
 
 const onToggleLrc = () => {
@@ -210,12 +215,10 @@ const unmuteAudio = () => {
 }
 
 const onPrevAudio = () => {
-  emits('prev', props.music)
   switchAudio(audioCtx.value.index - 1)
 }
 
 const onNextAudio = () => {
-  emits('next', props.music)
   if (audioCtx.value.index + 1 >= playList.value.length) {
     audioCtx.value.index = 0
     switchAudio(audioCtx.value.index)
@@ -281,6 +284,7 @@ const onMountedHandler = () => {
           break
         case 'playing':
           audioCtx.value.paused = false
+          emits('changed', audioCtx.value.index, music.value)
           break
         case 'pause':
           audioCtx.value.paused = true
@@ -306,7 +310,7 @@ const onMountedHandler = () => {
           break
       }
       if (event !== 'timeupdate' && event !== 'progress') {
-        // console.log('[emits]', event, ctx)
+        console.log('[emits]', event, ctx)
       } else {
         updateAudioProgress(ctx.target)
       }
@@ -314,22 +318,27 @@ const onMountedHandler = () => {
       audioCtx.value.muted = !!ctx.target.muted
     })
   })
+
   parseMusic()
 }
 
 const parseMusic = () => {
-  if (props.options.music.src) {
-    playList.value.push(props.options.music)
+  if (!props.music) {
+    return emits('error', '暂无播放数据')
   }
-  for (let i = 0; i < props.options.music.length; i++) {
-    if (props.options.music[i].src) {
-      playList.value.push(props.options.music[i])
+  if (props.music.src) {
+    playList.value.push(props.music)
+  }
+  for (let i = 0; i < props.music.length; i++) {
+    if (props.music[i].src) {
+      playList.value.push(props.music[i])
     }
   }
   if (playList.value.length <= 0) {
     emits('error', '暂无播放数据')
   } else {
-    switchAudio(0)
+    audioCtx.value.index = props.index
+    switchAudio(audioCtx.value.index)
   }
 }
 
@@ -337,20 +346,25 @@ const switchAudio = async (index = 0) => {
   if (index >= playList.value.length || index < 0) {
     return emits('error', '切换音频失败，音频不在列表中')
   }
+
   let tmpMusic = playList.value[index]
+
+  emits('changed', index, tmpMusic)
+  appAudio.value.pause()
+
   if (typeof tmpMusic.src === 'function') {
     try {
       tmpMusic.src = await tmpMusic.src()
     } catch (e) {
       tmpMusic.src = ''
     }
+    emits('changed', index, tmpMusic)
   }
 
   updateAudioProgress({ duration: 100, currentTime: 0 })
 
   music.value = Object.assign({}, tmpMusic)
   audioCtx.value.index = index
-  emits('changed', tmpMusic)
 }
 
 
@@ -3630,6 +3644,16 @@ audio {
   .explore-btn, .reload-btn {
     padding: 10px 20px;
     font-size: 13px
+  }
+}
+
+@media (min-width: 0px) and (max-width: 720px) {
+  .volume-section {
+    display: none;
+  }
+
+  .control-buttons {
+    gap: 2px;
   }
 }
 
