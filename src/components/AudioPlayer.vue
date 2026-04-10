@@ -4,10 +4,14 @@
       播放器UI参考：https://www.blmp3.cn/
   -->
   <div class="music-player lyric-active" v-if="music">
-    <audio ref="appAudio" :src="music.src" preload="auto"></audio>
+    <audio autoplay ref="appAudio" :src="music.src" preload="auto"></audio>
     <div class="player-container" style="height: 80px;">
       <div class="top-progress-bar">
-        <n-slider v-model:value="audioCtx.progress" placement="right-start" />
+        <n-slider
+            v-model:value="audioCtx.currentTime"
+            :max="audioCtx.duration"
+            placement="right-start"
+            @update-value="onChangeProgress" />
       </div>
 
       <div class="player-wrapper">
@@ -46,8 +50,10 @@
           </div>
         </div>
         <div class="player-right">
-          <div class="progress-info"><span class="current-time">{{ formatTime(audioCtx.currentTime) }}</span><span
-              class="time-separator"> / </span><span class="total-time">{{ formatTime(audioCtx.duration) }}</span>
+          <div class="progress-info">
+            <span class="current-time">{{ formatTime(audioCtx.currentTime) }}</span>
+            <span class="time-separator"> / </span>
+            <span class="total-time">{{ formatTime(audioCtx.duration) }}</span>
           </div>
           <div class="volume-section">
 
@@ -65,7 +71,7 @@
             </button>
 
             <div class="volume-progress">
-              <n-slider v-model:value="audioCtx.volume" :max="100" />
+              <n-slider v-model:value="audioCtx.volume" :max="100" @update-value="onChangeVolume" />
             </div>
           </div>
           <button class="lyric-btn " @click="onToggleLrc" :class="{'active':showLrc}"> 词</button>
@@ -156,7 +162,6 @@ const audioCtx = ref({
   muted: false,
   duration: 0,
   currentTime: 0,
-  progress: 0,// 进度条：[0-100]
   volume: 100, // 进度条：[0-100]
 
 })
@@ -230,7 +235,6 @@ const onNextAudio = () => {
 const updateAudioProgress = (elementCtx) => {
   audioCtx.value.duration = elementCtx.duration
   audioCtx.value.currentTime = elementCtx.currentTime
-  audioCtx.value.progress = audioCtx.value.currentTime * 100 / audioCtx.value.duration
 }
 
 const updateAudioVolume = (elementCtx) => {
@@ -258,6 +262,14 @@ const formatTime = (seconds) => {
     return `${h}:${m}:${s}`
   }
   return `${m}:${s}`
+}
+
+const onChangeProgress = (ctx) => {
+  appAudio.value.currentTime = ctx
+}
+
+const onChangeVolume = (ctx) => {
+  appAudio.value.volume = ctx / 100
 }
 
 const onMountedHandler = () => {
