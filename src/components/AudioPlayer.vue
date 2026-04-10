@@ -291,6 +291,9 @@ const onMountedHandler = () => {
           break
         case 'error':
           audioCtx.value.paused = true
+          setTimeout(() => {
+            onNextAudio()
+          }, 3000)
           break
         case 'loadeddata':
           audioCtx.value.volume = ctx.target.volume * 100
