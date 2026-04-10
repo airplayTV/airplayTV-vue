@@ -81,6 +81,20 @@
             </div>
           </n-form-item>
 
+          <n-form-item label="账号：" path="defaultStyle">
+            <div class="flex-row flex-1 ">
+              <n-input
+                  v-model:value="appUsername"
+                  placeholder="请输入账号，可同步收藏夹"
+                  @keyup="onUpdateAppUsername"
+                  @clear="onUpdateAppUsername(true)" clearable />
+            </div>
+            <div class="padding-10px"></div>
+            <div class="flex-row flex-1 ">
+
+            </div>
+          </n-form-item>
+
           <n-form-item label="" path="source">
             <n-space justify="end" class="flex-1">
               <n-text depth="3">修改<b>配置</b>后刷新页面生效！！！</n-text>
@@ -166,6 +180,7 @@ import AppHeader from '@/components/AppHeader.vue'
 import {useAppStore} from '@/stores/app'
 import {arrayContainsValue, getStorageSync, removeStorageSync, setStorageSync,} from '@/helpers/utils'
 import {
+  KEY_APP_USERNAME,
   KEY_ROOM_ID,
   KEY_VIDEO_SOURCE,
   KEY_VIDEO_SOURCE_SECRET,
@@ -200,6 +215,7 @@ const appStore = useAppStore()
 
 
 const sourceSecret = ref(null)
+const appUsername = ref(null)
 const defaultStyle = ref(0)
 const styleConfig = ref([
   { value: 0, label: '正常人视图', },
@@ -214,6 +230,9 @@ const onBeforeMountHandler = () => {
 
   appStore.setSourceSecret(getStorageSync(KEY_VIDEO_SOURCE_SECRET))
   sourceSecret.value = appStore.sourceSecret
+
+  appStore.setUsername(getStorageSync(KEY_APP_USERNAME))
+  appUsername.value = appStore.username
 
   appStore.setStyleConfig(getStorageSync(KEY_VIDEO_STYLE_CONFIG))
   defaultStyle.value = appStore.styleConfig
@@ -297,6 +316,13 @@ const onUpdateSourceSecret = (clear) => {
     sourceSecret.value = ''
   }
   appStore.setSourceSecret(sourceSecret.value)
+}
+
+const onUpdateAppUsername = (clear) => {
+  if (clear === true) {
+    appUsername.value = ''
+  }
+  appStore.setUsername(appUsername.value)
 }
 
 const onClearVideoHistoryHandler = async () => {
