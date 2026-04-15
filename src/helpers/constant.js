@@ -23,6 +23,8 @@ const CONTROL_PLAY = '/ctl_play'
 const CONTROL_PAUSE = '/ctl_pause'
 const CONTROL_FORWARD = '/ctl_forward'
 
+const DEFAULT_AUDIO_THUMB = 'https://img1.kuwo.cn/star/userpl2015/71/59/1762250803374_499998371_500.jpg'
+
 export {
   KEY_CLIENT_ID,
   KEY_FINGERPRINT,
@@ -47,4 +49,5 @@ export {
   KEY_VIDEO_STYLE_CONFIG,
   KEY_VIDEO_LATEST_VIDEO,
   KEY_APP_USERNAME,
+  DEFAULT_AUDIO_THUMB,
 }

@@ -11,12 +11,8 @@
       </n-alert>
     </div>
 
-    <div v-for="(source, idx) in sourceList" :key="idx">
-      <n-h5>
-        <n-text>
-          {{ idx }}
-        </n-text>
-      </n-h5>
+    <div>
+      <n-h5>播放列表</n-h5>
       <div class="padding-2px"></div>
 
       <div class="flex-column links" style="gap: 8px 12px">
@@ -27,15 +23,15 @@
           <div class="op text-align-center">##</div>
 
         </div>
-        <div v-for="(item, idx) in source" :key="idx" class="source-item flex-row"
+        <div v-for="(item, idx) in sourceList" :key="idx" class="source-item flex-row"
              :class="{'active':playIndex===idx}">
           <div class="idx text-align-center">{{ idx + 1 }}</div>
-          <div class="title">
+          <div class="title text-ellipsis">
             <n-text class="bottom-dashed" @click="onOpenVideoPlay(idx, item)">
-              {{ item.name || 'Untitled' }}
+              {{ item.title || 'Untitled' }}
             </n-text>
           </div>
-          <div class="artist">{{ item.artist || 'Unknown' }}</div>
+          <div class="artist text-ellipsis color-grey">{{ item.artist || 'Unknown' }}</div>
           <div class="op text-align-center flex-row flex-justify-center flex-align-center">
             <n-icon size="26" color="#666666" class="cursor-pointer" @click="onOpenVideoPlay(idx, item)">
               <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32">
@@ -46,34 +42,8 @@
                 </g>
               </svg>
             </n-icon>
-
-
           </div>
 
-
-          <!--          <div class="flex-row">-->
-          <!--            <div class="idx">{{idx}}</div>-->
-          <!--            <div class="title">{{ item.name }}</div>-->
-          <!--            <div class="artist">{{ item.artist }}</div>-->
-          <!--            <div class="op">删除</div>-->
-          <!--          </div>-->
-
-
-          <!--          <n-tag-->
-          <!--              :type="pid === item.id ? 'info' : ''"-->
-          <!--              :bordered="false"-->
-          <!--              class="cursor-pointer"-->
-          <!--              @click="onOpenVideoPlay(vid, item)"-->
-          <!--          >-->
-          <!--            <RouterLink :to="`/video/play/${vid}/${item.id}?_source=${appStore.source}`" class="flex-column">-->
-          <!--              <div class="" style="display: flex; align-items: center">-->
-          <!--                {{ item.name }}-->
-          <!--                <n-icon v-if="room" size="18" color="#0e7a0d" style="margin-left: 5px">-->
-          <!--                  <CastRound />-->
-          <!--                </n-icon>-->
-          <!--              </div>-->
-          <!--            </RouterLink>-->
-          <!--          </n-tag>-->
         </div>
       </div>
     </div>
@@ -168,6 +138,7 @@ onBeforeMount(onBeforeMountHandler)
 
   .artist {
     padding: 0 12px;
+    max-width: 180px;
   }
 
   .op {
