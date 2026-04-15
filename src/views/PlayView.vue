@@ -57,13 +57,6 @@ const loadVideoAsync = async (vid) => {
     video.value = resp.data;
     video.value.name = video.value.name || 'Untitled'
     video.value.thumb = video.value.thumb || DEFAULT_AUDIO_THUMB
-    // ;(resp.data.links || []).filter(item => {
-    //   if (item.id === pid.value) {
-    //     pname.value = item.name
-    //   }
-    // });
-
-
   } catch (e) {
     console.log('[加载视频失败]', { e })
   }
