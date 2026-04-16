@@ -5,7 +5,7 @@
 
       <div style="padding: 0 10px">
         <n-grid x-gap="12" y-gap="1" :cols="cols" class="links">
-          <n-gi v-for="(video, idx) in historyList" :key="idx">
+          <n-gi v-for="(video, idx) in historyList" :key="video.id">
             <div class="flex-row flex-justify-center flex-align-center thumb-warp position-relative">
               <div class="close flex-row flex-justify-between width-100">
                 <div></div>
@@ -131,6 +131,7 @@ const loadHistoryList = async (page) => {
 
     return item
   })
+  console.log('[historyList]', JSON.parse(JSON.stringify(historyList.value)))
 }
 
 const onOpenVideo = (video) => {
@@ -140,7 +141,7 @@ const onOpenVideo = (video) => {
 }
 
 const onOpenVideoDetail = (video) => {
-  return `/video/detail/${video.vid}?_source=${video.source}`
+  return `/video/detail/${video.vid}?_source=${video.source}&pid=${video.pid}`
 }
 
 const removeHistory = async () => {

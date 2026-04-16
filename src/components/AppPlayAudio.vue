@@ -90,8 +90,11 @@ import {httpCollectAdd, httpVideoSource} from "@/helpers/api.js";
 import {onBeforeMount, ref} from "vue";
 import {useAppStore} from "@/stores/app.js";
 import {addHistoryWarp, addTimelineWarp, findSourceLink, handlerPlayList} from "@/helpers/play.js";
+import {useRoute, useRouter} from "vue-router";
 
 const appStore = useAppStore()
+const route = useRoute()
+const router = useRouter()
 
 const props = defineProps(['video'])
 
@@ -162,6 +165,9 @@ const onAudioChange = (idx, ctx) => {
 
 const onAudioListChange = (idx, ctx) => {
   playIndex.value = idx
+
+  let tmpVideo = playList.value[idx] || {}
+  router.replace({ path: route.path, query: { ...route.query, pid: tmpVideo.id || '' } })
 }
 
 const onAudioTimeUpdate = (ctx) => {
@@ -243,8 +249,6 @@ const onPrevAudio = (ctx) => {
 }
 
 
-
-
 const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   let respSource;
   try {
@@ -262,13 +266,13 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
 
   const findLink = findSourceLink(props.video.links, pid)
   playIndex.value = findLink._idx || 0
-  playList.value = handlerPlayList(props.video.links,props.video, source.value )
+  playList.value = handlerPlayList(props.video.links, props.video, source.value)
 }
 
 
 const onBeforeMountHandler = () => {
   // console.log('[接收到音乐信息]', JSON.parse(JSON.stringify(props.video)))
-  tryHandlerVideoSource(props.video.id, props.video.links[0].id)
+  tryHandlerVideoSource(props.video.id, route.query.pid ? route.query.pid : props.video.links[0].id)
 }
 
 const onWindowOpen = (url, target = '_blank') => {

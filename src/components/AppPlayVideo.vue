@@ -104,9 +104,12 @@ import {
   EventNameMessage
 } from "@/helpers/websocket.js";
 import hotkeys from "hotkeys-js";
+import {useRoute, useRouter} from "vue-router";
 
 const appStore = useAppStore()
 const message = useMessage()
+const route = useRoute()
+const router = useRouter()
 
 const props = defineProps(['video'])
 
@@ -276,7 +279,7 @@ const getArtInstance = (art) => {
   })
 
   art.on('play', () => {
-    console.info('play')
+    // console.info('play')
     handlerTimeUpdate()
 
     showVideoTitle()
@@ -306,8 +309,9 @@ const handlerTimeUpdate = () => {
     clearInterval(timer.value)
   }
   timer.value = setInterval(() => {
+    const findLink = findSourceLink(props.video.links, source.value.id)
     addTimelineWarp(artInstance.value, appStore.source, video.value, source.value)
-    addHistoryWarp(artInstance.value, appStore.source, video.value, source.value)
+    addHistoryWarp(artInstance.value, appStore.source, video.value, { ...source.value, name: findLink.name || '' })
   }, 5000)
 }
 
@@ -369,7 +373,9 @@ const onChangePlaying = async (idx, ctx) => {
       tmpVideo.src = ''
     }
   }
-  console.log('[tmpVideo]', tmpVideo)
+  source.value = { ...source.value, ...tmpVideo }
+  // console.log('[tmpVideo]', tmpVideo)
+  router.replace({ path: route.path, query: { ...route.query, pid: tmpVideo.id } })
   if (artInstance.value) {
     artOption.value.video = { ...tmpVideo, title: `${video.value.name} ${tmpVideo.title || ''}` }
     await artInstance.value.switchUrl(tmpVideo.src)
@@ -458,7 +464,7 @@ const onBeforeMountHandler = () => {
   addControlEventHandler()
   addHotKeyEventHandler()
 
-  tryHandlerVideoSource(props.video.id, props.video.links[0].id)
+  tryHandlerVideoSource(props.video.id, route.query.pid ? route.query.pid : props.video.links[0].id)
 
 }
 
