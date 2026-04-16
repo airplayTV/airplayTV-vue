@@ -35,10 +35,7 @@ const getPlayerTimeCtx = (playerCtx, source = {}) => {
 
 const addTimelineWarp = async (playerCtx = {}, _source = '', video = {}, source = {}) => {
   const { duration, lastTime } = getPlayerTimeCtx(playerCtx, source)
-  console.log('[addTimelineWarp]', {
-    video: video,
-    _source: _source, vid: video.id, pid: source.id,
-  })
+
   const find = await findTimeline(_source, video.id, source.id)
   if (!find) {
     await addTimeline({
@@ -60,9 +57,7 @@ const addTimelineWarp = async (playerCtx = {}, _source = '', video = {}, source 
 
 const addHistoryWarp = async (playerCtx = {}, _source = '', video = {}, source = {}) => {
   const { duration, lastTime } = getPlayerTimeCtx(playerCtx, source)
-  console.log('[addHistoryWarp]', {
-    _source: _source, vid: video.id, pid: source.id
-  })
+
   const find = await findHistory(_source, video.id, source.id)
   if (!find) {
     await addHistory({
@@ -72,7 +67,7 @@ const addHistoryWarp = async (playerCtx = {}, _source = '', video = {}, source =
       thumb: video.thumb,
       pid: source.id,
       pname: source.name,
-      url: source.url,
+      url: `${source.url}`,// 可能是个函数，存储需要字符串
       type: source.type,
       duration: duration,
       lastTime: lastTime,

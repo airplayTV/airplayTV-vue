@@ -11,6 +11,9 @@
       </div>
     </div>
     <AppFooter />
+
+    <div v-if="video && video.type === sourceTypeMp3" style="width: 100%; height: 80px; "></div>
+
   </div>
 </template>
 
@@ -41,7 +44,8 @@ let timer = null
 const onUpdatedHandler = async () => {
   const v = JSON.stringify(route.params)
   if (v === tmpQuery.value) {
-    return console.log('[无变化]')
+    // console.log('[无变化]')
+    return
   }
   tmpQuery.value = v
   if (timer) {
@@ -53,7 +57,6 @@ const onUpdatedHandler = async () => {
 const loadVideoAsync = async (vid) => {
   try {
     const resp = await httpVideo(vid, appStore.source)
-    console.log('[resp]', resp.data)
     video.value = resp.data;
     video.value.name = video.value.name || 'Untitled'
     video.value.thumb = video.value.thumb || DEFAULT_AUDIO_THUMB

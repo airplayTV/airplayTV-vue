@@ -34,7 +34,7 @@ const router = createRouter({
     {
       path: '/video/detail/:id',
       name: 'VideoDetail',
-      component: () => import('../views/VideoView.vue'),
+      component: () => import('../views/PlayView.vue'),
     },
     {
       path: '/video/play/:vid/:pid',

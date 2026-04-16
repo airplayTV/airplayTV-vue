@@ -135,7 +135,8 @@ const loadHistoryList = async (page) => {
 
 const onOpenVideo = (video) => {
   // router.value.push(`/video/detail/${video.vid}?_source=${video._source}`)
-  router.push(`/video/play/${video.vid}/${video.pid}?_source=${video.source}`)
+  // router.push(`/video/play/${video.vid}/${video.pid}?_source=${video.source}`)
+  router.push(`/video/detail/${video.vid}?_source=${video.source}&pid=${video.pid}`)
 }
 
 const onOpenVideoDetail = (video) => {

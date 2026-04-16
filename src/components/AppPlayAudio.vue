@@ -134,8 +134,8 @@ const onAudioEvent = (ctx) => {
       break
     case 'timeupdate':
       if (ctx.timeStamp > 5000) {
-        addTimelineWarp(ctx, appStore.source, video.value, source.value)
-        addHistoryWarp(ctx, appStore.source, video.value, source.value)
+        addTimelineWarp(ctx, appStore.source, { ...video.value, id: props.video.id }, source.value)
+        addHistoryWarp(ctx, appStore.source, { ...video.value, id: props.video.id }, source.value)
       }
       break
     case 'loadeddata':
@@ -281,7 +281,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
 
   source.value = respSource.data
 
-  console.log('[播放文件]', { url: respSource.data.url, source: respSource.data, })
+  console.log('[获取到播放信息]', Object.assign({}, respSource.data, { url: respSource.data.url }))
 
   const findLink = findSourceLink(props.video.links, pid)
   playIndex.value = findLink._idx || 0
@@ -290,7 +290,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
 
 
 const onBeforeMountHandler = () => {
-  console.log('[props]', props.video)
+  // console.log('[接收到音乐信息]', JSON.parse(JSON.stringify(props.video)))
   tryHandlerVideoSource(props.video.id, props.video.links[0].id)
 }
 
