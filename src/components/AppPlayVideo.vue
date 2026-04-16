@@ -70,7 +70,7 @@
         v-if="video"
         :play-index="playIndex"
         :source-list="playList"
-        @changed="onPlayListChange" />
+        @changed="onChangePlaying" />
 
   </div>
 
@@ -89,6 +89,21 @@ import {findTimeline} from "@/helpers/db.js";
 import AppAudioList from "@/components/AppAudioVideoList.vue";
 import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 import Hls from "hls.js";
+import {
+  addEventHandler,
+  ControlEventBack,
+  ControlEventForward,
+  ControlEventFullscreen,
+  ControlEventFullscreenExit,
+  ControlEventInfo,
+  ControlEventMute,
+  ControlEventPause,
+  ControlEventPlay,
+  ControlEventQrcode,
+  ControlEventVolume,
+  EventNameMessage
+} from "@/helpers/websocket.js";
+import hotkeys from "hotkeys-js";
 
 const appStore = useAppStore()
 const message = useMessage()
@@ -106,6 +121,8 @@ const timer = ref(null)
 
 const playIndex = ref(0)
 const playList = ref({})
+
+const _pageKey = '_key_app_page_video_play_'
 
 const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   errMsg.value = null
@@ -274,7 +291,7 @@ const getArtInstance = (art) => {
   })
   art.on('video:ended', (e) => {
     if (artInstance.value.currentTime > 0 && artInstance.value.currentTime === artInstance.value.duration) {
-      handleNextVideo(1)
+      onChangePlaying(playIndex.value + 1)
     }
   })
 
@@ -289,7 +306,6 @@ const handlerTimeUpdate = () => {
     clearInterval(timer.value)
   }
   timer.value = setInterval(() => {
-    console.log('[artInstance.value]', artInstance.value)
     addTimelineWarp(artInstance.value, appStore.source, video.value, source.value)
     addHistoryWarp(artInstance.value, appStore.source, video.value, source.value)
   }, 5000)
@@ -339,6 +355,97 @@ const computePlayerHeight = () => {
   return pH
 }
 
+const onChangePlaying = async (idx, ctx) => {
+  playIndex.value = idx
+  if (idx >= playList.value.length || idx < 0) {
+    return noticeToVideo('切换音频失败，音频不在列表中')
+  }
+
+  let tmpVideo = playList.value[idx]
+  if (typeof tmpVideo.src === 'function') {
+    try {
+      tmpVideo.src = await tmpVideo.src()
+    } catch (e) {
+      tmpVideo.src = ''
+    }
+  }
+  console.log('[tmpVideo]', tmpVideo)
+  if (artInstance.value) {
+    artOption.value.video = { ...tmpVideo, title: `${video.value.name} ${tmpVideo.title || ''}` }
+    await artInstance.value.switchUrl(tmpVideo.src)
+    showVideoTitle()
+    artInstance.value.play()
+  }
+}
+
+
+const addControlEventHandler = () => {
+  addEventHandler(EventNameMessage, _pageKey, (data) => {
+    switch (data.event) {
+      case ControlEventMute:
+        artInstance.value.muted = !artInstance.value.muted
+        break
+      case ControlEventFullscreen:
+        artInstance.value.fullscreen = true
+        artInstance.value.fullscreenWeb = true
+        break
+      case ControlEventFullscreenExit:
+        artInstance.value.fullscreen = false
+        artInstance.value.fullscreenWeb = false
+        break
+      case ControlEventQrcode:
+        break
+      case ControlEventInfo:
+        artInstance.value.controls.show = true
+        noticeToVideo(`正在播放：${artOption.value.video.title}`)
+        break
+      case ControlEventVolume:
+        if (data.value <= 0) {
+          artInstance.value.volume -= 0.1
+        }
+        if (data.value > 0) {
+          artInstance.value.volume += 0.1
+        }
+        break
+      case ControlEventBack:
+        artInstance.value.backward = 15
+        break
+      case ControlEventPlay:
+        artInstance.value.play().then(resp => {
+        }).catch(err => {
+          message.info(`${err}`)
+        })
+        break
+      case ControlEventPause:
+        artInstance.value.pause()
+        break
+      case ControlEventForward:
+        artInstance.value.forward = 15
+        break
+    }
+  })
+}
+
+const addHotKeyEventHandler = () => {
+  hotkeys('p,n,f', function (event, handler) {
+    if (!artInstance.value.isReady) {
+      return
+    }
+    switch (handler.key) {
+      case 'p':
+        onChangePlaying(playIndex.value - 1)
+        break;
+      case 'n':
+        onChangePlaying(playIndex.value + 1)
+        break;
+      case 'f':
+        artInstance.value.fullscreen = !artInstance.value.fullscreen
+        break
+      default:
+        // console.log('[handler]', handler.keys)
+    }
+  })
+}
 
 const onBeforeMountHandler = () => {
   video.value = { ...props.video }
@@ -348,14 +455,13 @@ const onBeforeMountHandler = () => {
     artStyle.value.height = `${computePlayerHeight()}px`
   }
 
+  addControlEventHandler()
+  addHotKeyEventHandler()
+
   tryHandlerVideoSource(props.video.id, props.video.links[0].id)
 
 }
 
-const onPlayListChange = (idx, ctx) => {
-  console.log('[onPlayListChange]', idx,ctx)
-  playIndex.value = idx
-}
 
 onBeforeMount(onBeforeMountHandler)
 
