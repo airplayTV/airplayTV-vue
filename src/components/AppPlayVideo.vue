@@ -147,7 +147,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
 
   const findLink = findSourceLink(props.video.links, pid)
   playIndex.value = findLink._idx || 0
-  playList.value = handlerPlayList(props.video.links, props.video, source.value)
+  playList.value = handlerPlayList(props.video.links, props.video, source.value, appStore.source)
 
   initVideoPlayer(findLink, source.value)
 }
@@ -366,9 +366,9 @@ const onChangePlaying = async (idx, ctx) => {
   }
 
   let tmpVideo = playList.value[idx]
-  if (typeof tmpVideo.src === 'function') {
+  if (typeof tmpVideo.fnSrc === 'function') {
     try {
-      tmpVideo.src = await tmpVideo.src()
+      tmpVideo.src = await tmpVideo.fnSrc()
     } catch (e) {
       tmpVideo.src = ''
     }

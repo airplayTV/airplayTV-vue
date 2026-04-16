@@ -279,7 +279,7 @@ const parseMusic = () => {
     playList.value.push(props.music)
   }
   for (let i = 0; i < props.music.length; i++) {
-    if (props.music[i].src) {
+    if (props.music[i].src || props.music[i].fnSrc) {
       playList.value.push(props.music[i])
     }
   }
@@ -301,10 +301,11 @@ const switchAudio = async (index = 0) => {
   emits('changed', index, tmpMusic)
   appAudio.value.pause()
 
-  if (typeof tmpMusic.src === 'function') {
+  if (typeof tmpMusic.fnSrc === 'function') {
     try {
-      tmpMusic.src = await tmpMusic.src()
+      tmpMusic.src = await tmpMusic.fnSrc()
     } catch (e) {
+      console.log('[解析播放地址错误]', e)
       tmpMusic.src = ''
     }
     emits('changed', index, tmpMusic)

@@ -91,15 +91,15 @@ const addHistoryWarp = async (playerCtx = {}, _source = '', video = {}, source =
   }
 }
 
-const handlerPlayList = (links, video = {}, source = {}) => {
+const handlerPlayList = (links, video = {}, source = {}, _source) => {
   return (links || []).map(row => {
     if (row.ctx && row.ctx.collect_id) {
       return {
         id: row.id,
         title: row.name,
         artist: row.ctx.name,
-        src: async () => {
-          const resp = await httpVideoSource(row.ctx.collect_id, row.ctx.id, appStore.source)
+        fnSrc: async () => {
+          const resp = await httpVideoSource(row.ctx.collect_id, row.ctx.id, _source)
           return resp.data.url
         },
         pic: row.ctx.thumb,
@@ -110,24 +110,25 @@ const handlerPlayList = (links, video = {}, source = {}) => {
         id: row.id,
         title: row.name,
         artist: row.group,
-        src: async () => {
+        fnSrc: async () => {
           if (row.url) {
             return row.url
           }
-          // const resp = await httpVideoSource(row.ctx.collect_id, row.ctx.id, appStore.source)
+          // const resp = await httpVideoSource(row.ctx.collect_id, row.ctx.id, _source)
           // return resp.data.url
           return ''
         },
         pic: row.thumb,
       }
-    }
-    return {
-      id: video.id,
-      title: video.name,
-      artist: video.actors,
-      src: source.url,
-      pic: video.thumb,
-      lrc: '',
+    } else {
+      return {
+        id: video.id,
+        title: video.name,
+        artist: video.actors,
+        src: source.url,
+        pic: video.thumb,
+        lrc: '',
+      }
     }
   })
 }

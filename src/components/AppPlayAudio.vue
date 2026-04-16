@@ -137,9 +137,15 @@ const onAudioEvent = (ctx) => {
       }
       break
     case 'timeupdate':
-      if (ctx.timeStamp > 5000) {
-        addTimelineWarp(ctx, appStore.source, { ...video.value, id: props.video.id }, source.value)
-        addHistoryWarp(ctx, appStore.source, { ...video.value, id: props.video.id }, source.value)
+      if (ctx.timeStamp > 5000 && parseInt(ctx.timeStamp / 1000) % 3 === 0) {
+        addHistoryWarp(ctx, appStore.source, { ...video.value, id: props.video.id }, {
+          ...source.value,
+          id: playList.value[playIndex.value].id
+        })
+        addTimelineWarp(ctx, appStore.source, { ...video.value, id: props.video.id }, {
+          ...source.value,
+          id: playList.value[playIndex.value].id
+        })
       }
       break
     case 'loadeddata':
@@ -161,6 +167,7 @@ const onAudioChange = (idx, ctx) => {
     url: ctx.src
   })
 
+  router.replace({ path: route.path, query: { ...route.query, pid: ctx.id || '' } })
 }
 
 const onAudioListChange = (idx, ctx) => {
@@ -265,8 +272,9 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   console.log('[获取到播放信息]', Object.assign({}, respSource.data, { url: respSource.data.url }))
 
   const findLink = findSourceLink(props.video.links, pid)
+  video.value = { ...video.value, name: findLink.name }
   playIndex.value = findLink._idx || 0
-  playList.value = handlerPlayList(props.video.links, props.video, source.value)
+  playList.value = handlerPlayList(props.video.links, props.video, source.value, appStore.source)
 }
 
 
