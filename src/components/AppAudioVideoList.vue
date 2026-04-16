@@ -94,7 +94,7 @@ const onOpenVideoPlay = (idx, source) => {
   let tmpSource = appStore.source, tmpVid = vid, tmpPid = source.id;
 
   if (!room.value) {
-    router.push(`/video/play/${tmpVid}/${tmpPid}?_source=${tmpSource}`)
+    router.push(`/video/detail/${tmpVid}?_source=${tmpSource}&pid=${tmpPid}`)
   } else {
     // 投射播放
     sendControl(room.value, {

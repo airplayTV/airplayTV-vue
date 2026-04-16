@@ -80,7 +80,7 @@ const onBeforeMountHandler = () => {
       case ControlEventLoadVideo:
         appStore.setSourceSecret(data.mode, false)
         router.push(
-            `/video/play/${data.vid}/${data.pid}?_source=${data.source}&t=${Math.random()}`,
+            `/video/detail/${data.vid}?_source=${data.source}&pid=${data.pid}&t=${Math.random()}`
         )
         break
     }

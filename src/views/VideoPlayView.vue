@@ -641,7 +641,7 @@ const handleNextVideo = (next = 0) => {
 
 const playNextVideo = (nextSource) => {
   if (nextSource) {
-    router.replace(`/video/play/${vid.value}/${nextSource.id}?_source=${appStore.source}&from=next`)
+    router.replace(`/video/detail/${vid.value}?_source=${appStore.source}&pid=${nextSource.id}&from=next`)
     tryHandlerVideoSource(vid.value, nextSource.id)
   }
 

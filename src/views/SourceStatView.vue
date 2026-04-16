@@ -115,7 +115,7 @@ const loadSourceStat = () => {
 
 const openVideo = (item) => {
   console.log('[openVideo]', item)
-  window.open(`/video/play/${item.vid}/${item.pid}?_source=${item.source}`)
+  window.open(`/video/detail/${item.vid}?_source=${item.source}&pid=${item.pid}`)
 }
 
 onBeforeMount(onBeforeMountHandler)

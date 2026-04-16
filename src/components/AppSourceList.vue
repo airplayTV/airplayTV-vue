@@ -25,7 +25,7 @@
               class="cursor-pointer"
               @click="onOpenVideoPlay(vid, item)"
           >
-            <RouterLink :to="`/video/play/${vid}/${item.id}?_source=${appStore.source}`" class="flex-column">
+            <RouterLink :to="`/video/detail/${vid}?_source=${appStore.source}&pid=${item.id}`" class="flex-column">
               <div class="" style="display: flex; align-items: center">
                 {{ item.name }}
                 <n-icon v-if="room" size="18" color="#0e7a0d" style="margin-left: 5px">
@@ -83,7 +83,7 @@ const onOpenVideoPlay = (vid, source) => {
   let tmpSource = appStore.source, tmpVid = vid, tmpPid = source.id;
 
   if (!room.value) {
-    router.value.push(`/video/play/${tmpVid}/${tmpPid}?_source=${tmpSource}`)
+    router.value.push(`/video/detail/${tmpVid}?_source=${tmpSource}&pid=${tmpPid}`)
   } else {
     // 投射播放
     sendControl(room.value, {
