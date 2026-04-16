@@ -73,11 +73,55 @@
         @changed="onAudioListChange" />
 
   </div>
+
+  <n-modal
+      v-model:show="showCollectModal"
+      style="width: 520px"
+      preset="card"
+      title="添加到收藏夹"
+      :show-mask="true">
+
+    <n-form :label-width="80">
+      <n-form-item label="用户" path="phone" required>
+        <n-input v-model:value="formCollect.user" placeholder="输入用户账号/手机号" />
+      </n-form-item>
+      <n-form-item label="收藏夹" path="name" required>
+        <n-select
+            v-model:value="formCollect.name"
+            clearable filterable
+            :tag="true"
+            :options="collectOptions"
+            placeholder="请选择收藏夹/输入新建收藏夹" />
+      </n-form-item>
+      <n-space justify="end">
+        <n-button type="primary" @click="handleCreateCollect">
+          添加
+        </n-button>
+      </n-space>
+
+    </n-form>
+
+  </n-modal>
+
+
 </template>
 
 <script setup>
 
-import {NH2, NIcon, NImage, NText} from "naive-ui";
+import {
+  NButton,
+  NForm,
+  NFormItem,
+  NH2,
+  NIcon,
+  NImage,
+  NInput,
+  NModal,
+  NSelect,
+  NSpace,
+  NText,
+  useMessage
+} from "naive-ui";
 import {
   FavoriteBorderFilled,
   FavoriteFilled,
@@ -95,6 +139,7 @@ import {useRoute, useRouter} from "vue-router";
 const appStore = useAppStore()
 const route = useRoute()
 const router = useRouter()
+const message = useMessage()
 
 const props = defineProps(['video'])
 
