@@ -12,14 +12,25 @@
     </div>
 
     <div>
-      <n-h5>播放列表</n-h5>
-      <div class="padding-2px"></div>
+      <div class="flex-row flex-justify-between flex-align-center">
+        <n-h5>播放列表</n-h5>
+        <div v-if="!isMp3" class="color-grey font-size-12px">
+          快捷键：上一集(p)，下一集(n)，全屏切换(f)
+        </div>
+      </div>
+      <div class="padding-5px"></div>
 
       <div class="flex-column links" style="gap: 8px 12px">
         <div class="source-item flex-row">
           <div class="idx text-align-center">#</div>
-          <div class="title">歌曲</div>
-          <div class="artist">歌手</div>
+          <div class="title">
+            <text v-if="isMp3">歌曲</text>
+            <text v-else>选集</text>
+          </div>
+          <div class="artist">
+            <text v-if="isMp3">歌手</text>
+            <text v-else>来源</text>
+          </div>
           <div class="op text-align-center">##</div>
 
         </div>
@@ -68,7 +79,7 @@ const room = ref(null)
 const clientId = ref(null)
 const appStore = useAppStore()
 
-const props = defineProps(['sourceList', 'vid', 'pid', 'playIndex'])
+const props = defineProps(['sourceList', 'vid', 'pid', 'playIndex', 'isMp3'])
 const emits = defineEmits(['changed'])
 
 

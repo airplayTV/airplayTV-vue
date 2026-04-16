@@ -264,7 +264,7 @@ import {
 } from '@vicons/material'
 import hotkeys from 'hotkeys-js';
 import AudioPlayer from "@/components/AudioPlayer.vue";
-import AppAudioList from "@/components/AppAudioList.vue";
+import AppAudioList from "@/components/AppAudioVideoList.vue";
 
 const route = useRoute()
 const router = useRouter()

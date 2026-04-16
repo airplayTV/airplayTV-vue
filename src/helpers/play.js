@@ -1,9 +1,15 @@
 import {addHistory, addTimeline, findHistory, findTimeline, updateHistory, updateTimeline} from "@/helpers/db.js";
+import {httpVideoSource} from "@/helpers/api.js";
 
 const sourceTypeOption = {
   mp3: 'mp3',
   mp4: 'mp4',
   m3u8: 'm3u8',
+}
+
+const playTypeOption = {
+  art: 0,
+  iframe: 1,
 }
 
 const findSourceLink = (links, pid) => {
@@ -26,9 +32,9 @@ const getPlayerTimeCtx = (playerCtx, source = {}) => {
   if (source.type === sourceTypeOption.mp3 && playerCtx.target) {
     duration = playerCtx.target.duration
     lastTime = playerCtx.target.currentTime
-  } else if (artInstance.value) {
-    duration = artInstance.value.duration
-    lastTime = artInstance.value.currentTime
+  } else if (playerCtx.playing) {
+    duration = playerCtx.duration
+    lastTime = playerCtx.currentTime
   }
   return { duration, lastTime }
 }
@@ -85,9 +91,51 @@ const addHistoryWarp = async (playerCtx = {}, _source = '', video = {}, source =
   }
 }
 
+const handlerPlayList = (links, video = {}, source = {}) => {
+  return (links || []).map(row => {
+    if (row.ctx && row.ctx.collect_id) {
+      return {
+        id: row.id,
+        title: row.name,
+        artist: row.ctx.name,
+        src: async () => {
+          const resp = await httpVideoSource(row.ctx.collect_id, row.ctx.id, appStore.source)
+          return resp.data.url
+        },
+        pic: row.ctx.thumb,
+        lrc: '',
+      }
+    } else if (row.id) {
+      return {
+        id: row.id,
+        title: row.name,
+        artist: row.group,
+        src: async () => {
+          if (row.url) {
+            return row.url
+          }
+          // const resp = await httpVideoSource(row.ctx.collect_id, row.ctx.id, appStore.source)
+          // return resp.data.url
+          return ''
+        },
+        pic: row.thumb,
+      }
+    }
+    return {
+      id: video.id,
+      title: video.name,
+      artist: video.actors,
+      src: source.url,
+      pic: video.thumb,
+      lrc: '',
+    }
+  })
+}
 
 export {
+  playTypeOption,
   findSourceLink,
   addTimelineWarp,
   addHistoryWarp,
+  handlerPlayList,
 }

@@ -69,6 +69,7 @@
         v-if="video"
         :play-index="playIndex"
         :source-list="playList"
+        :is-mp3="true"
         @changed="onAudioListChange" />
 
   </div>
@@ -83,12 +84,12 @@ import {
   PauseCircleOutlineOutlined,
   PlayCircleFilledWhiteOutlined
 } from "@vicons/material";
-import AppAudioList from "@/components/AppAudioList.vue";
+import AppAudioList from "@/components/AppAudioVideoList.vue";
 import AudioPlayer from "@/components/AudioPlayer.vue";
 import {httpCollectAdd, httpVideoSource} from "@/helpers/api.js";
 import {onBeforeMount, ref} from "vue";
 import {useAppStore} from "@/stores/app.js";
-import {addHistoryWarp, addTimelineWarp, findSourceLink} from "@/helpers/play.js";
+import {addHistoryWarp, addTimelineWarp, findSourceLink, handlerPlayList} from "@/helpers/play.js";
 
 const appStore = useAppStore()
 
@@ -242,31 +243,7 @@ const onPrevAudio = (ctx) => {
 }
 
 
-const handlerAudioPlayList = (links) => {
-  return (links || []).map(row => {
-    if (row.ctx && row.ctx.collect_id) {
-      return {
-        id: row.id,
-        title: row.name,
-        artist: row.ctx.name,
-        src: async () => {
-          const resp = await httpVideoSource(row.ctx.collect_id, row.ctx.id, appStore.source)
-          return resp.data.url
-        },
-        pic: row.ctx.thumb,
-        lrc: '',
-      }
-    }
-    return {
-      id: video.value.id,
-      title: video.value.name,
-      artist: video.value.actors,
-      src: source.value.url,
-      pic: video.value.thumb,
-      lrc: '',
-    }
-  })
-}
+
 
 const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   let respSource;
@@ -285,7 +262,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
 
   const findLink = findSourceLink(props.video.links, pid)
   playIndex.value = findLink._idx || 0
-  playList.value = handlerAudioPlayList(props.video.links)
+  playList.value = handlerPlayList(props.video.links,props.video, source.value )
 }
 
 
