@@ -1,13 +1,14 @@
 <template>
   <div class="min-height-100vh flex-column flex-justify-between">
-    <div>
+    <div class="flex-1 flex-column">
       <AppHeader />
       <div v-if="video" style="padding: 0 10px">
         <app-play-audio v-if="video.type === sourceTypeMp3" :video="video" />
         <app-play-video v-else :video="video" />
       </div>
-      <div v-else style="padding: 0 10px">
-        暂无音视频
+      <div v-else class="flex-column flex-1 flex-justify-center flex-align-center">
+        <n-result status="404" title="暂无数据" description=""></n-result>
+
       </div>
     </div>
     <AppFooter />
@@ -21,7 +22,7 @@
 import {onBeforeMount, onUpdated, ref,} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {httpVideo} from '../helpers/api'
-import {useLoadingBar, useMessage} from 'naive-ui'
+import {NResult, useLoadingBar, useMessage} from 'naive-ui'
 import {useAppStore} from "@/stores/app.js";
 import {DEFAULT_AUDIO_THUMB} from "@/helpers/constant.js";
 import AppFooter from "@/components/AppFooter.vue";
