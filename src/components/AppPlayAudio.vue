@@ -171,7 +171,7 @@ const collectOptions = [
   { label: '私藏集合', value: '私藏集合' },
 ]
 
-const _pageKey = '_key_app_page_video_play_'
+const _pageKey = '_key_app_page_audio_play_'
 
 
 const onEmptyEvent = (ctx) => {

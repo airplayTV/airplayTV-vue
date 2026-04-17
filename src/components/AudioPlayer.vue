@@ -105,6 +105,20 @@
 
 import {onMounted, ref, watch} from "vue";
 import {NSlider} from 'naive-ui'
+import {
+  addEventHandler,
+  ControlEventBack,
+  ControlEventForward,
+  ControlEventFullscreen,
+  ControlEventFullscreenExit,
+  ControlEventInfo,
+  ControlEventMute,
+  ControlEventPause,
+  ControlEventPlay,
+  ControlEventQrcode,
+  ControlEventVolume,
+  EventNameMessage
+} from "@/helpers/websocket.js";
 
 const showLrc = ref(false)
 const appAudio = ref(null)
@@ -118,6 +132,8 @@ const audioCtx = ref({
   currentTime: 0,
   volume: 100, // 进度条：[0-100]
 })
+
+const _pageKey = '_key_app_page_audio_player_'
 
 const props = defineProps({
   // 当前播放哪一个
@@ -219,6 +235,39 @@ const onChangeVolume = (ctx) => {
   appAudio.value.volume = ctx / 100
 }
 
+const addControlEventHandler = () => {
+  const tmpAppAudio = appAudio.value
+  addEventHandler(EventNameMessage, _pageKey, (data) => {
+    switch (data.event) {
+      case ControlEventMute:
+        tmpAppAudio.muted = false
+        break
+      case ControlEventFullscreen:
+        break
+      case ControlEventFullscreenExit:
+        break
+      case ControlEventQrcode:
+        break
+      case ControlEventInfo:
+        break
+      case ControlEventVolume:
+        break
+      case ControlEventBack:
+        break
+      case ControlEventPlay:
+        tmpAppAudio.muted = true
+        tmpAppAudio.play()
+        break
+      case ControlEventPause:
+        tmpAppAudio.pause()
+        break
+      case ControlEventForward:
+        break
+    }
+  })
+}
+
+
 const onMountedHandler = () => {
   ;[
     'error', 'load', 'loadedmetadata', 'loadeddata', 'play', 'pause', 'timeupdate',
@@ -267,6 +316,8 @@ const onMountedHandler = () => {
       audioCtx.value.muted = !!ctx.target.muted
     })
   })
+
+  addControlEventHandler()
 
   parseMusic()
 }
