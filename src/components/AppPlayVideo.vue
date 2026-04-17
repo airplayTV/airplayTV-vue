@@ -178,7 +178,7 @@ const initVideoPlayer = async (findLink, source) => {
     autoplay: true,
   })
 
-  if (room.value) {
+  if (room.value && room.value !== clientId.value) {
     // 投射播放
     sendControl(room.value, {
       event: ControlEventLoadVideo,

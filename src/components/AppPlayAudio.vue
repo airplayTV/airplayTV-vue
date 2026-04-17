@@ -328,7 +328,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   const findLink = findSourceLink(props.video.links, pid)
   video.value = { ...video.value, name: findLink.name }
 
-  if (room.value) {
+  if (room.value && room.value !== clientId.value) {
     // 投射播放
     sendControl(room.value, {
       event: ControlEventLoadVideo,
