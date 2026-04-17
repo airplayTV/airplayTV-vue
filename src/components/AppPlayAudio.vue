@@ -136,6 +136,10 @@ import {onBeforeMount, ref} from "vue";
 import {useAppStore} from "@/stores/app.js";
 import {addHistoryWarp, addTimelineWarp, findSourceLink, handlerPlayList} from "@/helpers/play.js";
 import {useRoute, useRouter} from "vue-router";
+import {ControlEventLoadVideo, sendControl} from "@/helpers/websocket.js";
+import {getStorageSync} from "@/helpers/utils.js";
+import {KEY_CLIENT_ID, KEY_ROOM_ID} from "@/helpers/constant.js";
+import {getCurrentAppSource} from "@/helpers/app.js";
 
 const appStore = useAppStore()
 const route = useRoute()
@@ -146,6 +150,10 @@ const props = defineProps(['video'])
 
 const video = ref({})
 const source = ref({})
+const _source = ref(null)
+
+const room = ref(null)
+const clientId = ref(null)
 
 const apInstance = ref(null)
 const playList = ref({})
@@ -184,11 +192,11 @@ const onAudioEvent = (ctx) => {
       break
     case 'timeupdate':
       if (ctx.timeStamp > 5000 && parseInt(ctx.timeStamp / 1000) % 3 === 0) {
-        addHistoryWarp(ctx, appStore.source, { ...video.value, id: props.video.id }, {
+        addHistoryWarp(ctx, getAppSource(), { ...video.value, id: props.video.id }, {
           ...source.value,
           id: playList.value[playIndex.value].id
         })
-        addTimelineWarp(ctx, appStore.source, { ...video.value, id: props.video.id }, {
+        addTimelineWarp(ctx, getAppSource(), { ...video.value, id: props.video.id }, {
           ...source.value,
           id: playList.value[playIndex.value].id
         })
@@ -272,7 +280,7 @@ const handleCreateCollect = () => {
   const p = {
     user: formCollect.value.user,
     collect_name: formCollect.value.name,
-    source: appStore.source,
+    source: getAppSource(),
     vid: video.value.id,
     pid: source.value.id,
     name: video.value.name,
@@ -305,7 +313,7 @@ const onPrevAudio = (ctx) => {
 const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   let respSource;
   try {
-    respSource = await httpVideoSource(vid, pid, appStore.source, _m3u8p)
+    respSource = await httpVideoSource(vid, pid, getAppSource(), _m3u8p)
   } catch (e) {
     console.error('[httpVideoSource.Error]', e)
   }
@@ -319,12 +327,30 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
 
   const findLink = findSourceLink(props.video.links, pid)
   video.value = { ...video.value, name: findLink.name }
-  playIndex.value = findLink._idx || 0
-  playList.value = handlerPlayList(props.video.links, props.video, source.value, appStore.source)
+
+  if (room.value) {
+    // 投射播放
+    sendControl(room.value, {
+      event: ControlEventLoadVideo,
+      group: room.value,
+      vid: props.video.id,
+      pid: findLink.id || '',
+      source: getAppSource(),
+      mode: appStore.sourceSecret,
+    })
+    // message.value.info('已发送投射播放请求')
+    router.push('/control')
+  } else {
+    playIndex.value = findLink._idx || 0
+    playList.value = handlerPlayList(props.video.links, props.video, source.value, getCurrentAppSource(appStore, route.query))
+  }
 }
 
 
 const onBeforeMountHandler = () => {
+  room.value = getStorageSync(KEY_ROOM_ID)
+  clientId.value = getStorageSync(KEY_CLIENT_ID)
+
   // console.log('[接收到音乐信息]', JSON.parse(JSON.stringify(props.video)))
   tryHandlerVideoSource(props.video.id, route.query.pid ? route.query.pid : props.video.links[0].id)
 }
@@ -333,11 +359,18 @@ const onWindowOpen = (url, target = '_blank') => {
   window.open(url, target)
 }
 
+const getAppSource = () => {
+  if (!_source.value) {
+    _source.value = getCurrentAppSource(appStore, route.query)
+  }
+  return _source.value
+}
+
 onBeforeMount(onBeforeMountHandler)
 
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .audio-container {
   //background-color: rgba(246, 246, 246, 0.25);
   position: relative;

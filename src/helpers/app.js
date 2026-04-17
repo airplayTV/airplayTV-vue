@@ -27,9 +27,20 @@ const onOpenUrl = (url, target = '_blank') => {
   window.open(url, target)
 }
 
+const getCurrentAppSource = (appStore, query) => {
+  if (query && query['_source']) {
+    return query['_source']
+  } else if (appStore && appStore.source) {
+    return appStore.source
+  } else {
+    return ''
+  }
+}
+
 export {
   formatVideoSourceMap,
   getRouterLinkType,
   getImageObjectFit,
   onOpenUrl,
+  getCurrentAppSource,
 }

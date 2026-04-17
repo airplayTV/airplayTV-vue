@@ -114,9 +114,8 @@ const handlerPlayList = (links, video = {}, source = {}, _source) => {
           if (row.url) {
             return row.url
           }
-          // const resp = await httpVideoSource(row.ctx.collect_id, row.ctx.id, _source)
-          // return resp.data.url
-          return ''
+          const resp = await httpVideoSource(video.id, row.id, _source)
+          return resp.data.url
         },
         pic: row.thumb,
       }

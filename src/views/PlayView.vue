@@ -30,6 +30,7 @@ import AppHeader from "@/components/AppHeader.vue";
 import AppPlayAudio from "@/components/AppPlayAudio.vue";
 import AppPlayVideo from "@/components/AppPlayVideo.vue";
 import {sourceTypeOption} from "@/helpers/play.js";
+import {getCurrentAppSource} from "@/helpers/app.js";
 
 const route = useRoute()
 const router = useRouter()
@@ -57,7 +58,7 @@ const onUpdatedHandler = async () => {
 
 const loadVideoAsync = async (vid) => {
   try {
-    const resp = await httpVideo(vid, appStore.source)
+    const resp = await httpVideo(vid, getCurrentAppSource(appStore, route.query))
     video.value = resp.data;
     video.value.name = video.value.name || 'Untitled'
     video.value.thumb = video.value.thumb || DEFAULT_AUDIO_THUMB

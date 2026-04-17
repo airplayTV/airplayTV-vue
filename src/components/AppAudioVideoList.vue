@@ -69,6 +69,7 @@ import {getStorageSync} from '../helpers/utils'
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from '../helpers/constant'
 import {ControlEventLoadVideo, sendControl} from '@/helpers/websocket'
 import {useAppStore} from "@/stores/app.js";
+import {getCurrentAppSource} from "@/helpers/app.js";
 
 const video = ref(null)
 const route = useRoute()
@@ -89,7 +90,7 @@ watch(() => props.playIndex, (newVal, oldVal) => {
 
 const onOpenVideoPlay = (idx, source) => {
   if (room.value) {
-    let tmpSource = appStore.source, tmpVid = props.vid, tmpPid = source.id;
+    let tmpSource = getCurrentAppSource(appStore, route.query), tmpVid = props.vid, tmpPid = source.id;
     // 投射播放
     sendControl(room.value, {
       event: ControlEventLoadVideo,

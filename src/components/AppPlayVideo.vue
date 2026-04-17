@@ -96,16 +96,20 @@ import {
   ControlEventFullscreen,
   ControlEventFullscreenExit,
   ControlEventInfo,
+  ControlEventLoadVideo,
   ControlEventMute,
   ControlEventPause,
   ControlEventPlay,
   ControlEventQrcode,
   ControlEventVolume,
-  EventNameMessage
+  EventNameMessage,
+  sendControl
 } from "@/helpers/websocket.js";
 import hotkeys from "hotkeys-js";
 import {useRoute, useRouter} from "vue-router";
-import {onOpenUrl} from "@/helpers/app.js";
+import {getCurrentAppSource, onOpenUrl} from "@/helpers/app.js";
+import {getStorageSync} from "@/helpers/utils.js";
+import {KEY_CLIENT_ID, KEY_ROOM_ID} from "@/helpers/constant.js";
 
 const appStore = useAppStore()
 const message = useMessage()
@@ -116,12 +120,16 @@ const props = defineProps(['video'])
 
 const video = ref({})
 const source = ref({})
+const _source = ref(null)
 const playType = ref(playTypeOption.art)
 const artInstance = ref({})
 const artOption = ref({})
 const artStyle = ref({ width: '100%', height: '180px', })
 const errMsg = ref('')
 const timer = ref(null)
+
+const room = ref(null)
+const clientId = ref(null)
 
 const playIndex = ref(0)
 const playList = ref({})
@@ -132,7 +140,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   errMsg.value = null
   let respSource;
   try {
-    respSource = await httpVideoSource(vid, pid, appStore.source, _m3u8p)
+    respSource = await httpVideoSource(vid, pid, getAppSource(), _m3u8p)
   } catch (e) {
     console.error('[httpVideoSource.Error]', e)
     errMsg.value = e
@@ -148,7 +156,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
 
   const findLink = findSourceLink(props.video.links, pid)
   playIndex.value = findLink._idx || 0
-  playList.value = handlerPlayList(props.video.links, props.video, source.value, appStore.source)
+  playList.value = handlerPlayList(props.video.links, props.video, source.value, getAppSource())
 
   initVideoPlayer(findLink, source.value)
 }
@@ -170,7 +178,19 @@ const initVideoPlayer = async (findLink, source) => {
     autoplay: true,
   })
 
-  if (artInstance.value) {
+  if (room.value) {
+    // 投射播放
+    sendControl(room.value, {
+      event: ControlEventLoadVideo,
+      group: room.value,
+      vid: props.video.id,
+      pid: findLink.id || '',
+      source: getAppSource(),
+      mode: appStore.sourceSecret,
+    })
+    // message.value.info('已发送投射播放请求')
+    router.push('/control')
+  } else if (artInstance.value) {
     artOption.value.video = tmpVideo
     await artInstance.value.switchUrl(source.url);
     showVideoTitle()
@@ -266,7 +286,7 @@ const getArtInstance = (art) => {
   console.info('[art]', art)
   artInstance.value = art
   art.on('ready', async () => {
-    const _findTimeline = await findTimeline(appStore.source, video.value.id, source.value.id)
+    const _findTimeline = await findTimeline(getAppSource(), video.value.id, source.value.id)
     if (
         _findTimeline &&
         _findTimeline.lastTime &&
@@ -311,8 +331,8 @@ const handlerTimeUpdate = () => {
   }
   timer.value = setInterval(() => {
     const findLink = findSourceLink(props.video.links, source.value.id)
-    addTimelineWarp(artInstance.value, appStore.source, video.value, source.value)
-    addHistoryWarp(artInstance.value, appStore.source, video.value, { ...source.value, name: findLink.name || '' })
+    addTimelineWarp(artInstance.value, getAppSource(), video.value, source.value)
+    addHistoryWarp(artInstance.value, getAppSource(), video.value, { ...source.value, name: findLink.name || '' })
   }, 5000)
 }
 
@@ -456,6 +476,8 @@ const addHotKeyEventHandler = () => {
 
 const onBeforeMountHandler = () => {
   video.value = { ...props.video }
+  room.value = getStorageSync(KEY_ROOM_ID)
+  clientId.value = getStorageSync(KEY_CLIENT_ID)
 
   artStyle.value.height = `${computePlayerHeight()}px`
   window.onresize = () => {
@@ -467,6 +489,13 @@ const onBeforeMountHandler = () => {
 
   tryHandlerVideoSource(props.video.id, route.query.pid ? route.query.pid : props.video.links[0].id)
 
+}
+
+const getAppSource = () => {
+  if (!_source.value) {
+    _source.value = getCurrentAppSource(appStore, route.query)
+  }
+  return _source.value
 }
 
 
