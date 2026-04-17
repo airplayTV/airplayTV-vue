@@ -67,7 +67,7 @@
 
     <AppAudioVideoList
         v-if="video"
-        :vid="video.id"
+        :vid="props.video.id"
         :play-index="playIndex"
         :source-list="playList"
         @changed="onChangePlaying" />

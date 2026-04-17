@@ -134,6 +134,7 @@ const handlerPlayList = (links, video = {}, source = {}, _source) => {
 }
 
 export {
+  sourceTypeOption,
   playTypeOption,
   findSourceLink,
   addTimelineWarp,

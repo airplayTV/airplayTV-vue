@@ -1,9 +1,9 @@
 <template>
   <div class="min-height-100vh flex-column flex-justify-between">
-    <div class="flex-1 flex-column">
+    <div class="flex-1 flex-column" :key="tmpQuery">
       <AppHeader />
       <div v-if="video" style="padding: 0 10px">
-        <app-play-audio v-if="video.type === sourceTypeMp3" :video="video" />
+        <app-play-audio v-if="video.type === sourceTypeOption.mp3" :video="video" />
         <app-play-video v-else :video="video" />
       </div>
       <div v-else class="flex-column flex-1 flex-justify-center flex-align-center">
@@ -13,7 +13,7 @@
     </div>
     <AppFooter />
 
-    <div v-if="video && video.type === sourceTypeMp3" style="width: 100%; height: 80px; "></div>
+    <div v-if="video && video.type === sourceTypeOption.mp3" style="width: 100%; height: 80px; "></div>
 
   </div>
 </template>
@@ -29,6 +29,7 @@ import AppFooter from "@/components/AppFooter.vue";
 import AppHeader from "@/components/AppHeader.vue";
 import AppPlayAudio from "@/components/AppPlayAudio.vue";
 import AppPlayVideo from "@/components/AppPlayVideo.vue";
+import {sourceTypeOption} from "@/helpers/play.js";
 
 const route = useRoute()
 const router = useRouter()
@@ -38,12 +39,11 @@ const appStore = useAppStore()
 
 const tmpQuery = ref('')
 const video = ref(null)
-const sourceTypeMp3 = 'mp3'
 
 let timer = null
 
 const onUpdatedHandler = async () => {
-  const v = JSON.stringify(route.params)
+  const v = JSON.stringify({ p: route.params, q: route.query })
   if (v === tmpQuery.value) {
     // console.log('[无变化]')
     return

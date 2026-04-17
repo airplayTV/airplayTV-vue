@@ -40,7 +40,7 @@
               </div>
             </div>
           </div>
-          <div>
+          <div class="text-ellipsis">
             地址：
             <n-text class="source-url bottom-dashed cursor-pointer" @click="onWindowOpen(source.url)">
               {{ source.url }}
@@ -67,7 +67,7 @@
 
     <AppAudioVideoList
         v-if="video"
-        :vid="video.id"
+        :vid="props.video.id"
         :play-index="playIndex"
         :source-list="playList"
         :is-mp3="true"
