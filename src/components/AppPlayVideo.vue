@@ -38,17 +38,16 @@
     <div style="color: dimgray; word-wrap: break-word; line-height: 200%;">
       <div style="padding: 8px 0">
         <n-space>
-          <a
+          <div
               v-if="source.url"
-              :href="source.url"
-              target="_blank"
-              class="source-url bottom-dashed"
+              class="source-url bottom-dashed text-ellipsis"
+              @click="onOpenUrl(source.url)"
               :title="source.source">
-            {{ source.url }}
-          </a>
-          <n-text class="bottom-dashed avp-link" @click="gotoAvp">
+            {{ source.url }}{{ source.url }}
+          </div>
+          <div class="bottom-dashed " @click="gotoAvp">
             <b>libmedia(avp)解码</b>
-          </n-text>
+          </div>
         </n-space>
       </div>
 
@@ -105,6 +104,7 @@ import {
 } from "@/helpers/websocket.js";
 import hotkeys from "hotkeys-js";
 import {useRoute, useRouter} from "vue-router";
+import {onOpenUrl} from "@/helpers/app.js";
 
 const appStore = useAppStore()
 const message = useMessage()
@@ -498,8 +498,8 @@ video {
   color: rgb(118, 124, 130);
   text-decoration: none;
 
-  display: inline-block;
-  word-wrap: break-word;
+  //display: inline-block;
+  //word-wrap: break-word;
 }
 
 .player-container {

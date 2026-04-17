@@ -18,7 +18,7 @@
           </div>
         </div>
 
-        <div style="width: 20px ; height: 100%"></div>
+        <div class="split" style="width: 20px ; height: 100%"></div>
 
         <div class="lrc flex-1 flex-column" style="width: 0;">
           <n-h2>{{ video.name || 'Untitled' }}</n-h2>
@@ -65,7 +65,7 @@
 
     <div class="padding-5px"></div>
 
-    <AppAudioList
+    <AppAudioVideoList
         v-if="video"
         :play-index="playIndex"
         :source-list="playList"
@@ -128,7 +128,7 @@ import {
   PauseCircleOutlineOutlined,
   PlayCircleFilledWhiteOutlined
 } from "@vicons/material";
-import AppAudioList from "@/components/AppAudioVideoList.vue";
+import AppAudioVideoList from "@/components/AppAudioVideoList.vue";
 import AudioPlayer from "@/components/AudioPlayer.vue";
 import {httpCollectAdd, httpVideoSource} from "@/helpers/api.js";
 import {onBeforeMount, ref} from "vue";
@@ -375,6 +375,7 @@ onBeforeMount(onBeforeMountHandler)
   }
 
   .lrc {
+    min-width: 350px;
     padding: 10px 10px;
     line-height: 180%;
     color: rgb(118, 124, 130);
@@ -403,12 +404,35 @@ onBeforeMount(onBeforeMountHandler)
   .side {
     min-width: 100%;
     padding: 20px 0 10px 0;
+    justify-content: center;
+  }
+
+  .split {
+    display: none;
+  }
+
+  .lrc {
+    padding: 10px 0 !important;
   }
 }
 
 @media (min-width: 600px) and (max-width: 900px) {
   .audio-container {
     //min-height: 320px !important;
+  }
+
+  .side {
+    min-width: 100%;
+    padding: 20px 0 10px 0;
+    justify-content: center;
+  }
+
+  .split {
+    display: none;
+  }
+
+  .lrc {
+    padding: 10px 0 !important;
   }
 }
 

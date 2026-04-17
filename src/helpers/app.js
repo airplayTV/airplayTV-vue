@@ -23,8 +23,13 @@ const getImageObjectFit = (styleConfig) => {
   return 'cover'
 }
 
+const onOpenUrl = (url, target = '_blank') => {
+  window.open(url, target)
+}
+
 export {
   formatVideoSourceMap,
   getRouterLinkType,
   getImageObjectFit,
+  onOpenUrl,
 }

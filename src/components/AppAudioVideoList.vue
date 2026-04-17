@@ -189,4 +189,20 @@ onBeforeMount(onBeforeMountHandler)
 }
 
 
+@media (min-width: 0px) and (max-width: 600px) {
+  .idx {
+    width: 50px !important;
+  }
+  .artist {
+    padding: 0 12px;
+    max-width: 80px !important;
+  }
+  .op {
+    width: 50px !important;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 900px) {
+}
+
 </style>
