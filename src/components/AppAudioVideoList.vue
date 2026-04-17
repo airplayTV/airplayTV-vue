@@ -22,7 +22,7 @@
 
       <div class="flex-column links" style="gap: 8px 12px">
         <div class="source-item flex-row">
-          <div class="idx text-align-center">#</div>
+          <div class="idx text-align-center">序号</div>
           <div class="title">
             <text v-if="isMp3">歌曲</text>
             <text v-else>选集</text>
@@ -44,7 +44,7 @@
           </div>
           <div class="artist text-ellipsis color-grey">{{ item.artist || 'Unknown' }}</div>
           <div class="op text-align-center flex-row flex-justify-center flex-align-center">
-            <n-icon size="26" color="#666666" class="cursor-pointer" @click="onOpenVideoPlay(idx, item)">
+            <n-icon size="26" color="#18a058" class="cursor-pointer" @click="onOpenVideoPlay(idx, item)">
               <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32">
                 <g fill="none">
                   <path
@@ -173,11 +173,11 @@ onBeforeMount(onBeforeMountHandler)
 }
 
 .source-item.active {
-  background-color: rgba(29, 185, 84, 0.1) !important;
+  background-color: rgba(29, 185, 84, 0.2) !important;
 }
 
 .source-item:hover {
-  background-color: #f5f5f5 !important;
+  background-color: rgba(29, 185, 84, 0.2) !important;
 }
 
 .source-item:nth-child(odd) {
