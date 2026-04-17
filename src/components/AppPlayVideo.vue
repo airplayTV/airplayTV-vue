@@ -65,8 +65,9 @@
 
     <div class="padding-5px"></div>
 
-    <AppAudioList
+    <AppAudioVideoList
         v-if="video"
+        :vid="video.id"
         :play-index="playIndex"
         :source-list="playList"
         @changed="onChangePlaying" />
@@ -85,7 +86,7 @@ import {SearchSharp} from '@vicons/material'
 import AppArtplayer from '@/components/AppArtplayer.vue'
 import {NEllipsis, NH2, NIcon, NSpace, NSpin, NText, useMessage} from 'naive-ui'
 import {findTimeline} from "@/helpers/db.js";
-import AppAudioList from "@/components/AppAudioVideoList.vue";
+import AppAudioVideoList from "@/components/AppAudioVideoList.vue";
 import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 import Hls from "hls.js";
 import {

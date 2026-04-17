@@ -88,14 +88,8 @@ watch(() => props.playIndex, (newVal, oldVal) => {
 })
 
 const onOpenVideoPlay = (idx, source) => {
-
-  return emits('changed', idx, source)
-
-  let tmpSource = appStore.source, tmpVid = vid, tmpPid = source.id;
-
-  if (!room.value) {
-    router.push(`/video/detail/${tmpVid}?_source=${tmpSource}&pid=${tmpPid}`)
-  } else {
+  if (room.value) {
+    let tmpSource = appStore.source, tmpVid = props.vid, tmpPid = source.id;
     // 投射播放
     sendControl(room.value, {
       event: ControlEventLoadVideo,
@@ -108,6 +102,8 @@ const onOpenVideoPlay = (idx, source) => {
     })
     // message.value.info('已发送投射播放请求')
     router.push('/control')
+  } else {
+    emits('changed', idx, source)
   }
 }
 

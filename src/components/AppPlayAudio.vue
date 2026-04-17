@@ -67,6 +67,7 @@
 
     <AppAudioVideoList
         v-if="video"
+        :vid="video.id"
         :play-index="playIndex"
         :source-list="playList"
         :is-mp3="true"
