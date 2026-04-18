@@ -43,7 +43,7 @@
               class="source-url bottom-dashed text-ellipsis"
               @click="onOpenUrl(source.url)"
               :title="source.source">
-            {{ source.url }}{{ source.url }}
+            {{ source.url }}
           </div>
           <div class="bottom-dashed " @click="gotoAvp">
             <b>libmedia(avp)解码</b>
