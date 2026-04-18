@@ -44,6 +44,14 @@ const httpCollectDetail = (collectId, limit = 0) => {
   return httpInstance.get(`/api/collect/detail?collect_id=${collectId}&limit=${limit}`)
 }
 
+const httpCollectStatus = (vid, pid, _source) => {
+  return httpInstance.get(`/api/collect/status?vid=${vid}&pid=${pid}&_source=${_source}`)
+}
+
+const httpCollectRemove = (data) => {
+  return httpInstance.post(`/api/collect/remove`, data)
+}
+
 export {
   httpSourceList,
   httpVideoList,
@@ -56,4 +64,6 @@ export {
   httpCollectAdd,
   httpCollectList,
   httpCollectDetail,
+  httpCollectStatus,
+  httpCollectRemove,
 }

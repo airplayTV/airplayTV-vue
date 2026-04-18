@@ -33,13 +33,13 @@
           <div class="width-100 line-height-200 flex-1">
             <div>{{ video.actors || 'Unknown' }}</div>
             <div class="flex-row cursor-pointer">
-              <div v-if="false" @click="onRemoveCollect" class="flex-row flex-align-center flex-justify-center">
-                <n-icon color="red" size="20">
+              <div v-if="collectCtx.id" @click="onRemoveCollect" class="flex-row flex-align-center flex-justify-center">
+                <n-icon color="orange" size="20">
                   <FavoriteFilled />
                 </n-icon>
                 <n-text depth="3">&nbsp;取消收藏</n-text>
               </div>
-              <div v-if="true" @click="onAddCollect" class="flex-row flex-align-center flex-justify-center">
+              <div v-else @click="onAddCollect" class="flex-row flex-align-center flex-justify-center">
                 <n-icon color="#999999" size="20">
                   <FavoriteBorderFilled />
                 </n-icon>
@@ -139,7 +139,7 @@ import {
 } from "@vicons/material";
 import AppAudioVideoList from "@/components/AppAudioVideoList.vue";
 import AudioPlayer from "@/components/AudioPlayer.vue";
-import {httpCollectAdd, httpVideoSource} from "@/helpers/api.js";
+import {httpCollectAdd, httpCollectRemove, httpCollectStatus, httpVideoSource} from "@/helpers/api.js";
 import {onBeforeMount, ref} from "vue";
 import {useAppStore} from "@/stores/app.js";
 import {addHistoryWarp, addTimelineWarp, findSourceLink, handlerPlayList} from "@/helpers/play.js";
@@ -173,6 +173,7 @@ const formCollect = ref({
   user: null,// 用户
   name: null// 收藏夹名称
 })
+const collectCtx = ref({})
 
 const collectOptions = [
   { label: '默认收藏', value: '默认收藏' },
@@ -270,11 +271,14 @@ const onAddCollect = () => {
 }
 
 const onRemoveCollect = () => {
-  showCollectModal.value = true
-  console.log('[onRemoveCollect]', JSON.parse(JSON.stringify({
-    video: video.value,
-    source: source.value,
-  })))
+  console.log('[onRemoveCollect]', JSON.parse(JSON.stringify(collectCtx.value)))
+  httpCollectRemove({ id: +collectCtx.value.id, collect_id: +collectCtx.value.collect_id }).then(resp => {
+    console.log('[httpCollectRemove.resp]', resp)
+    collectCtx.value = {}
+  }).catch(err => {
+    console.log('[httpCollectRemove.Error]', err)
+    message.warning(`${err}`)
+  })
 }
 
 const handleCreateCollect = () => {
@@ -354,13 +358,24 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   }
 }
 
+const loadCollectStatus = (vid, pid) => {
+  httpCollectStatus(+vid, +pid, getAppSource()).then(resp => {
+    console.log('[httpCollectStatus.resp]', resp)
+    collectCtx.value = resp.data
+  }).catch(err => {
+    console.log('[httpCollectStatus.Error]', err)
+    collectCtx.value = {}
+  })
+}
 
 const onBeforeMountHandler = () => {
   room.value = getStorageSync(KEY_ROOM_ID)
   clientId.value = getStorageSync(KEY_CLIENT_ID)
 
   // console.log('[接收到音乐信息]', JSON.parse(JSON.stringify(props.video)))
-  tryHandlerVideoSource(props.video.id, route.query.pid ? route.query.pid : props.video.links[0].id)
+  const tmpPid = route.query.pid ? route.query.pid : props.video.links[0].id
+  tryHandlerVideoSource(props.video.id, tmpPid)
+  loadCollectStatus(props.video.id, tmpPid)
 }
 
 const onWindowOpen = (url, target = '_blank') => {
