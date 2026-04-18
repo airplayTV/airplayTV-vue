@@ -58,11 +58,14 @@ const onUpdatedHandler = async () => {
 
 const loadVideoAsync = async (vid) => {
   try {
+    loadingBar.start()
     const resp = await httpVideo(vid, getCurrentAppSource(appStore, route.query))
     video.value = resp.data;
     video.value.name = video.value.name || 'Untitled'
     video.value.thumb = video.value.thumb || DEFAULT_AUDIO_THUMB
+    loadingBar.finish()
   } catch (e) {
+    loadingBar.error()
     console.log('[加载视频失败]', { e })
   }
 }

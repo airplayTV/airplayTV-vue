@@ -34,7 +34,8 @@
           <div class="op text-align-center">##</div>
 
         </div>
-        <div v-for="(item, idx) in sourceList" :key="idx" class="source-item flex-row"
+        <div v-for="(item, idx) in sourceList" :key="idx"
+             class="source-item source-item-body flex-row"
              :class="{'active':playIndex===idx}">
           <div class="idx text-align-center">{{ idx + 1 }}</div>
           <div class="title text-ellipsis">
@@ -177,7 +178,7 @@ onBeforeMount(onBeforeMountHandler)
   background-color: rgba(29, 185, 84, 0.2) !important;
 }
 
-.source-item:hover {
+.source-item-body:hover {
   background-color: rgba(29, 185, 84, 0.2) !important;
 }
 

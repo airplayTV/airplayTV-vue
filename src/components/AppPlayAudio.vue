@@ -21,9 +21,16 @@
         <div class="split" style="width: 20px ; height: 100%"></div>
 
         <div class="lrc flex-1 flex-column" style="width: 0;">
-          <n-h2>{{ video.name || 'Untitled' }}</n-h2>
+          <n-space class="flex-row">
+            <n-h2>{{ video.name || 'Untitled' }}</n-h2>
+            <RouterLink :to="`/video/search?page=1&keyword=${video.name}&source=`" target="_blank">
+              <n-icon color="#5e5b5b" size="20">
+                <SearchSharp />
+              </n-icon>
+            </RouterLink>
+          </n-space>
 
-          <div class="width-100 line-height-50px flex-1">
+          <div class="width-100 line-height-200 flex-1">
             <div>{{ video.actors || 'Unknown' }}</div>
             <div class="flex-row cursor-pointer">
               <div v-if="false" @click="onRemoveCollect" class="flex-row flex-align-center flex-justify-center">
@@ -127,7 +134,8 @@ import {
   FavoriteBorderFilled,
   FavoriteFilled,
   PauseCircleOutlineOutlined,
-  PlayCircleFilledWhiteOutlined
+  PlayCircleFilledWhiteOutlined,
+  SearchSharp
 } from "@vicons/material";
 import AppAudioVideoList from "@/components/AppAudioVideoList.vue";
 import AudioPlayer from "@/components/AudioPlayer.vue";
@@ -420,8 +428,8 @@ onBeforeMount(onBeforeMountHandler)
     line-height: 200%;
   }
 
-  .line-height-50px {
-    line-height: 50px;
+  .line-height-200 {
+    line-height: 240%;
   }
 
   .source-url {

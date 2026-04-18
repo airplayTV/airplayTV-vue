@@ -82,7 +82,7 @@
 import {onBeforeMount, onMounted, ref} from 'vue'
 import {computeWindowWidthColumn} from '@/helpers/utils'
 import {deleteTimeline, deleteVideoHistory, listHistory} from '@/helpers/db'
-import {NEllipsis, NGi, NGrid, NIcon, NImage, NModal, NResult} from 'naive-ui'
+import {NEllipsis, NGi, NGrid, NIcon, NImage, NModal, NResult, useLoadingBar} from 'naive-ui'
 import {useRouter} from 'vue-router'
 import {format} from 'fecha'
 import AppHeader from "@/components/AppHeader.vue";
@@ -93,6 +93,7 @@ import {apiUrl} from "@/config.js";
 
 const router = useRouter()
 const appStore = useAppStore()
+const loadingBar = useLoadingBar()
 
 const windowWidth = ref(0)
 const cols = ref(2)
@@ -116,6 +117,7 @@ const onBeforeMountHandler = () => {
 }
 
 const loadHistoryList = async (page) => {
+  loadingBar.start()
   const findList = await listHistory(page, 100)
   historyList.value = findList.map((item) => {
     // item.updated_time = (new Date(item.updated_at)).toLocaleString()
@@ -132,6 +134,7 @@ const loadHistoryList = async (page) => {
     return item
   })
   console.log('[historyList]', JSON.parse(JSON.stringify(historyList.value)))
+  loadingBar.finish()
 }
 
 const onOpenVideo = (video) => {
