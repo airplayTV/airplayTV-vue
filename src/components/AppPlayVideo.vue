@@ -80,7 +80,7 @@
 
 import {useAppStore} from "@/stores/app.js";
 import {onBeforeMount, ref} from "vue";
-import {httpVideoSource} from "@/helpers/api.js";
+import {httpPlayUrlNetworkCheck, httpVideoSource} from "@/helpers/api.js";
 import {addHistoryWarp, addTimelineWarp, findSourceLink, handlerPlayList, playTypeOption} from "@/helpers/play.js";
 import {SearchSharp} from '@vicons/material'
 import AppArtplayer from '@/components/AppArtplayer.vue'
@@ -176,6 +176,8 @@ const initVideoPlayer = async (findLink, source) => {
     airplay: true,
     autoOrientation: true,
     autoplay: true,
+    url: source.url,
+    ...getControls()
   })
 
   if (room.value && room.value !== clientId.value) {
@@ -191,21 +193,14 @@ const initVideoPlayer = async (findLink, source) => {
     // message.value.info('已发送投射播放请求')
     router.push('/control')
   } else if (artInstance.value) {
-    artOption.value.video = tmpVideo
+    artOption.value = Object.assign({}, otherOption)
     await artInstance.value.switchUrl(source.url);
     showVideoTitle()
   } else if (source.type === 'hls') {
-    artOption.value = Object.assign({}, otherOption, {
-      url: source.url,
-      ...getHlsOptions(),
-      ...getControls()
-    })
+    artOption.value = Object.assign({}, otherOption, { ...getHlsOptions(), })
     showVideoTitle()
   } else {
-    artOption.value = Object.assign({}, otherOption, {
-      url: source.url,
-      ...getControls()
-    })
+    artOption.value = Object.assign({}, otherOption)
     showVideoTitle()
   }
 
@@ -324,6 +319,38 @@ const getArtInstance = (art) => {
   }
 
 }
+
+const networkCheck = (playUrl) => {
+  const t1 = Date.now()
+  httpPlayUrlNetworkCheck(playUrl).then(resp => {
+    const d1 = ((Date.now() - t1) / 1000).toFixed(2)
+    // console.log('[httpPlayUrlNetworkCheck.resp]', resp.data.resolved)
+    const resolved = resp.data.resolved.map(item => {
+      return `<div><span class="sp1">[${d1}秒]</span> <span class="sp1">${item.addr}</span>(<span class="sp2">${item.ip}</span>) <span class="sp3">${item.url}</span></div>`
+    })
+
+    artInstance.value.layers.add({
+      name: 'network',
+      html: resolved.join(''),
+      style: {
+        position: 'absolute',
+        bottom: '70px',
+        left: '20px',
+        lineHeight: '150%'
+      }
+    })
+
+    setTimeout(() => {
+      // Delete the layer by name
+      artInstance.value.layers.remove('network')
+    }, 4000)
+
+  }).catch(err => {
+    // console.log('[httpPlayUrlNetworkCheck.Error]', err)
+    noticeToVideo('网络检测失败：' + err)
+  })
+}
+
 
 const handlerTimeUpdate = () => {
   if (timer.value) {
