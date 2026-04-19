@@ -2,7 +2,7 @@
   <div class="min-height-100vh flex-column flex-justify-between">
     <div class="flex-1 flex-column" :key="tmpQuery">
       <AppHeader />
-      <div v-if="video" style="padding: 0 10px">
+      <div v-if="video" style="padding: 0 10px" :key="video.id">
         <app-play-audio v-if="video.type === sourceTypeOption.mp3" :video="video" />
         <app-play-video v-else :video="video" />
       </div>
