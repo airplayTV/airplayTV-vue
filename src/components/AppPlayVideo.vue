@@ -176,6 +176,7 @@ const initVideoPlayer = async (findLink, source) => {
     airplay: true,
     autoOrientation: true,
     autoplay: true,
+
     url: source.url,
     ...getControls()
   })
@@ -278,7 +279,7 @@ const showVideoTitle = () => {
 }
 
 const getArtInstance = (art) => {
-  console.info('[art]', art)
+  // console.info('[art]', art)
   artInstance.value = art
   art.on('ready', async () => {
     const _findTimeline = await findTimeline(getAppSource(), video.value.id, source.value.id)
@@ -452,6 +453,7 @@ const addControlEventHandler = () => {
       case ControlEventInfo:
         artInstance.value.controls.show = true
         noticeToVideo(`正在播放：${artOption.value.video.title}`)
+        networkCheck(artOption.value.url)
         break
       case ControlEventVolume:
         if (data.value <= 0) {
