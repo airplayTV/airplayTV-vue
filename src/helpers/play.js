@@ -41,7 +41,9 @@ const getPlayerTimeCtx = (playerCtx, source = {}) => {
 
 const addTimelineWarp = async (playerCtx = {}, _source = '', video = {}, source = {}) => {
   const { duration, lastTime } = getPlayerTimeCtx(playerCtx, source)
-
+  if (duration === 0 || lastTime === 0) {
+    return
+  }
   const find = await findTimeline(_source, video.id, source.id)
   if (!find) {
     await addTimeline({
@@ -63,7 +65,9 @@ const addTimelineWarp = async (playerCtx = {}, _source = '', video = {}, source 
 
 const addHistoryWarp = async (playerCtx = {}, _source = '', video = {}, source = {}) => {
   const { duration, lastTime } = getPlayerTimeCtx(playerCtx, source)
-
+  if (duration === 0 || lastTime === 0) {
+    return
+  }
   const find = await findHistory(_source, video.id, source.id)
   if (!find) {
     await addHistory({
