@@ -30,163 +30,165 @@ const ControlEventBack = '/ctl_back'
 const ControlEventPlay = '/ctl_play'
 const ControlEventPause = '/ctl_pause'
 const ControlEventForward = '/ctl_forward'
+const ControlEventHistory = '/ctl_history'
 
 const connect = () => {
-    if (_websocket && _websocket.readyState === 1) {
-        return
-    }
-    _websocket = new WebSocket(socketUrl)
+  if (_websocket && _websocket.readyState === 1) {
+    return
+  }
+  _websocket = new WebSocket(socketUrl)
 
-    _websocket.onopen = function (event) {
-        // console.log('[onOpen]', event)
-        delegateEventCallback(EventNameOpen, event)
+  _websocket.onopen = function (event) {
+    // console.log('[onOpen]', event)
+    delegateEventCallback(EventNameOpen, event)
+  }
+  _websocket.onmessage = function (msg) {
+    try {
+      const data = JSON.parse(msg.data)
+      // console.log('[onMessage]', data)
+      switch (data.event) {
+        case 'connect':
+          delegateEventCallback(EventNameConnect, data)
+          break
+        default:
+          delegateEventCallback(EventNameMessage, data)
+      }
+    } catch (e) {
+      console.log('[JSON.parse.Error]', e)
     }
-    _websocket.onmessage = function (msg) {
-        try {
-            const data = JSON.parse(msg.data)
-            // console.log('[onMessage]', data)
-            switch (data.event) {
-                case 'connect':
-                    delegateEventCallback(EventNameConnect, data)
-                    break
-                default:
-                    delegateEventCallback(EventNameMessage, data)
-            }
-        } catch (e) {
-            console.log('[JSON.parse.Error]', e)
-        }
-    }
-    _websocket.onclose = function (event) {
-        // console.log('[onClose]', event)
-        delegateEventCallback(EventNameClose, event)
-    }
-    _websocket.onerror = function (event) {
-        // console.log('[onError]', event)
-        delegateEventCallback(EventNameError, event)
-    }
+  }
+  _websocket.onclose = function (event) {
+    // console.log('[onClose]', event)
+    delegateEventCallback(EventNameClose, event)
+  }
+  _websocket.onerror = function (event) {
+    // console.log('[onError]', event)
+    delegateEventCallback(EventNameError, event)
+  }
 }
 
 const delegateFunctionCall = (fn, data) => {
-    if (typeof fn == 'function') {
-        fn(data)
-    }
+  if (typeof fn == 'function') {
+    fn(data)
+  }
 }
 
 const delegateEventCallback = (eventName, data) => {
-    if (!_events[eventName]) {
-        return
-    }
-    for (const _key in _events[eventName]) {
-        _events[eventName][_key](data)
-    }
+  if (!_events[eventName]) {
+    return
+  }
+  for (const _key in _events[eventName]) {
+    _events[eventName][_key](data)
+  }
 }
 
 const addEventHandler = (eventName, key, callback) => {
-    _addEventHandler(eventName, key, callback)
+  _addEventHandler(eventName, key, callback)
 }
 
 const removeEventHandler = (key) => {
-    for (const eventName in _events) {
-        for (const _key in _events[eventName]) {
-            if (key === _key) {
-                delete _events[eventName][_key]
-            }
-        }
+  for (const eventName in _events) {
+    for (const _key in _events[eventName]) {
+      if (key === _key) {
+        delete _events[eventName][_key]
+      }
     }
+  }
 }
 
 const _addEventHandler = (eventName, key, callback) => {
-    if (key.length <= 0) {
-        console.warn(`注册事件key必须为常规字符串：${key}`)
-        return
-    }
-    if (typeof callback != 'function') {
-        console.warn(`注册事件回调必须为可调用方法，事件名：${eventName}，key: ${key}`)
-    }
-    if (!_events) {
-        _events = {}
-    }
-    if (!_events[eventName]) {
-        _events[eventName] = {}
-    }
-    if (!_events[eventName][key]) {
-        _events[eventName][key] = callback
-    }
+  if (key.length <= 0) {
+    console.warn(`注册事件key必须为常规字符串：${key}`)
+    return
+  }
+  if (typeof callback != 'function') {
+    console.warn(`注册事件回调必须为可调用方法，事件名：${eventName}，key: ${key}`)
+  }
+  if (!_events) {
+    _events = {}
+  }
+  if (!_events[eventName]) {
+    _events[eventName] = {}
+  }
+  if (!_events[eventName][key]) {
+    _events[eventName][key] = callback
+  }
 }
 
 const send = (data) => {
-    switch (_websocket.readyState) {
-        case 0: // WebSocket.CONNECTING 套接字已创建，但连接尚未打开。
-            break
-        case 1: // WebSocket.OPEN 连接已打开，准备进行通信。
-            _websocket.send(data)
-            break
-        case 2: // WebSocket.CLOSING 连接正在关闭中。
-            break
-        case 3: // WebSocket.CLOSED 连接已关闭或无法打开。
-            connect()
-            break
-    }
+  switch (_websocket.readyState) {
+    case 0: // WebSocket.CONNECTING 套接字已创建，但连接尚未打开。
+      break
+    case 1: // WebSocket.OPEN 连接已打开，准备进行通信。
+      _websocket.send(data)
+      break
+    case 2: // WebSocket.CLOSING 连接正在关闭中。
+      break
+    case 3: // WebSocket.CLOSED 连接已关闭或无法打开。
+      connect()
+      break
+  }
 }
 
 const socketReady = () => {
-    return _websocket && _websocket.readyState === 1
+  return _websocket && _websocket.readyState === 1
 }
 
 const joinGroup = (groupName) => {
-    send(
-        JSON.stringify({
-            event: DataEventJoinGroup,
-            data: {
-                group: groupName
-            },
-        }),
-    )
+  send(
+    JSON.stringify({
+      event: DataEventJoinGroup,
+      data: {
+        group: groupName
+      },
+    }),
+  )
 }
 
 const sendControl = (groupName, controlContext) => {
-    send(
-        JSON.stringify({
-            group: groupName,
-            event: DataEventSendToGroup,
-            data: controlContext,
-        }),
-    )
+  send(
+    JSON.stringify({
+      group: groupName,
+      event: DataEventSendToGroup,
+      data: controlContext,
+    }),
+  )
 }
 
 export {
-    connect,
-    joinGroup,
-    addEventHandler,
-    removeEventHandler,
-    socketReady,
-    sendControl,
+  connect,
+  joinGroup,
+  addEventHandler,
+  removeEventHandler,
+  socketReady,
+  sendControl,
 
-    EventNameOpen,
-    EventNameConnect,
-    EventNameDisconnect,
-    EventNameClose,
-    EventNameMessage,
-    EventNameError,
-    EventNameJoinRoom,
-    EventNameLeaveRoom,
+  EventNameOpen,
+  EventNameConnect,
+  EventNameDisconnect,
+  EventNameClose,
+  EventNameMessage,
+  EventNameError,
+  EventNameJoinRoom,
+  EventNameLeaveRoom,
 
-    DataEventJoinGroup,
-    DataEventSendToClient,
-    DataEventLeaveGroup,
-    DataEventSendToGroup,
-    DataEventListGroupClient,
+  DataEventJoinGroup,
+  DataEventSendToClient,
+  DataEventLeaveGroup,
+  DataEventSendToGroup,
+  DataEventListGroupClient,
 
-    ControlEventLoadVideo,
-    ControlEventMute,
-    ControlEventFullscreen,
-    ControlEventFullscreenExit,
-    ControlEventQrcode,
-    ControlEventInfo,
-    ControlEventVolume,
-    ControlEventBack,
-    ControlEventPlay,
-    ControlEventPause,
-    ControlEventForward,
+  ControlEventLoadVideo,
+  ControlEventMute,
+  ControlEventFullscreen,
+  ControlEventFullscreenExit,
+  ControlEventQrcode,
+  ControlEventInfo,
+  ControlEventVolume,
+  ControlEventBack,
+  ControlEventPlay,
+  ControlEventPause,
+  ControlEventForward,
+  ControlEventHistory,
 
 }

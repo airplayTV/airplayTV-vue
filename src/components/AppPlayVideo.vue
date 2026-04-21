@@ -95,6 +95,7 @@ import {
   ControlEventForward,
   ControlEventFullscreen,
   ControlEventFullscreenExit,
+  ControlEventHistory,
   ControlEventInfo,
   ControlEventLoadVideo,
   ControlEventMute,
@@ -193,7 +194,7 @@ const initVideoPlayer = async (findLink, source) => {
       mode: appStore.sourceSecret,
     })
     // message.value.info('已发送投射播放请求')
-    router.push('/control')
+    router.push(`/control?t=${Math.random()}`)
   } else if (artInstance.value) {
     artOption.value = Object.assign({}, otherOption)
     await artInstance.value.switchUrl(source.url);
@@ -478,6 +479,9 @@ const addControlEventHandler = () => {
         break
       case ControlEventForward:
         artInstance.value.forward = 15
+        break
+      case ControlEventHistory:
+        router.push(`/history?t=${Math.random()}`)
         break
     }
   })

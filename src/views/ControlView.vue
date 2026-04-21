@@ -149,6 +149,17 @@
                 ></path>
               </svg>
             </div>
+
+            <div @click="sendControlHandler({ event: ControlEventHistory })">
+              <svg class="icon"
+                   style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;"
+                   viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3931">
+                <path
+                    d="M960 512c0-247.424-200.576-448-448-448-76.714667 0-149.034667 19.328-212.266667 53.376-59.477333 32.042667-110.933333 77.226667-150.4 131.541333V106.666667h-85.333333v298.666666h298.666667v-85.333333H204.245333a364.586667 364.586667 0 0 1 135.978667-127.488A360.874667 360.874667 0 0 1 512 149.333333a362.666667 362.666667 0 1 1-360.704 400.896l-4.437333-42.453333-84.864 8.917333 4.437333 42.410667C90.026667 784.384 280.448 960 512 960c247.424 0 448-200.576 448-448zM469.333333 256v273.664l149.333334 149.333333 60.330666-60.330666L554.666667 494.336V256h-85.333334z"
+                    fill="#000000" p-id="3932"></path>
+              </svg>
+            </div>
+
           </div>
 
           <div class="padding-30px"></div>
@@ -343,6 +354,7 @@ import {
   ControlEventForward,
   ControlEventFullscreen,
   ControlEventFullscreenExit,
+  ControlEventHistory,
   ControlEventInfo,
   ControlEventMute,
   ControlEventPause,
