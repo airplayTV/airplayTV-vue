@@ -147,6 +147,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   }
   if (!respSource) {
     errMsg.value = errMsg.value || '视频加载失败'
+    noticeToVideo(errMsg.value)
     return console.log('[视频加载失败]')
   }
 
@@ -378,7 +379,7 @@ const gotoAvp = () => {
 
   const q = btoa(JSON.stringify({
     id: encodeURIComponent(`${source.value.vid},${source.value.id}`),
-    name: encodeURIComponent(`${source.value.name} ${pname.value}`),
+    name: encodeURIComponent(`${artOption.value.video.title}`),
     url: encodeURIComponent(source.value.url),
     t: Date.now(),
   }))
