@@ -15,7 +15,7 @@
       <div class="flex-row flex-justify-between flex-align-center">
         <div class="flex-row flex-justify-between flex-align-center xxx-869t7">
           <n-h5>播放列表</n-h5>
-          <n-icon @click="switchPlayList" class="switch cursor-pointer" color="#5e5b5b" size="18" title="切换列表显示">
+          <n-icon @click="switchPlayList" class="switch cursor-pointer" color="#767c82" size="18" title="切换列表显示">
             <SwitchHorizontal />
           </n-icon>
         </div>
@@ -109,7 +109,7 @@ const appStore = useAppStore()
 const props = defineProps(['sourceList', 'vid', 'pid', 'playIndex', 'isMp3'])
 const emits = defineEmits(['changed'])
 
-const playListStyleSwitch = ref(false)
+const playListStyleSwitch = ref(appStore.playStyleSwitch)
 
 watch(() => props.playIndex, (newVal, oldVal) => {
   // console.log('[watch.music]', { newVal, oldVal })
@@ -137,6 +137,8 @@ const onOpenVideoPlay = (idx, source) => {
 
 const switchPlayList = () => {
   playListStyleSwitch.value = !playListStyleSwitch.value
+  appStore.setPlayStyleSwitch(playListStyleSwitch.value)
+
 }
 
 const onBeforeMountHandler = () => {

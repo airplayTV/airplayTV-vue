@@ -2,6 +2,8 @@ import {ref} from 'vue'
 import {defineStore} from 'pinia'
 import {setStorageSync} from "@/helpers/utils.js";
 import {
+  KEY_APP_PLAY_SEQ,
+  KEY_APP_PLAY_STYLE_SWITCH,
   KEY_APP_USERNAME,
   KEY_VIDEO_LATEST_VIDEO,
   KEY_VIDEO_SOURCE,
@@ -19,6 +21,8 @@ export const useAppStore = defineStore('app', () => {
   const sourceSecret = ref(null)
   const latestVideo = ref(null)// 最近一次点击的视频信息，防止部分视频详情没有图片，用来补充
   const username = ref(null)
+  const playSeq = ref('loop-all')
+  const playStyleSwitch = ref(false)
 
   function getSourceList() {
     return sourceList.value
@@ -63,6 +67,20 @@ export const useAppStore = defineStore('app', () => {
     username.value = data
   }
 
+  function setPlaySeq(data, local = true) {
+    if (local) {
+      setStorageSync(KEY_APP_PLAY_SEQ, data)
+    }
+    playSeq.value = data
+  }
+
+  function setPlayStyleSwitch(data, local = true) {
+    if (local) {
+      setStorageSync(KEY_APP_PLAY_STYLE_SWITCH, data)
+    }
+    playStyleSwitch.value = data
+  }
+
   return {
     sourceList,
     getSourceList,
@@ -79,5 +97,9 @@ export const useAppStore = defineStore('app', () => {
     setLatestVideo,
     setUsername,
     username,
+    playSeq,
+    setPlaySeq,
+    playStyleSwitch,
+    setPlayStyleSwitch,
   }
 })

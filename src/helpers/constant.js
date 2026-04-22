@@ -10,6 +10,8 @@ const KEY_VIDEO_SOURCE_SECRET = 'tv_video_source_secret'
 const KEY_VIDEO_STYLE_CONFIG = 'tv_video_style_config'
 const KEY_VIDEO_LATEST_VIDEO = 'tv_video_latest_video'
 const KEY_APP_USERNAME = 'tv_app_username'
+const KEY_APP_PLAY_SEQ = 'tv_app_play_seq'
+const KEY_APP_PLAY_STYLE_SWITCH = 'tv_app_play_style_switch'
 
 const CONTROL_LOAD_VIDEO = '/ctl_load_Video'
 const CONTROL_MUTE = '/ctl_mute'
@@ -50,4 +52,6 @@ export {
   KEY_VIDEO_LATEST_VIDEO,
   KEY_APP_USERNAME,
   DEFAULT_AUDIO_THUMB,
+  KEY_APP_PLAY_SEQ,
+  KEY_APP_PLAY_STYLE_SWITCH,
 }

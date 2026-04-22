@@ -49,7 +49,10 @@
           </div>
           <div class="text-ellipsis">
             地址：
-            <n-text class="source-url bottom-dashed cursor-pointer" @click="onWindowOpen(source.url)">
+            <n-text
+                class="source-url bottom-dashed cursor-pointer"
+                @click="onWindowOpen(source.url)"
+                :title="source.url">
               {{ source.url }}
             </n-text>
           </div>

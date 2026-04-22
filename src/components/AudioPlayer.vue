@@ -77,7 +77,7 @@
             </div>
           </div>
           <button v-if="false" class="lyric-btn " @click="onToggleLrc" :class="{'active':showLrc}"> 词</button>
-          <div style="color: #ffffff">
+          <div style="color: #ffffff" class="cursor-pointer">
             <svg
                 v-if="currentPlaySeq === playSeqList[1]"
                 @click="onTogglePlaySeq"
@@ -90,7 +90,7 @@
             </svg>
 
             <svg
-                v-if="currentPlaySeq === playSeqList[0]"
+                v-else
                 @click="onTogglePlaySeq"
                 class="icon"
                 style="width: 1.1796875em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;"
@@ -142,6 +142,9 @@ import {
   ControlEventVolume,
   EventNameMessage
 } from "@/helpers/websocket.js";
+import {useAppStore} from "@/stores/app.js";
+
+const appStore = useAppStore()
 
 const showLrc = ref(false)
 const appAudio = ref(null)
@@ -168,7 +171,7 @@ const props = defineProps({
 })
 
 const playSeqList = ['loop-all', 'loop-one']
-const currentPlaySeq = ref('loop-all')
+const currentPlaySeq = ref(appStore.playSeq)
 
 const emits = defineEmits([
   'next', 'prev', 'changed',
@@ -295,6 +298,7 @@ const addControlEventHandler = () => {
 
 
 const onMountedHandler = () => {
+
   ;[
     'error', 'load', 'loadedmetadata', 'loadeddata', 'play', 'pause', 'timeupdate',
     'ended', 'playing', 'progress', 'readystatechange', 'seeked', 'seeking',
@@ -412,6 +416,7 @@ const onTogglePlaySeq = () => {
     nextIdx = 0
   }
   currentPlaySeq.value = playSeqList[nextIdx]
+  appStore.setPlaySeq(currentPlaySeq.value)
 }
 
 
