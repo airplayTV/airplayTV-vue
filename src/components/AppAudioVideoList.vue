@@ -13,14 +13,37 @@
 
     <div>
       <div class="flex-row flex-justify-between flex-align-center">
-        <n-h5>播放列表</n-h5>
+        <div class="flex-row flex-justify-between flex-align-center xxx-869t7">
+          <n-h5>播放列表</n-h5>
+          <n-icon @click="switchPlayList" class="switch cursor-pointer" color="#5e5b5b" size="18" title="切换列表显示">
+            <SwitchHorizontal />
+          </n-icon>
+        </div>
         <div v-if="!isMp3" class="color-grey font-size-12px">
           快捷键：上一集(p)，下一集(n)，全屏切换(f)
         </div>
       </div>
       <div class="padding-5px"></div>
 
-      <div class="flex-column links" style="gap: 8px 12px">
+      <div v-if="playListStyleSwitch" class="flex-row links" style="gap: 8px 12px">
+        <div v-for="(item, idx) in sourceList" :key="idx" class="source-item">
+          <n-tag
+              :type="playIndex === idx ? 'info' : ''"
+              :bordered="false"
+              class="cursor-pointer"
+              @click="onOpenVideoPlay(idx, item)"
+          >
+            <div class="" style="display: flex; align-items: center">
+              {{ item.title || 'Untitled' }}
+              <n-icon v-if="room" size="18" color="#0e7a0d" style="margin-left: 5px">
+                <CastRound />
+              </n-icon>
+            </div>
+          </n-tag>
+        </div>
+
+      </div>
+      <div v-else class="flex-column links" style="gap: 8px 12px">
         <div class="source-item flex-row">
           <div class="idx text-align-center">序号</div>
           <div class="title">
@@ -64,13 +87,15 @@
 
 <script setup>
 import {onBeforeMount, ref, watch} from 'vue'
-import {NAlert, NEllipsis, NH5, NIcon, NText, useMessage,} from 'naive-ui'
+import {NAlert, NEllipsis, NH5, NIcon, NTag, NText, useMessage,} from 'naive-ui'
 import {useRoute, useRouter} from 'vue-router'
 import {getStorageSync} from '../helpers/utils'
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from '../helpers/constant'
 import {ControlEventLoadVideo, sendControl} from '@/helpers/websocket'
 import {useAppStore} from "@/stores/app.js";
 import {getCurrentAppSource} from "@/helpers/app.js";
+import {SwitchHorizontal} from "@vicons/tabler";
+import {CastRound} from "@vicons/material";
 
 const video = ref(null)
 const route = useRoute()
@@ -84,6 +109,7 @@ const appStore = useAppStore()
 const props = defineProps(['sourceList', 'vid', 'pid', 'playIndex', 'isMp3'])
 const emits = defineEmits(['changed'])
 
+const playListStyleSwitch = ref(false)
 
 watch(() => props.playIndex, (newVal, oldVal) => {
   // console.log('[watch.music]', { newVal, oldVal })
@@ -107,6 +133,10 @@ const onOpenVideoPlay = (idx, source) => {
   } else {
     emits('changed', idx, source)
   }
+}
+
+const switchPlayList = () => {
+  playListStyleSwitch.value = !playListStyleSwitch.value
 }
 
 const onBeforeMountHandler = () => {
@@ -186,6 +216,9 @@ onBeforeMount(onBeforeMountHandler)
   background-color: #fafafa;
 }
 
+.switch {
+  margin: 4px 0 0 8px;
+}
 
 @media (min-width: 0px) and (max-width: 600px) {
   .idx {
