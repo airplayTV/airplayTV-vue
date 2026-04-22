@@ -31,6 +31,8 @@ const ControlEventPlay = '/ctl_play'
 const ControlEventPause = '/ctl_pause'
 const ControlEventForward = '/ctl_forward'
 const ControlEventHistory = '/ctl_history'
+const ControlEventPrev = '/ctl_prev'
+const ControlEventNext = '/ctl_next'
 
 const connect = () => {
   if (_websocket && _websocket.readyState === 1) {
@@ -190,5 +192,7 @@ export {
   ControlEventPause,
   ControlEventForward,
   ControlEventHistory,
+  ControlEventPrev,
+  ControlEventNext,
 
 }
