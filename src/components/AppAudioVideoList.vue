@@ -15,6 +15,7 @@
       <div class="flex-row flex-justify-between flex-align-center">
         <div class="flex-row flex-justify-between flex-align-center xxx-869t7">
           <n-h5>播放列表</n-h5>
+          <n-text depth="3" class="source">({{ getCurrentAppSource(appStore, route.query) }})</n-text>
           <n-icon @click="switchPlayList" class="switch cursor-pointer" color="#767c82" size="18" title="切换列表显示">
             <SwitchHorizontal />
           </n-icon>
@@ -66,7 +67,7 @@
               {{ item.title || 'Untitled' }}
             </n-text>
           </div>
-          <div class="artist text-ellipsis color-grey">{{ item.artist || 'Unknown' }}</div>
+          <div class="artist text-ellipsis color-grey" :title="item.artist">{{ item.artist || 'Unknown' }}</div>
           <div class="op text-align-center flex-row flex-justify-center flex-align-center">
             <n-icon size="26" color="#18a058" class="cursor-pointer" @click="onOpenVideoPlay(idx, item)">
               <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32">
@@ -218,8 +219,12 @@ onBeforeMount(onBeforeMountHandler)
   background-color: #fafafa;
 }
 
+.source {
+  margin: 7px 0 0 8px;
+}
+
 .switch {
-  margin: 4px 0 0 8px;
+  margin: 6px 0 0 8px;
 }
 
 @media (min-width: 0px) and (max-width: 600px) {
