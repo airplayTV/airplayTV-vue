@@ -6,7 +6,7 @@
       <div class="flex-row flex-1">
         <div class="side">
           <div class="thumb-container">
-            <n-image :src="video.thumb" class="thumb" object-fit="fill" />
+            <n-image :src="props.video.thumb" class="thumb" object-fit="fill" />
             <div v-if="false" class="action-container flex-column flex-justify-center flex-align-center">
               <n-icon v-if="false" color="#ffffff" size="126" @click="onPauseAudio">
                 <PauseCircleOutlineOutlined />
@@ -22,7 +22,7 @@
 
         <div class="lrc flex-1 flex-column" style="width: 0;">
           <n-space class="flex-row">
-            <n-h2>{{ video.name || 'Untitled' }}</n-h2>
+            <n-h2>{{ video.name || props.video.name || 'Untitled' }}</n-h2>
             <RouterLink :to="`/video/search?page=1&keyword=${video.name}&source=`" target="_blank">
               <n-icon color="#5e5b5b" size="20">
                 <SearchSharp />
@@ -31,7 +31,7 @@
           </n-space>
 
           <div class="width-100 line-height-200 flex-1">
-            <div>{{ video.actors || 'Unknown' }}</div>
+            <div>{{ video.actors || props.video.actors || 'Unknown' }}</div>
             <div class="flex-row cursor-pointer">
               <div v-if="collectCtx.id" @click="onRemoveCollect" class="flex-row flex-align-center flex-justify-center">
                 <n-icon color="orange" size="20">
@@ -341,6 +341,8 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   console.log('[获取到播放信息]', Object.assign({}, respSource.data, { url: respSource.data.url }))
 
   const findLink = findSourceLink(props.video.links, pid)
+  findLink.name = findLink.name || props.video.name
+  findLink.actors = findLink.actors || props.video.actors
   video.value = { ...video.value, name: findLink.name }
 
   if (room.value && room.value !== clientId.value) {

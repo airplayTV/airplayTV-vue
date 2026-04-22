@@ -113,7 +113,7 @@ const handlerPlayList = (links, video = {}, source = {}, _source) => {
       return {
         id: row.id,
         title: row.name,
-        artist: row.group,
+        artist: video.actors || row.group,
         fnSrc: async () => {
           if (row.url) {
             return row.url
