@@ -575,9 +575,6 @@ const formatNewVolume = (volume, updown, offset = 0.1, min = 0, max = 1) => {
 
 const addHotKeyEventHandler = () => {
   hotkeys('p,n,f', function (event, handler) {
-    if (!artInstance.value.isReady) {
-      return
-    }
     switch (handler.key) {
       case 'p':
         onChangePlaying(playIndex.value - 1)
