@@ -62,8 +62,6 @@ const loadVideoAsync = async (vid) => {
     loadingBar.start()
     const resp = await httpVideo(vid, getCurrentAppSource(appStore, route.query))
     video.value = resp.data;
-    video.value.name = video.value.name || 'Untitled'
-    video.value.thumb = video.value.thumb || DEFAULT_AUDIO_THUMB
     loadingBar.finish()
   } catch (e) {
     loadingBar.error()
@@ -75,13 +73,15 @@ const fixVideoWithLatestCache = () => {
   // console.log('[c]', JSON.parse(JSON.stringify(appStore.latestVideo)))
   // console.log('[v]', JSON.parse(JSON.stringify(video.value)))
   if (!appStore.latestVideo || appStore.latestVideo.id !== video.value.id) {
+    video.value.name = video.value.name || 'Untitled'
+    video.value.thumb = video.value.thumb || DEFAULT_AUDIO_THUMB
     return
   }
   video.value = {
     ...video.value,
     ...{
-      name: appStore.latestVideo.name || video.value.name,
-      thumb: appStore.latestVideo.thumb || video.value.thumb,
+      name: video.value.name || appStore.latestVideo.name || 'Untitled',
+      thumb: video.value.thumb || appStore.latestVideo.thumb || DEFAULT_AUDIO_THUMB,
       actors: appStore.latestVideo.actors || video.value.actors,
     }
   }
