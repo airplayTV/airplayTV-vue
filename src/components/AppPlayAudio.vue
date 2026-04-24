@@ -1,6 +1,6 @@
 <template>
 
-  <div style="">
+  <n-spin :show="spinning">
     <div class="audio-container width-100 flex-column flex-justify-between">
 
       <div class="flex-row flex-1">
@@ -83,7 +83,7 @@
         :is-mp3="true"
         @changed="onAudioListChange" />
 
-  </div>
+  </n-spin>
 
   <n-modal
       v-model:show="showCollectModal"
@@ -130,7 +130,9 @@ import {
   NModal,
   NSelect,
   NSpace,
+  NSpin,
   NText,
+  useLoadingBar,
   useMessage
 } from "naive-ui";
 import {
@@ -156,12 +158,15 @@ const appStore = useAppStore()
 const route = useRoute()
 const router = useRouter()
 const message = useMessage()
+const loadingBar = useLoadingBar()
 
 const props = defineProps(['video'])
 
 const video = ref({})
 const source = ref({})
 const _source = ref(null)
+const errMsg = ref('')
+const spinning = ref(true)
 
 const room = ref(null)
 const clientId = ref(null)
@@ -326,14 +331,20 @@ const onPrevAudio = (ctx) => {
 
 
 const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
+  errMsg.value = null
   let respSource;
   try {
     respSource = await httpVideoSource(vid, pid, getAppSource(), _m3u8p)
   } catch (e) {
     console.error('[httpVideoSource.Error]', e)
+    errMsg.value = e
   }
+
+  spinning.value = false
+
   if (!respSource) {
-    return console.log('[视频加载失败]')
+    errMsg.value = errMsg.value || '视频加载失败'
+    return message.warning(errMsg.value)
   }
 
   source.value = respSource.data

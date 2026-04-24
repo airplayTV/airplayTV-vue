@@ -1,78 +1,80 @@
 <template>
 
-  <div style="padding: 0 10px" v-if="source">
-    <div class="flex-row flex-align-center flex-justify-center">
-      <n-h2 class="text-align-center">{{ video.name || 'Untitled' }}</n-h2>
-      <div class="padding-2px"></div>
-      <RouterLink :to="`/video/search?page=1&keyword=${video.name}`" target="_blank">
-        <n-icon color="#5e5b5b" size="20">
-          <SearchSharp />
-        </n-icon>
-      </RouterLink>
-    </div>
-
-    <div style="border-radius: 4px; display: flex; min-height: 180px" class="player-container">
-      <AppArtplayer
-          v-if="playType===playTypeOption.art && artOption"
-          :key="artOption"
-          :option="artOption"
-          :video="video"
-          :style="artStyle"
-          @get-instance="getArtInstance"
-      />
-      <iframe
-          v-else-if="playType===playTypeOption.iframe"
-          style="border:none; background-color: #f2f2f2;"
-          allowfullscreen
-          allow="fullscreen"
-          :style="{height: artStyle.height, width : artStyle.width}"
-          :src="artOption.url" />
-      <div v-else-if="errMsg" class="flex-column flex-justify-center flex-1 flex-align-center">
-        <n-text depth="3">{{ errMsg }}</n-text>
-      </div>
-      <div v-else class="flex-column flex-justify-center flex-1">
-        <n-spin size="large" />
-      </div>
-    </div>
-
-    <div style="color: dimgray; word-wrap: break-word; line-height: 200%;">
-      <div style="padding: 8px 0">
-        <n-space>
-          <div
-              v-if="source.url"
-              class="source-url bottom-dashed text-ellipsis"
-              @click="onOpenUrl(source.url)"
-              :title="source.source">
-            {{ source.url }}
-          </div>
-          <div class="bottom-dashed " @click="gotoAvp">
-            <b>libmedia(avp)解码</b>
-          </div>
-        </n-space>
+  <n-spin :show="spinning">
+    <div style="padding: 0 10px" v-if="source">
+      <div class="flex-row flex-align-center flex-justify-center">
+        <n-h2 class="text-align-center">{{ video.name || 'Untitled' }}</n-h2>
+        <div class="padding-2px"></div>
+        <RouterLink :to="`/video/search?page=1&keyword=${video.name}`" target="_blank">
+          <n-icon color="#5e5b5b" size="20">
+            <SearchSharp />
+          </n-icon>
+        </RouterLink>
       </div>
 
-      <div class="padding-2px"></div>
+      <div style="border-radius: 4px; display: flex; min-height: 180px" class="player-container">
+        <AppArtplayer
+            v-if="playType===playTypeOption.art && artOption"
+            :key="artOption"
+            :option="artOption"
+            :video="video"
+            :style="artStyle"
+            @get-instance="getArtInstance"
+        />
+        <iframe
+            v-else-if="playType===playTypeOption.iframe"
+            style="border:none; background-color: #f2f2f2;"
+            allowfullscreen
+            allow="fullscreen"
+            :style="{height: artStyle.height, width : artStyle.width}"
+            :src="artOption.url" />
+        <div v-else-if="errMsg" class="flex-column flex-justify-center flex-1 flex-align-center">
+          <n-text depth="3">{{ errMsg }}</n-text>
+        </div>
+        <div v-else class="flex-column flex-justify-center flex-1">
+          <n-spin size="large" />
+        </div>
+      </div>
 
-      <n-ellipsis :line-clamp="5" expand-trigger="click" :tooltip="false">
-        <b>
-          <n-text depth="2">简介：</n-text>
-        </b>
-        <n-text depth="3">
-          {{ video.intro }}
-        </n-text>
-      </n-ellipsis>
+      <div style="color: dimgray; word-wrap: break-word; line-height: 200%;">
+        <div style="padding: 8px 0">
+          <n-space>
+            <div
+                v-if="source.url"
+                class="source-url bottom-dashed text-ellipsis"
+                @click="onOpenUrl(source.url)"
+                :title="source.source">
+              {{ source.url }}
+            </div>
+            <div class="bottom-dashed " @click="gotoAvp">
+              <b>libmedia(avp)解码</b>
+            </div>
+          </n-space>
+        </div>
+
+        <div class="padding-2px"></div>
+
+        <n-ellipsis :line-clamp="5" expand-trigger="click" :tooltip="false">
+          <b>
+            <n-text depth="2">简介：</n-text>
+          </b>
+          <n-text depth="3">
+            {{ video.intro }}
+          </n-text>
+        </n-ellipsis>
+      </div>
+
+      <div class="padding-5px"></div>
+
+      <AppAudioVideoList
+          v-if="video"
+          :vid="props.video.id"
+          :play-index="playIndex"
+          :source-list="playList"
+          @changed="onChangePlaying" />
+
     </div>
-
-    <div class="padding-5px"></div>
-
-    <AppAudioVideoList
-        v-if="video"
-        :vid="props.video.id"
-        :play-index="playIndex"
-        :source-list="playList"
-        @changed="onChangePlaying" />
-
-  </div>
+  </n-spin>
 
 </template>
 
@@ -84,7 +86,7 @@ import {httpPlayUrlNetworkCheck, httpVideoSource} from "@/helpers/api.js";
 import {addHistoryWarp, addTimelineWarp, findSourceLink, handlerPlayList, playTypeOption} from "@/helpers/play.js";
 import {SearchSharp} from '@vicons/material'
 import AppArtplayer from '@/components/AppArtplayer.vue'
-import {NEllipsis, NH2, NIcon, NSpace, NSpin, NText, useMessage} from 'naive-ui'
+import {NEllipsis, NH2, NIcon, NSpace, NSpin, NText, useLoadingBar, useMessage} from 'naive-ui'
 import {findTimeline} from "@/helpers/db.js";
 import AppAudioVideoList from "@/components/AppAudioVideoList.vue";
 import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
@@ -116,6 +118,7 @@ const appStore = useAppStore()
 const message = useMessage()
 const route = useRoute()
 const router = useRouter()
+const loadingBar = useLoadingBar()
 
 const props = defineProps(['video'])
 
@@ -128,6 +131,7 @@ const artOption = ref({})
 const artStyle = ref({ width: '100%', height: '180px', })
 const errMsg = ref('')
 const timer = ref(null)
+const spinning = ref(false)
 
 const room = ref(null)
 const clientId = ref(null)
@@ -138,6 +142,7 @@ const playList = ref({})
 const _pageKey = '_key_app_page_video_play_'
 
 const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
+  spinning.value = true
   errMsg.value = null
   let respSource;
   try {
@@ -146,6 +151,9 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
     console.error('[httpVideoSource.Error]', e)
     errMsg.value = e
   }
+
+  spinning.value = false
+
   if (!respSource) {
     errMsg.value = errMsg.value || '视频加载失败'
     noticeToVideo(errMsg.value)
