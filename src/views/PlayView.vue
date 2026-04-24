@@ -54,6 +54,7 @@ const onUpdatedHandler = async () => {
     clearInterval(timer)
   }
   await loadVideoAsync(route.params.id)
+  fixVideoWithLatestCache()
 }
 
 const loadVideoAsync = async (vid) => {
@@ -67,6 +68,22 @@ const loadVideoAsync = async (vid) => {
   } catch (e) {
     loadingBar.error()
     console.log('[加载视频失败]', { e })
+  }
+}
+
+const fixVideoWithLatestCache = () => {
+  // console.log('[c]', JSON.parse(JSON.stringify(appStore.latestVideo)))
+  // console.log('[v]', JSON.parse(JSON.stringify(video.value)))
+  if (!appStore.latestVideo || appStore.latestVideo.id !== video.value.id) {
+    return
+  }
+  video.value = {
+    ...video.value,
+    ...{
+      name: appStore.latestVideo.name || video.value.name,
+      thumb: appStore.latestVideo.thumb || video.value.thumb,
+      actors: appStore.latestVideo.actors || video.value.actors,
+    }
   }
 }
 

@@ -344,6 +344,10 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
 
   if (!respSource) {
     errMsg.value = errMsg.value || '视频加载失败'
+
+    // 失败了也要初始化播放列表数据
+    playList.value = handlerPlayList(props.video.links, props.video, {}, getCurrentAppSource(appStore, route.query))
+
     return message.warning(errMsg.value)
   }
 
