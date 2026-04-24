@@ -13,8 +13,9 @@
       </div>
 
       <div style="border-radius: 4px; display: flex; min-height: 180px" class="player-container">
+        <div v-if="playType===playTypeOption.dp" id="dplayer" ref="dplayerRef" :style="artStyle"></div>
         <AppArtplayer
-            v-if="playType===playTypeOption.art && artOption"
+            v-else-if="playType===playTypeOption.art && artOption"
             :key="artOption"
             :option="artOption"
             :video="video"
@@ -81,7 +82,7 @@
 <script setup>
 
 import {useAppStore} from "@/stores/app.js";
-import {onBeforeMount, ref} from "vue";
+import {onBeforeMount, onBeforeUnmount, ref} from "vue";
 import {httpPlayUrlNetworkCheck, httpVideoSource} from "@/helpers/api.js";
 import {addHistoryWarp, addTimelineWarp, findSourceLink, handlerPlayList, playTypeOption} from "@/helpers/play.js";
 import {SearchSharp} from '@vicons/material'
@@ -113,6 +114,7 @@ import {useRoute, useRouter} from "vue-router";
 import {getCurrentAppSource, onOpenUrl} from "@/helpers/app.js";
 import {getStorageSync} from "@/helpers/utils.js";
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from "@/helpers/constant.js";
+import DPlayer from 'dplayer';
 
 const appStore = useAppStore()
 const message = useMessage()
@@ -125,10 +127,13 @@ const props = defineProps(['video'])
 const video = ref({})
 const source = ref({})
 const _source = ref(null)
-const playType = ref(playTypeOption.art)
-const artInstance = ref({})
+const playType = ref(playTypeOption.dp)
+const artInstance = ref(null)
 const artOption = ref({})
 const artStyle = ref({ width: '100%', height: '180px', })
+const dplayerRef = ref(null)
+const dpInstance = ref(null)
+const dpHls = ref(null)
 const errMsg = ref('')
 const timer = ref(null)
 const spinning = ref(false)
@@ -203,6 +208,8 @@ const initVideoPlayer = async (findLink, source) => {
     })
     // message.value.info('已发送投射播放请求')
     router.push(`/control?t=${Math.random()}`)
+  } else if (dplayerRef.value) {
+    loadDplayer()
   } else if (artInstance.value) {
     artOption.value = Object.assign({}, otherOption)
     await artInstance.value.switchUrl(source.url);
@@ -368,9 +375,10 @@ const handlerTimeUpdate = () => {
     clearInterval(timer.value)
   }
   timer.value = setInterval(() => {
+    const playerCtx = artInstance.value || dpInstance.value || {}
     const findLink = findSourceLink(props.video.links, source.value.id)
-    addTimelineWarp(artInstance.value, getAppSource(), video.value, source.value)
-    addHistoryWarp(artInstance.value, getAppSource(), video.value, { ...source.value, name: findLink.name || '' })
+    addTimelineWarp(playerCtx, getAppSource(), video.value, source.value)
+    addHistoryWarp(playerCtx, getAppSource(), video.value, { ...source.value, name: findLink.name || '' })
   }, 5000)
 }
 
@@ -378,6 +386,8 @@ const handlerTimeUpdate = () => {
 const noticeToVideo = (msg) => {
   if (artInstance.value) {
     artInstance.value.notice.show = msg
+  } else if (dplayerRef.value) {
+    dpInstance.value.notice(msg, 3000)
   }
 }
 
@@ -540,9 +550,87 @@ const getAppSource = () => {
   return _source.value
 }
 
+const getDpVideoConfig = (source) => {
+  let tmpConfig = {
+    url: source.url,
+    autoplay: true,
+    type: "auto",
+  };
+  if (source.type !== 'hls') {
+    return tmpConfig;
+  }
+
+  const customHlsHandler = (video, player) => {
+    // video.controls = true
+    video.autoplay = true
+    video.src = source.url
+    let hls2 = new Hls({ debug: false, });
+    hls2.loadSource(video.src);
+    hls2.attachMedia(video);
+    dpHls.value = hls2;
+  }
+
+  tmpConfig = {
+    url: source.url,
+    autoplay: true,
+    // url:'https://hll.aliyundrive.asia/vtt/movie1/m/03/神偷奶爸3.m3u8',
+    type: 'customHls',
+    customType: { customHls: customHlsHandler, },
+  }
+
+  return tmpConfig;
+}
+
+const loadDplayer = () => {
+  dpInstance.value = new DPlayer({
+    container: dplayerRef.value,
+    autoplay: true,
+    screenshot: false,
+    theme: "#00b2c2",
+    video: getDpVideoConfig(source.value),
+  });
+  dpInstance.value.on('error', (a, b, c) => {
+    noticeToVideo(a)
+  });
+  dpInstance.value.on('playing', function (ctx) {
+    handlerTimeUpdate()
+  });
+  dpInstance.value.on('loadedmetadata', async function (ctx) {
+    const _findTimeline = await findTimeline(getAppSource(), video.value.id, source.value.id)
+    if (
+        _findTimeline &&
+        _findTimeline.lastTime &&
+        _findTimeline.duration - _findTimeline.lastTime >= 60
+    ) {
+      dpInstance.value.seek(_findTimeline.lastTime)
+      dpInstance.value.play()
+      noticeToVideo(`跳转到最新进度播放`)
+    }
+  });
+  // dpInstance.value.on('timeupdate', function (ctx) {
+  // });
+
+  // 电视设备播放后暂停图标不消失
+  document.querySelector('.dplayer-mobile-play').style.display = 'none';
+}
+
+const onBeforeUnmountHandler = () => {
+  if (timer.value) {
+    clearInterval(timer.value)
+  }
+  if (dpHls.value) {
+    dpHls.value.destroy()
+  }
+  if (dpInstance.value) {
+    dpInstance.value.destroy()
+  }
+  if (artInstance.value) {
+    artInstance.value.destroy()
+  }
+}
 
 onBeforeMount(onBeforeMountHandler)
-
+onBeforeUnmount(onBeforeUnmountHandler)
 
 </script>
 

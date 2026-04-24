@@ -10,6 +10,7 @@ const sourceTypeOption = {
 const playTypeOption = {
   art: 0,
   iframe: 1,
+  dp: 2,
 }
 
 const findSourceLink = (links, pid) => {
@@ -32,9 +33,12 @@ const getPlayerTimeCtx = (playerCtx, source = {}) => {
   if (source.type === sourceTypeOption.mp3 && playerCtx.target) {
     duration = playerCtx.target.duration
     lastTime = playerCtx.target.currentTime
-  } else if (playerCtx.playing) {
+  } else if (playerCtx.playing) {// artplayer
     duration = playerCtx.duration
     lastTime = playerCtx.currentTime
+  } else if (playerCtx.video && playerCtx.video.duration) {// dplayer
+    duration = playerCtx.video.duration
+    lastTime = playerCtx.video.currentTime
   }
   return { duration, lastTime }
 }
