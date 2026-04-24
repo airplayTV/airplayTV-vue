@@ -469,7 +469,7 @@ const onChangePlaying = async (idx, ctx) => {
 
 const addControlEventHandler = () => {
   addEventHandler(EventNameMessage, _pageKey, (data) => {
-    console.log('[event]', data.event, data)
+    // console.log('[event]', data.event, data)
     switch (data.event) {
       case ControlEventMute:
         if (dpInstance.value) {
@@ -583,7 +583,17 @@ const addHotKeyEventHandler = () => {
         onChangePlaying(playIndex.value + 1)
         break;
       case 'f':
-        artInstance.value.fullscreen = !artInstance.value.fullscreen
+        if (dpInstance.value) {
+          if (!dpInstance.value.fullScreen_status) {
+            dpInstance.value.fullScreen.request('web');
+            dpInstance.value.fullScreen_status = true
+          } else {
+            dpInstance.value.fullScreen.cancel('web');
+            dpInstance.value.fullScreen_status = false
+          }
+        } else if (artInstance.value) {
+          artInstance.value.fullscreen = !artInstance.value.fullscreen
+        }
         break
       default:
         // console.log('[handler]', handler.keys)
