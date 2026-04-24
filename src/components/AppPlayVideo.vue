@@ -222,7 +222,6 @@ const initVideoPlayer = async (findLink, source) => {
     showVideoTitle()
   }
 
-
 }
 
 const getHlsOptions = () => {
@@ -456,17 +455,26 @@ const onChangePlaying = async (idx, ctx) => {
 
 const addControlEventHandler = () => {
   addEventHandler(EventNameMessage, _pageKey, (data) => {
+    console.log('[event]', data.event, data)
     switch (data.event) {
       case ControlEventMute:
         artInstance.value.muted = !artInstance.value.muted
         break
       case ControlEventFullscreen:
-        artInstance.value.fullscreen = true
-        artInstance.value.fullscreenWeb = true
+        if (dpInstance.value) {
+          dpInstance.value.fullScreen.request('web');
+        } else if (artInstance.value) {
+          artInstance.value.fullscreen = true
+          artInstance.value.fullscreenWeb = true
+        }
         break
       case ControlEventFullscreenExit:
-        artInstance.value.fullscreen = false
-        artInstance.value.fullscreenWeb = false
+        if (dpInstance.value) {
+          dpInstance.value.fullScreen.cancel('web');
+        } else if (artInstance.value) {
+          artInstance.value.fullscreen = false
+          artInstance.value.fullscreenWeb = false
+        }
         break
       case ControlEventQrcode:
         break
@@ -476,33 +484,64 @@ const addControlEventHandler = () => {
         networkCheck(artOption.value.url)
         break
       case ControlEventVolume:
-        if (data.value <= 0) {
-          artInstance.value.volume -= 0.1
-        }
-        if (data.value > 0) {
-          artInstance.value.volume += 0.1
+        if (dpInstance.value) {
+          dpInstance.value.video.volume = formatNewVolume(dpInstance.value.video.volume, data.value)
+        } else if (artInstance.value) {
+          artInstance.value.volume = formatNewVolume(artInstance.value.volume, data.value)
         }
         break
       case ControlEventBack:
-        artInstance.value.backward = 15
-        break
-      case ControlEventPlay:
-        artInstance.value.play().then(resp => {
-        }).catch(err => {
-          message.info(`${err}`)
-        })
-        break
-      case ControlEventPause:
-        artInstance.value.pause()
+        if (dpInstance.value) {
+          //
+        } else if (artInstance.value) {
+          artInstance.value.backward = 15
+        }
         break
       case ControlEventForward:
-        artInstance.value.forward = 15
+        if (dpInstance.value) {
+          //
+        } else if (artInstance.value) {
+          artInstance.value.forward = 15
+        }
+        break
+      case ControlEventPlay:
+        if (dpInstance.value) {
+          //
+        } else if (artInstance.value) {
+          artInstance.value.play().then(resp => {
+          }).catch(err => {
+            message.info(`${err}`)
+          })
+        }
+        break
+      case ControlEventPause:
+        if (dpInstance.value) {
+          //
+        } else if (artInstance.value) {
+          artInstance.value.pause()
+        }
         break
       case ControlEventHistory:
         router.push(`/history?t=${Math.random()}`)
         break
     }
   })
+}
+
+const formatNewVolume = (volume, updown, offset = 0.1, min = 0, max = 1) => {
+  if (updown <= 0) {
+    volume -= 0.1
+  }
+  if (updown > 0) {
+    volume += 0.1
+  }
+  if (volume > max) {
+    volume = max
+  }
+  if (volume < min) {
+    volume = min
+  }
+  return volume
 }
 
 const addHotKeyEventHandler = () => {
@@ -587,8 +626,10 @@ const loadDplayer = () => {
     autoplay: true,
     screenshot: false,
     theme: "#00b2c2",
+    volume: 1,
     video: getDpVideoConfig(source.value),
   });
+
   dpInstance.value.on('error', (a, b, c) => {
     noticeToVideo(a)
   });
