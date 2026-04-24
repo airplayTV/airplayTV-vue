@@ -396,7 +396,7 @@ const onOpenVideo = () => {
 }
 
 const sendControlHandler = (data) => {
-  console.log('[sendControlHandler]', data)
+  // console.log('[sendControlHandler]', data)
 
   if (!socketReady()) {
     message.value.warning('websocket未就绪！')

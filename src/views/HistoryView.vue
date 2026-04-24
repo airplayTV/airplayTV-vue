@@ -133,7 +133,7 @@ const loadHistoryList = async (page) => {
 
     return item
   })
-  console.log('[historyList]', JSON.parse(JSON.stringify(historyList.value)))
+  // console.log('[historyList]', JSON.parse(JSON.stringify(historyList.value)))
   loadingBar.finish()
 }
 

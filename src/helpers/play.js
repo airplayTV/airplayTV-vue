@@ -8,9 +8,9 @@ const sourceTypeOption = {
 }
 
 const playTypeOption = {
-  art: 0,
-  iframe: 1,
-  dp: 2,
+  dp: 1,
+  art: 2,// 不支持火狐
+  iframe: 3,
 }
 
 const findSourceLink = (links, pid) => {
