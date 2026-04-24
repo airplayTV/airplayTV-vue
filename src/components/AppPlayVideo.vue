@@ -342,25 +342,39 @@ const networkCheck = (playUrl) => {
   httpPlayUrlNetworkCheck(playUrl).then(resp => {
     const d1 = ((Date.now() - t1) / 1000).toFixed(2)
     // console.log('[httpPlayUrlNetworkCheck.resp]', resp.data.resolved)
-    const resolved = resp.data.resolved.map(item => {
-      return `<div><span class="sp1">[${d1}秒]</span> <span class="sp1">${item.addr}</span>(<span class="sp2">${item.ip}</span>) <span class="sp3">${item.url}</span></div>`
-    })
+    if (dpInstance.value) {
+      const resolved = resp.data.resolved.map(item => {
+        return `[${d1}秒] ${item.addr}(${item.ip}) ${item.url}`
+      })
+      noticeToVideo(resolved.join(''))
+      setTimeout(() => {
+        noticeToVideo(resolved.join(''))
+      }, 1000)
+      setTimeout(() => {
+        noticeToVideo(resolved.join(''))
+      }, 2000)
+    } else if (artInstance.value) {
+      const resolved = resp.data.resolved.map(item => {
+        return `<div><span class="sp1">[${d1}秒]</span> <span class="sp1">${item.addr}</span>(<span class="sp2">${item.ip}</span>) <span class="sp3">${item.url}</span></div>`
+      })
 
-    artInstance.value.layers.add({
-      name: 'network',
-      html: resolved.join(''),
-      style: {
-        position: 'absolute',
-        bottom: '70px',
-        left: '20px',
-        lineHeight: '150%'
-      }
-    })
+      artInstance.value.layers.add({
+        name: 'network',
+        html: resolved.join(''),
+        style: {
+          position: 'absolute',
+          bottom: '70px',
+          left: '20px',
+          lineHeight: '150%'
+        }
+      })
 
-    setTimeout(() => {
-      // Delete the layer by name
-      artInstance.value.layers.remove('network')
-    }, 4000)
+      setTimeout(() => {
+        // Delete the layer by name
+        artInstance.value.layers.remove('network')
+      }, 4000)
+    }
+
 
   }).catch(err => {
     // console.log('[httpPlayUrlNetworkCheck.Error]', err)
@@ -382,11 +396,11 @@ const handlerTimeUpdate = () => {
 }
 
 
-const noticeToVideo = (msg) => {
+const noticeToVideo = (msg, timeout = 3000) => {
   if (artInstance.value) {
     artInstance.value.notice.show = msg
   } else if (dplayerRef.value) {
-    dpInstance.value.notice(msg, 3000)
+    dpInstance.value.notice(msg, timeout)
   }
 }
 
@@ -458,7 +472,15 @@ const addControlEventHandler = () => {
     console.log('[event]', data.event, data)
     switch (data.event) {
       case ControlEventMute:
-        artInstance.value.muted = !artInstance.value.muted
+        if (dpInstance.value) {
+          if (dpInstance.value.video.volume) {
+            dpInstance.value.volume(0, true, false);
+          } else {
+            dpInstance.value.volume(1, true, false);
+          }
+        } else if (artInstance.value) {
+          artInstance.value.muted = !artInstance.value.muted
+        }
         break
       case ControlEventFullscreen:
         if (dpInstance.value) {
@@ -479,34 +501,40 @@ const addControlEventHandler = () => {
       case ControlEventQrcode:
         break
       case ControlEventInfo:
-        artInstance.value.controls.show = true
-        noticeToVideo(`正在播放：${artOption.value.video.title}`)
-        networkCheck(artOption.value.url)
+        if (dpInstance.value) {
+          noticeToVideo(`正在播放：${video.value.name}`)
+          networkCheck(source.value.url)
+        } else if (artInstance.value) {
+          artInstance.value.controls.show = true
+          noticeToVideo(`正在播放：${artOption.value.video.title}`)
+          networkCheck(artOption.value.url)
+        }
         break
       case ControlEventVolume:
         if (dpInstance.value) {
-          dpInstance.value.video.volume = formatNewVolume(dpInstance.value.video.volume, data.value)
+          dpInstance.value.volume(formatNewVolume(dpInstance.value.video.volume, data.value), true, false);
         } else if (artInstance.value) {
           artInstance.value.volume = formatNewVolume(artInstance.value.volume, data.value)
         }
         break
       case ControlEventBack:
         if (dpInstance.value) {
-          //
+          dpInstance.value.seek(dpInstance.value.video.currentTime - 15)
         } else if (artInstance.value) {
           artInstance.value.backward = 15
         }
         break
       case ControlEventForward:
         if (dpInstance.value) {
-          //
+          dpInstance.value.seek(dpInstance.value.video.currentTime + 15)
         } else if (artInstance.value) {
           artInstance.value.forward = 15
         }
         break
       case ControlEventPlay:
         if (dpInstance.value) {
-          //
+          dpInstance.value.play()
+          dpInstance.value.video.play()
         } else if (artInstance.value) {
           artInstance.value.play().then(resp => {
           }).catch(err => {
@@ -516,7 +544,8 @@ const addControlEventHandler = () => {
         break
       case ControlEventPause:
         if (dpInstance.value) {
-          //
+          dpInstance.value.pause()
+          dpInstance.value.video.pause()
         } else if (artInstance.value) {
           artInstance.value.pause()
         }
