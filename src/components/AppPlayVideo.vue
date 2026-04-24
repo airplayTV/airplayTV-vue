@@ -607,6 +607,15 @@ const loadDplayer = () => {
       noticeToVideo(`跳转到最新进度播放`)
     }
   });
+  dpInstance.value.on('ended', (a, b, c) => {
+    if (!dpInstance.value || !dpInstance.value.video) {
+      return
+    }
+    if (dpInstance.value.video.currentTime > 0 && dpInstance.value.video.currentTime === dpInstance.value.video.duration) {
+      onChangePlaying(playIndex.value + 1)
+    }
+  });
+
   // dpInstance.value.on('timeupdate', function (ctx) {
   // });
 
