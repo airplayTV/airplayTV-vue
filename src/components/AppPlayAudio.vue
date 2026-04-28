@@ -101,7 +101,7 @@
             v-model:value="formCollect.name"
             clearable filterable
             :tag="true"
-            :options="collectOptions"
+            :options="tmpCollectOptions"
             placeholder="请选择收藏夹/输入新建收藏夹" />
       </n-form-item>
       <n-space justify="end">
@@ -144,7 +144,7 @@ import {
 } from "@vicons/material";
 import AppAudioVideoList from "@/components/AppAudioVideoList.vue";
 import AudioPlayer from "@/components/AudioPlayer.vue";
-import {httpCollectAdd, httpCollectRemove, httpCollectStatus, httpVideoSource} from "@/helpers/api.js";
+import {httpCollectAdd, httpCollectList, httpCollectRemove, httpCollectStatus, httpVideoSource} from "@/helpers/api.js";
 import {onBeforeMount, ref} from "vue";
 import {useAppStore} from "@/stores/app.js";
 import {addHistoryWarp, addTimelineWarp, findSourceLink, handlerPlayList} from "@/helpers/play.js";
@@ -187,6 +187,7 @@ const collectOptions = [
   { label: '默认收藏', value: '默认收藏' },
   { label: '私藏集合', value: '私藏集合' },
 ]
+const tmpCollectOptions = ref([])
 
 const _pageKey = '_key_app_page_audio_play_'
 
@@ -268,6 +269,7 @@ const onPauseAudio = () => {
 }
 
 const onAddCollect = () => {
+  loadHttpCollectList()
   showCollectModal.value = true
   if (!formCollect.value.user) {
     formCollect.value.user = appStore.username
@@ -407,6 +409,21 @@ const getAppSource = () => {
     _source.value = getCurrentAppSource(appStore, route.query)
   }
   return _source.value
+}
+
+const loadHttpCollectList = () => {
+  httpCollectList().then(resp => {
+    const tmpList = (resp.data || []).filter(item => {
+      const tmpFound = collectOptions.filter(option => option.value === item.name)
+      return !tmpFound || tmpFound.length === 0
+    }).map(item => {
+      return { label: item.name, value: item.name }
+    })
+    tmpCollectOptions.value = [...collectOptions, ...tmpList]
+  }).catch(e => {
+    tmpCollectOptions.value = [...collectOptions]
+    console.log('[httpCollectList.e]', e)
+  })
 }
 
 onBeforeMount(onBeforeMountHandler)

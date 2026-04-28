@@ -83,7 +83,7 @@
 
 import {useAppStore} from "@/stores/app.js";
 import {onBeforeMount, onBeforeUnmount, ref} from "vue";
-import {httpPlayUrlNetworkCheck, httpVideoSource} from "@/helpers/api.js";
+import {httpCollectList, httpPlayUrlNetworkCheck, httpVideoSource} from "@/helpers/api.js";
 import {addHistoryWarp, addTimelineWarp, findSourceLink, handlerPlayList, playTypeOption} from "@/helpers/play.js";
 import {SearchSharp} from '@vicons/material'
 import AppArtplayer from '@/components/AppArtplayer.vue'
@@ -697,7 +697,7 @@ const loadDplayer = () => {
   // });
 
   // 电视设备播放后暂停图标不消失
-  document.querySelector('.dplayer-mobile-play').style.display = 'none';
+  // document.querySelector('.dplayer-mobile-play').style.display = 'none';
 }
 
 const onBeforeUnmountHandler = () => {
@@ -713,6 +713,17 @@ const onBeforeUnmountHandler = () => {
   if (artInstance.value) {
     artInstance.value.destroy()
   }
+}
+
+const loadHttpCollectList = () => {
+  spinning.value = true
+  httpCollectList().then(resp => {
+    console.log('[httpCollectList.resp]', resp)
+  }).catch(e => {
+    console.log('[httpCollectList.e]', e)
+  }).finally(() => {
+    spinning.value = false
+  })
 }
 
 onBeforeMount(onBeforeMountHandler)
