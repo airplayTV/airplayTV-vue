@@ -72,8 +72,10 @@ const loadVideoAsync = async (vid) => {
 const fixVideoWithLatestCache = () => {
   // console.log('[c]', JSON.parse(JSON.stringify(appStore.latestVideo)))
   // console.log('[v]', JSON.parse(JSON.stringify(video.value)))
-  const tmpVid = video.value ? video.value.id : null
-  if (!appStore.latestVideo || appStore.latestVideo.id !== tmpVid) {
+  if (!video.value || !video.value.id) {
+    return;
+  }
+  if (!appStore.latestVideo || appStore.latestVideo.id !== video.value.id) {
     video.value.name = video.value.name || 'Untitled'
     video.value.thumb = video.value.thumb || DEFAULT_AUDIO_THUMB
     return
