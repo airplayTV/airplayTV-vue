@@ -185,7 +185,6 @@ const collectCtx = ref({})
 
 const collectOptions = [
   { label: '默认收藏', value: '默认收藏' },
-  { label: '私藏集合', value: '私藏集合' },
 ]
 const tmpCollectOptions = ref([])
 
@@ -303,10 +302,10 @@ const handleCreateCollect = () => {
     user: formCollect.value.user,
     collect_name: formCollect.value.name,
     source: getAppSource(),
-    vid: video.value.id,
+    vid: props.video.id,
     pid: source.value.id,
-    name: video.value.name,
-    thumb: video.value.thumb,
+    name: props.video.name || video.value.name,
+    thumb: props.video.thumb || video.value.thumb,
     url: source.value.source,
   }
 
