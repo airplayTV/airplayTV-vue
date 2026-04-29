@@ -26,6 +26,7 @@ const CONTROL_PAUSE = '/ctl_pause'
 const CONTROL_FORWARD = '/ctl_forward'
 
 const DEFAULT_AUDIO_THUMB = 'https://img1.kuwo.cn/star/userpl2015/71/59/1762250803374_499998371_500.jpg'
+const DEFAULT_AUDIO_ICON = 'https://h5s.kuwo.cn/www/kw-www/img/dialog_pic_vinyl@2x.b683ac0.png'
 
 export {
   KEY_CLIENT_ID,

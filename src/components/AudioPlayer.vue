@@ -18,8 +18,9 @@
       <div class="player-wrapper">
         <div class="player-left">
           <img
-              :src="music.pic || 'https://h5s.kuwo.cn/www/kw-www/img/dialog_pic_vinyl@2x.b683ac0.png'"
+              :src="music.pic"
               :alt="music.title"
+              @error="onAudioThumbError"
               class="song-cover">
           <div class="song-info">
             <div class="song-name">{{ music.title || 'Untitled' }}</div>
@@ -144,6 +145,7 @@ import {
   EventNameMessage
 } from "@/helpers/websocket.js";
 import {useAppStore} from "@/stores/app.js";
+import {DEFAULT_AUDIO_ICON} from "@/helpers/constant.js";
 
 const appStore = useAppStore()
 
@@ -418,6 +420,12 @@ const onTogglePlaySeq = () => {
   }
   currentPlaySeq.value = playSeqList[nextIdx]
   appStore.setPlaySeq(currentPlaySeq.value)
+}
+
+const onAudioThumbError = (ctx) => {
+  if (ctx.target.src !== DEFAULT_AUDIO_ICON) {
+    music.value.pic = DEFAULT_AUDIO_ICON
+  }
 }
 
 
