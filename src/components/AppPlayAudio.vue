@@ -68,6 +68,8 @@
           @prev="onPrevAudio"
           @timeupdate="onAudioEvent"
           @playing="onAudioEvent"
+          @pause="onAudioEvent"
+          @ended="onAudioEvent"
           @changed="onAudioChange"
       />
 
@@ -231,6 +233,41 @@ const onAudioEvent = (ctx) => {
     case 'loadeddata':
       apInstance.value = ctx.target
       break
+  }
+}
+
+const handleNextVideo = (next = 0) => {
+  let found = null
+  const _pid = source.value.id
+  const tmpLinks = playList.value || []
+  if (tmpLinks.length === 1) {
+    playNextVideo(tmpLinks[0])
+    return
+  }
+  for (let i = 0; i < tmpLinks.length; i++) {
+    if (found) {
+      break
+    }
+    if (tmpLinks[i].id === _pid) {
+      found = true
+    }
+    if (found && i === 0 && next < 0) {
+      continue
+    }
+    if (found && !tmpLinks[i + next]) {
+      continue
+    }
+    if (found && tmpLinks[i + next]) {
+      console.log('[即将播放]', tmpLinks[i + next])
+      playNextVideo(tmpLinks[i + next])
+    }
+  }
+}
+
+const playNextVideo = (nextSource) => {
+  if (nextSource) {
+    router.replace(`/video/detail/${props.video.id}?_source=${appStore.source}&pid=${nextSource.id}&from=next`)
+    tryHandlerVideoSource(props.video.id, nextSource.id)
   }
 }
 

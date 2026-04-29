@@ -8,6 +8,7 @@
     <div class="player-container" style="height: 80px;">
       <div class="top-progress-bar">
         <n-slider
+            :key="audioCtx.duration"
             v-model:value="audioCtx.currentTime"
             :max="audioCtx.duration"
             placement="right-start"
@@ -222,8 +223,8 @@ const onNextAudio = () => {
 }
 
 const updateAudioProgress = (elementCtx) => {
-  audioCtx.value.duration = elementCtx.duration
-  audioCtx.value.currentTime = elementCtx.currentTime
+  audioCtx.value.duration = parseInt(elementCtx.duration)
+  audioCtx.value.currentTime = parseInt(elementCtx.currentTime)
 }
 
 const updateAudioVolume = (elementCtx) => {
@@ -399,7 +400,7 @@ const switchAudio = async (index = 0) => {
     emits('changed', index, tmpMusic)
   }
 
-  updateAudioProgress({ duration: 100, currentTime: 0 })
+  // updateAudioProgress({ duration: 100, currentTime: 0 })
 
   music.value = Object.assign({}, tmpMusic)
   audioCtx.value.index = index
@@ -531,30 +532,38 @@ audio {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  height: 3px;
-  cursor: pointer;
-  z-index: 10;
-  background: transparent;
-  transition: height .2s
+  width: 100%;
+  z-index: 99;
 }
 
-.top-progress-bar:hover {
-  height: 4px
-}
+//.top-progress-bar {
+//  position: absolute;
+//  top: 0;
+//  left: 0;
+//  right: 0;
+//  height: 3px;
+//  cursor: pointer;
+//  z-index: 10;
+//  background: transparent;
+//  transition: height .2s
+//}
 
-.top-progress-bar.dragging, .top-progress-bar:hover {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1.2)
-}
-
-.top-progress-bar.dragging {
-  height: 6px !important
-}
-
-.top-progress-bar.dragging {
-  background: hsla(0, 0%, 100%, .12)
-}
+//.top-progress-bar:hover {
+//  height: 4px
+//}
+//
+//.top-progress-bar.dragging, .top-progress-bar:hover {
+//  opacity: 1;
+//  transform: translate(-50%, -50%) scale(1.2)
+//}
+//
+//.top-progress-bar.dragging {
+//  height: 6px !important
+//}
+//
+//.top-progress-bar.dragging {
+//  background: hsla(0, 0%, 100%, .12)
+//}
 
 .player-left {
   display: flex;
