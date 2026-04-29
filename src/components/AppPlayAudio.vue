@@ -310,9 +310,9 @@ const handleCreateCollect = () => {
   }
 
   httpCollectAdd(p).then(resp => {
+    collectCtx.value = resp.data
     console.log('[resp]', resp)
     message.info('已添加到收藏夹')
-
   }).catch(err => {
     console.log('[err]', err)
     message.warning(`${err}`)
