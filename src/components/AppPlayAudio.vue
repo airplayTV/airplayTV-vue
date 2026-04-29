@@ -97,12 +97,19 @@
         <n-input v-model:value="formCollect.user" placeholder="输入用户账号/手机号" />
       </n-form-item>
       <n-form-item label="收藏夹" path="name" required>
-        <n-select
-            v-model:value="formCollect.name"
-            clearable filterable
-            :tag="true"
-            :options="tmpCollectOptions"
-            placeholder="请选择收藏夹/输入新建收藏夹" />
+        <div class="width-100 flex-row">
+          <n-select
+              class="flex-1"
+              v-model:value="formCollect.name"
+              clearable filterable
+              :tag="true"
+              :options="tmpCollectOptions"
+              placeholder="请选择收藏夹/输入新建收藏夹" />
+          <div class="padding-10px"></div>
+          <n-checkbox size="large" v-model:checked="formCollect.useThumb" class="flex-row flex-align-center">
+            设置封面图
+          </n-checkbox>
+        </div>
       </n-form-item>
       <n-space justify="end">
         <n-button type="primary" @click="handleCreateCollect">
@@ -121,6 +128,7 @@
 
 import {
   NButton,
+  NCheckbox,
   NForm,
   NFormItem,
   NH2,
@@ -179,7 +187,8 @@ const showCollectModal = ref(false)
 
 const formCollect = ref({
   user: null,// 用户
-  name: null// 收藏夹名称
+  name: null,// 收藏夹名称
+  useThumb: true,// 使用封面图
 })
 const collectCtx = ref({})
 
@@ -298,7 +307,7 @@ const handleCreateCollect = () => {
     return message.warning('收藏夹名称太短', { duration: 12 * 1000 })
   }
 
-  const p = {
+  let p = {
     user: formCollect.value.user,
     collect_name: formCollect.value.name,
     source: getAppSource(),
@@ -307,6 +316,9 @@ const handleCreateCollect = () => {
     name: props.video.name || video.value.name,
     thumb: props.video.thumb || video.value.thumb,
     url: source.value.source,
+  }
+  if (!formCollect.value.useThumb) {
+    p.thumb = ''
   }
 
   httpCollectAdd(p).then(resp => {
