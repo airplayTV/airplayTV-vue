@@ -40,6 +40,7 @@ import {
   KEY_APP_PLAY_STYLE_SWITCH,
   KEY_APP_USERNAME,
   KEY_CLIENT_ID,
+  KEY_ROOM_ID,
   KEY_VIDEO_LATEST_VIDEO,
   KEY_VIDEO_SOURCE,
   KEY_VIDEO_SOURCE_SECRET,
@@ -51,6 +52,7 @@ import {
   connect,
   ControlEventLoadVideo,
   EventNameClose,
+  EventNameError,
   EventNameMessage,
   EventNameOpen,
   joinGroup,
@@ -58,6 +60,7 @@ import {
 } from '@/helpers/websocket'
 import {useRoute, useRouter} from 'vue-router'
 import {httpSourceList} from "@/helpers/api.js";
+import {controllerPresence} from '@/helpers/controller-presence'
 
 const _pageKey = '_key_app_page_app_'
 const router = useRouter()
@@ -67,12 +70,11 @@ const errMsg = ref('')
 const { sourceList } = storeToRefs(useAppStore())
 
 const onBeforeMountHandler = () => {
-  const clientId = getStorageSync(KEY_CLIENT_ID)
+  let clientId = getStorageSync(KEY_CLIENT_ID)
   if (!clientId) {
-    setStorageSync(KEY_CLIENT_ID, uuidv4()?.replaceAll('-', ''))
+    clientId = uuidv4()?.replaceAll('-', '')
+    setStorageSync(KEY_CLIENT_ID, clientId)
   }
-
-  console.log('[client-id]', getStorageSync(KEY_CLIENT_ID))
 
   initAppStore()
 
@@ -87,12 +89,34 @@ const onBeforeMountHandler = () => {
         break
     }
   })
-  addEventHandler(EventNameOpen, _pageKey, (data) => {
-    // 加入房间
-    joinGroup(clientId)
+  addEventHandler(EventNameOpen, _pageKey, () => {
+    void (async () => {
+      try {
+        await joinGroup(clientId)
+      } catch (error) {
+        console.warn('[join-group] failed')
+      }
+
+      const room = getStorageSync(KEY_ROOM_ID)
+      if (!room) {
+        return
+      }
+
+      try {
+        await controllerPresence.start(room)
+      } catch (error) {
+        console.warn('[controller-presence] failed')
+      }
+    })().catch(() => {
+      console.warn('[controller-presence] failed')
+    })
   })
   addEventHandler(EventNameClose, _pageKey, () => {
+    controllerPresence.stop()
     setTimeout(connect, 3000)
+  })
+  addEventHandler(EventNameError, _pageKey, () => {
+    controllerPresence.stop()
   })
   connect()
 }
@@ -116,7 +140,7 @@ const initAppStore = async () => {
       checkOrResetSource(resp.data)
 
     } catch (e) {
-      console.log('E]', e.message)
+      console.warn('[source-list] load failed')
       // message.warning(e.message || '服务器异常')
       errMsg.value = e.message || '服务器异常'
 
@@ -166,6 +190,7 @@ const resetSourceTag = (currentSourceTags) => {
 
 
 const onBeforeUnmountHandler = () => {
+  controllerPresence.stop()
   removeEventHandler(_pageKey)
 }
 

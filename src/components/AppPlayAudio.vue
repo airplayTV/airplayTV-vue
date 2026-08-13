@@ -159,7 +159,8 @@ import {onBeforeMount, ref} from "vue";
 import {useAppStore} from "@/stores/app.js";
 import {addHistoryWarp, addTimelineWarp, findSourceLink, handlerPlayList} from "@/helpers/play.js";
 import {useRoute, useRouter} from "vue-router";
-import {ControlEventLoadVideo, sendControl} from "@/helpers/websocket.js";
+import {ControlEventLoadVideo, sendControlWithAck} from "@/helpers/websocket.js";
+import {createCastingCommandGuard, sendCastingCommand} from "@/helpers/casting.js";
 import {getStorageSync} from "@/helpers/utils.js";
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from "@/helpers/constant.js";
 import {getCurrentAppSource} from "@/helpers/app.js";
@@ -200,10 +201,11 @@ const collectOptions = [
 const tmpCollectOptions = ref([])
 
 const _pageKey = '_key_app_page_audio_play_'
+const runCastingCommand = createCastingCommandGuard()
 
 
 const onEmptyEvent = (ctx) => {
-  console.log('[onEmptyEvent]', ctx)
+  console.log('[audio-player] empty event')
 }
 
 const onAudioEvent = (ctx) => {
@@ -258,7 +260,7 @@ const handleNextVideo = (next = 0) => {
       continue
     }
     if (found && tmpLinks[i + next]) {
-      console.log('[即将播放]', tmpLinks[i + next])
+      console.log('[audio-player] advancing')
       playNextVideo(tmpLinks[i + next])
     }
   }
@@ -297,20 +299,18 @@ const onAudioListChange = (idx, ctx) => {
 const onAudioTimeUpdate = (ctx) => {
   for (let i = 0; i < lrcTimeLine.length; i++) {
     if (lrcTimeLine[i].time >= ctx.timeStamp) {
-      console.log('[找到歌词]', lrcTimeLine[i])
+      console.log('[audio-player] lyric matched')
       break
     }
   }
 }
 
 const onPlayAudio = () => {
-  console.log('[onPlayAudio]', apInstance.value.play())
-  console.log('[inst]', apInstance.value)
+  apInstance.value.play()
 }
 
 const onPauseAudio = () => {
-  console.log('[onPauseAudio]', apInstance.value.pause())
-  console.log('[inst]', apInstance.value)
+  apInstance.value.pause()
 }
 
 const onAddCollect = () => {
@@ -319,19 +319,16 @@ const onAddCollect = () => {
   if (!formCollect.value.user) {
     formCollect.value.user = appStore.username
   }
-  console.log('[onAddCollect]', JSON.parse(JSON.stringify({
-    video: video.value,
-    source: source.value,
-  })))
+  console.log('[collection] add requested')
 }
 
 const onRemoveCollect = () => {
-  console.log('[onRemoveCollect]', JSON.parse(JSON.stringify(collectCtx.value)))
+  console.log('[collection] remove requested')
   httpCollectRemove({ id: +collectCtx.value.id, collect_id: +collectCtx.value.collect_id }).then(resp => {
-    console.log('[httpCollectRemove.resp]', resp)
+    console.log('[collection] removed')
     collectCtx.value = {}
   }).catch(err => {
-    console.log('[httpCollectRemove.Error]', err)
+    console.warn('[collection] remove failed')
     message.warning(`${err}`)
   })
 }
@@ -360,10 +357,10 @@ const handleCreateCollect = () => {
 
   httpCollectAdd(p).then(resp => {
     collectCtx.value = resp.data
-    console.log('[resp]', resp)
+    console.log('[collection] added')
     message.info('已添加到收藏夹')
   }).catch(err => {
-    console.log('[err]', err)
+    console.warn('[collection] add failed')
     message.warning(`${err}`)
   }).finally(() => {
     appStore.setUsername(formCollect.value.user)
@@ -372,11 +369,11 @@ const handleCreateCollect = () => {
 }
 
 const onNextAudio = (ctx) => {
-  console.log('[onNextAudio]', ctx)
+  console.log('[audio-player] next requested')
 }
 
 const onPrevAudio = (ctx) => {
-  console.log('[onPrevAudio]', ctx)
+  console.log('[audio-player] previous requested')
 }
 
 
@@ -386,7 +383,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   try {
     respSource = await httpVideoSource(vid, pid, getAppSource(), _m3u8p)
   } catch (e) {
-    console.error('[httpVideoSource.Error]', e)
+    console.error('[audio-source] load failed')
     errMsg.value = e
   }
 
@@ -403,7 +400,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
 
   source.value = respSource.data
 
-  console.log('[获取到播放信息]', Object.assign({}, respSource.data, { url: respSource.data.url }))
+  console.log('[audio-source] loaded')
 
   const findLink = findSourceLink(props.video.links, pid)
   findLink.name = findLink.name || props.video.name
@@ -411,17 +408,25 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   video.value = { ...video.value, name: findLink.name }
 
   if (room.value && room.value !== clientId.value) {
-    // 投射播放
-    sendControl(room.value, {
-      event: ControlEventLoadVideo,
-      group: room.value,
-      vid: props.video.id,
-      pid: findLink.id || '',
-      source: getAppSource(),
-      mode: appStore.sourceSecret,
+    await runCastingCommand(async () => {
+      try {
+        await sendCastingCommand({
+          room: room.value,
+          context: {
+            event: ControlEventLoadVideo,
+            group: room.value,
+            vid: props.video.id,
+            pid: findLink.id || '',
+            source: getAppSource(),
+            mode: appStore.sourceSecret,
+          },
+          sendControl: sendControlWithAck,
+          navigate: (path) => router.push(path),
+        })
+      } catch (_) {
+        message.warning('电视未连接，请重新扫码')
+      }
     })
-    // message.value.info('已发送投射播放请求')
-    router.push('/control')
   } else {
     playIndex.value = findLink._idx || 0
     playList.value = handlerPlayList(props.video.links, props.video, source.value, getCurrentAppSource(appStore, route.query))
@@ -430,10 +435,10 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
 
 const loadCollectStatus = (vid, pid) => {
   httpCollectStatus(+vid, +pid, getAppSource()).then(resp => {
-    console.log('[httpCollectStatus.resp]', resp)
+    console.log('[collection] status loaded')
     collectCtx.value = resp.data
   }).catch(err => {
-    console.log('[httpCollectStatus.Error]', err)
+    console.warn('[collection] status failed')
     collectCtx.value = {}
   })
 }
@@ -470,7 +475,7 @@ const loadHttpCollectList = () => {
     tmpCollectOptions.value = [...collectOptions, ...tmpList]
   }).catch(e => {
     tmpCollectOptions.value = [...collectOptions]
-    console.log('[httpCollectList.e]', e)
+    console.warn('[collection] list failed')
   })
 }
 

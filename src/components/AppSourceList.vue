@@ -25,14 +25,14 @@
               class="cursor-pointer"
               @click="onOpenVideoPlay(vid, item)"
           >
-            <RouterLink :to="`/video/detail/${vid}?_source=${appStore.source}&pid=${item.id}`" class="flex-column">
+            <div class="flex-column">
               <div class="" style="display: flex; align-items: center">
                 {{ item.name }}
                 <n-icon v-if="room" size="18" color="#0e7a0d" style="margin-left: 5px">
                   <CastRound />
                 </n-icon>
               </div>
-            </RouterLink>
+            </div>
           </n-tag>
         </div>
       </div>
@@ -68,7 +68,8 @@ import {BrokenImageRound, CastRound} from '@vicons/material'
 import {useRoute, useRouter} from 'vue-router'
 import {getStorageSync} from '../helpers/utils'
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from '../helpers/constant'
-import {ControlEventLoadVideo, sendControl} from '@/helpers/websocket'
+import {ControlEventLoadVideo, sendControlWithAck} from '@/helpers/websocket'
+import {createCastingCommandGuard, sendCastingCommand} from '@/helpers/casting'
 import {useAppStore} from "@/stores/app.js";
 
 const video = ref(null)
@@ -78,25 +79,33 @@ const room = ref(null)
 const clientId = ref(null)
 const message = ref(null)
 const appStore = useAppStore()
+const runCastingCommand = createCastingCommandGuard()
 
-const onOpenVideoPlay = (vid, source) => {
+const onOpenVideoPlay = async (vid, source) => {
   let tmpSource = appStore.source, tmpVid = vid, tmpPid = source.id;
 
   if (!room.value) {
     router.value.push(`/video/detail/${tmpVid}?_source=${tmpSource}&pid=${tmpPid}`)
   } else {
-    // 投射播放
-    sendControl(room.value, {
-      event: ControlEventLoadVideo,
-      group: room.value,
-      vid: tmpVid,
-      pid: tmpPid,
-      // name: source.name,
-      source: tmpSource,
-      mode: appStore.sourceSecret,
+    await runCastingCommand(async () => {
+      try {
+        await sendCastingCommand({
+          room: room.value,
+          context: {
+            event: ControlEventLoadVideo,
+            group: room.value,
+            vid: tmpVid,
+            pid: tmpPid,
+            source: tmpSource,
+            mode: appStore.sourceSecret,
+          },
+          sendControl: sendControlWithAck,
+          navigate: (path) => router.value.push(path),
+        })
+      } catch (_) {
+        message.value.warning('电视未连接，请重新扫码')
+      }
     })
-    // message.value.info('已发送投射播放请求')
-    router.value.push('/control')
   }
 }
 

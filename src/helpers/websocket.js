@@ -1,8 +1,12 @@
-import {socketUrl} from '../config'
+import {socketUrl} from '../config.js'
+import {sendWhenOpen} from './reliable-websocket.js'
+import {createAckRegistry, createRequestId} from './websocket-ack.js'
 
 let isConnecting = false
 let _websocket
 let _events // {"open":{"key1":fn(), "key2":fn2()}}, 同一类型事件支持注册多个回调，key区分
+let connectionGeneration = 0
+const ackRegistry = createAckRegistry({timeoutMs: 5000})
 
 const EventNameOpen = 'Open'
 const EventNameConnect = 'Connect'
@@ -33,22 +37,30 @@ const ControlEventForward = '/ctl_forward'
 const ControlEventHistory = '/ctl_history'
 const ControlEventPrev = '/ctl_prev'
 const ControlEventNext = '/ctl_next'
+const ControlEventPair = '/ctl_pair'
 
 const connect = () => {
-  if (_websocket && _websocket.readyState === 1) {
-    return
+  if (_websocket && (_websocket.readyState === 0 || _websocket.readyState === 1)) {
+    return _websocket
   }
+  connectionGeneration += 1
+  const socketGeneration = connectionGeneration
   _websocket = new WebSocket(socketUrl)
+  const socket = _websocket
 
-  _websocket.onopen = function (event) {
+  socket.onopen = function (event) {
     // console.log('[onOpen]', event)
     delegateEventCallback(EventNameOpen, event)
   }
-  _websocket.onmessage = function (msg) {
+  socket.onmessage = function (msg) {
     try {
       const data = JSON.parse(msg.data)
       // console.log('[onMessage]', data)
       switch (data.event) {
+        case 'controller-presence-ack':
+        case 'send-to-group-ack':
+          ackRegistry.resolve(data.data, socketGeneration)
+          break
         case 'connect':
           delegateEventCallback(EventNameConnect, data)
           break
@@ -56,17 +68,20 @@ const connect = () => {
           delegateEventCallback(EventNameMessage, data)
       }
     } catch (e) {
-      console.log('[JSON.parse.Error]', e)
+      console.warn('[websocket] invalid message')
     }
   }
-  _websocket.onclose = function (event) {
+  socket.onclose = function (event) {
+    ackRegistry.rejectGeneration(socketGeneration)
     // console.log('[onClose]', event)
     delegateEventCallback(EventNameClose, event)
   }
-  _websocket.onerror = function (event) {
+  socket.onerror = function (event) {
+    ackRegistry.rejectGeneration(socketGeneration)
     // console.log('[onError]', event)
     delegateEventCallback(EventNameError, event)
   }
+  return _websocket
 }
 
 const delegateFunctionCall = (fn, data) => {
@@ -100,11 +115,11 @@ const removeEventHandler = (key) => {
 
 const _addEventHandler = (eventName, key, callback) => {
   if (key.length <= 0) {
-    console.warn(`注册事件key必须为常规字符串：${key}`)
+    console.warn('[websocket] invalid event handler key')
     return
   }
   if (typeof callback != 'function') {
-    console.warn(`注册事件回调必须为可调用方法，事件名：${eventName}，key: ${key}`)
+    console.warn('[websocket] invalid event handler callback')
   }
   if (!_events) {
     _events = {}
@@ -118,26 +133,73 @@ const _addEventHandler = (eventName, key, callback) => {
 }
 
 const send = (data) => {
-  switch (_websocket.readyState) {
-    case 0: // WebSocket.CONNECTING 套接字已创建，但连接尚未打开。
-      break
-    case 1: // WebSocket.OPEN 连接已打开，准备进行通信。
-      _websocket.send(data)
-      break
-    case 2: // WebSocket.CLOSING 连接正在关闭中。
-      break
-    case 3: // WebSocket.CLOSED 连接已关闭或无法打开。
-      connect()
-      break
-  }
+  return sendWhenOpen({
+    getSocket: () => _websocket,
+    connect,
+    payload: data,
+  })
 }
+
+const sendWithSocket = (socket, data) => sendWhenOpen({
+  getSocket: () => socket,
+  connect: () => socket,
+  payload: data,
+})
+
+const createBoundControlSender = (socket) => (groupName, controlContext) => {
+  return sendWithSocket(
+    socket,
+    JSON.stringify({
+      group: groupName,
+      event: DataEventSendToGroup,
+      data: controlContext,
+    }),
+  )
+}
+
+const sendAckRequest = ({event, groupName, context = {}}) => {
+  const {socket, generation} = ensureConnected()
+  const requestId = createRequestId()
+  const data = {...context, group: groupName, request_id: requestId}
+  return ackRegistry.wait({
+    requestId,
+    generation,
+    send: () => sendWithSocket(socket, JSON.stringify({
+      group: groupName,
+      event,
+      data,
+    })),
+  })
+}
+
+const sendControlWithAck = (groupName, controlContext) => sendAckRequest({
+  event: DataEventSendToGroup,
+  groupName,
+  context: controlContext,
+})
+
+const sendPresenceWithAck = (groupName) => sendAckRequest({
+  event: 'controller-presence',
+  groupName,
+})
 
 const socketReady = () => {
   return _websocket && _websocket.readyState === 1
 }
 
+const getConnectionGeneration = () => connectionGeneration
+
+const ensureConnected = () => {
+  const socket = connect()
+  return {
+    socket,
+    generation: connectionGeneration,
+    sendControl: createBoundControlSender(socket),
+  }
+}
+
 const joinGroup = (groupName) => {
-  send(
+  return send(
     JSON.stringify({
       event: DataEventJoinGroup,
       data: {
@@ -148,7 +210,7 @@ const joinGroup = (groupName) => {
 }
 
 const sendControl = (groupName, controlContext) => {
-  send(
+  return send(
     JSON.stringify({
       group: groupName,
       event: DataEventSendToGroup,
@@ -163,7 +225,12 @@ export {
   addEventHandler,
   removeEventHandler,
   socketReady,
+  getConnectionGeneration,
+  ensureConnected,
+  send,
   sendControl,
+  sendControlWithAck,
+  sendPresenceWithAck,
 
   EventNameOpen,
   EventNameConnect,
@@ -194,5 +261,6 @@ export {
   ControlEventHistory,
   ControlEventPrev,
   ControlEventNext,
+  ControlEventPair,
 
 }

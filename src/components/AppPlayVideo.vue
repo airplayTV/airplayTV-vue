@@ -107,8 +107,9 @@ import {
   ControlEventQrcode,
   ControlEventVolume,
   EventNameMessage,
-  sendControl
+  sendControlWithAck
 } from "@/helpers/websocket.js";
+import {createCastingCommandGuard, sendCastingCommand} from "@/helpers/casting.js";
 import hotkeys from "hotkeys-js";
 import {useRoute, useRouter} from "vue-router";
 import {getCurrentAppSource, onOpenUrl} from "@/helpers/app.js";
@@ -143,6 +144,7 @@ const clientId = ref(null)
 
 const playIndex = ref(0)
 const playList = ref({})
+const runCastingCommand = createCastingCommandGuard()
 
 const _pageKey = '_key_app_page_video_play_'
 
@@ -153,7 +155,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   try {
     respSource = await httpVideoSource(vid, pid, getAppSource(), _m3u8p)
   } catch (e) {
-    console.error('[httpVideoSource.Error]', e)
+    console.error('[video-source] load failed')
     errMsg.value = e
   }
 
@@ -167,7 +169,7 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
 
   source.value = respSource.data
 
-  console.log('[获取到播放信息]', Object.assign({}, respSource.data, { url: respSource.data.url }))
+  console.log('[video-source] loaded')
 
   const findLink = findSourceLink(props.video.links, pid)
   playIndex.value = findLink._idx || 0
@@ -197,17 +199,25 @@ const initVideoPlayer = async (findLink, source) => {
   })
 
   if (room.value && room.value !== clientId.value) {
-    // 投射播放
-    sendControl(room.value, {
-      event: ControlEventLoadVideo,
-      group: room.value,
-      vid: props.video.id,
-      pid: findLink.id || '',
-      source: getAppSource(),
-      mode: appStore.sourceSecret,
+    await runCastingCommand(async () => {
+      try {
+        await sendCastingCommand({
+          room: room.value,
+          context: {
+            event: ControlEventLoadVideo,
+            group: room.value,
+            vid: props.video.id,
+            pid: findLink.id || '',
+            source: getAppSource(),
+            mode: appStore.sourceSecret,
+          },
+          sendControl: sendControlWithAck,
+          navigate: () => router.push(`/control?t=${Math.random()}`),
+        })
+      } catch (_) {
+        message.warning('电视未连接，请重新扫码')
+      }
     })
-    // message.value.info('已发送投射播放请求')
-    router.push(`/control?t=${Math.random()}`)
   } else if (dplayerRef.value) {
     loadDplayer()
   } else if (artInstance.value) {
@@ -319,7 +329,7 @@ const getArtInstance = (art) => {
 
   })
   art.on('error', (error, reconnectTime) => {
-    console.log('[art.error]', error)
+    console.warn('[video-player] playback error')
     noticeToVideo(`错误：${error}`)
     // if (reconnectTime >= Artplayer.RECONNECT_TIME_MAX) {
     //   playType.value++
@@ -718,9 +728,9 @@ const onBeforeUnmountHandler = () => {
 const loadHttpCollectList = () => {
   spinning.value = true
   httpCollectList().then(resp => {
-    console.log('[httpCollectList.resp]', resp)
+    console.log('[collection] loaded')
   }).catch(e => {
-    console.log('[httpCollectList.e]', e)
+    console.warn('[collection] load failed')
   }).finally(() => {
     spinning.value = false
   })

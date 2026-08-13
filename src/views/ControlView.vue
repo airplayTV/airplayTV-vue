@@ -349,6 +349,7 @@ import {NAlert, NEllipsis, NText, useMessage,} from 'naive-ui'
 import {useRouter} from 'vue-router'
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from '@/helpers/constant'
 import {getStorageSync} from '@/helpers/utils'
+import {sendControlCommand} from '@/helpers/casting'
 import {
   ControlEventBack,
   ControlEventForward,
@@ -361,8 +362,7 @@ import {
   ControlEventPlay,
   ControlEventQrcode,
   ControlEventVolume,
-  sendControl,
-  socketReady
+  sendControlWithAck,
 } from '@/helpers/websocket'
 
 const router = useRouter()
@@ -395,35 +395,39 @@ const onBeforeMountHandler = async () => {
 const onOpenVideo = () => {
 }
 
-const sendControlHandler = (data) => {
+const sendControlHandler = async (data) => {
   // console.log('[sendControlHandler]', data)
 
-  if (!socketReady()) {
-    message.value.warning('websocket未就绪！')
-    return
-  }
-
-  switch (data.event) {
-    case ControlEventPause:
-      isPlay.value = false
-      break
-    case ControlEventPlay:
-      isPlay.value = true
-      break
-    case ControlEventFullscreen:
-      isFullscreen.value = true
-      break
-    case ControlEventFullscreenExit:
-      isFullscreen.value = false
-      break
-  }
-
-  sendControl(room.value, {
-    group: room.value,
-    event: data.event,
-    value: data.value,
-    from: clientId.value,
+  await sendControlCommand({
+    room: room.value,
+    context: {
+      group: room.value,
+      event: data.event,
+      value: data.value,
+      from: clientId.value,
+    },
+    sendControl: sendControlWithAck,
+    updateState: () => {
+      switch (data.event) {
+        case ControlEventPause:
+          isPlay.value = false
+          break
+        case ControlEventPlay:
+          isPlay.value = true
+          break
+        case ControlEventFullscreen:
+          isFullscreen.value = true
+          break
+        case ControlEventFullscreenExit:
+          isFullscreen.value = false
+          break
+      }
+    },
+    onFailure: () => {
+      message.warning('电视未连接，请重新扫码')
+    },
   })
+
 }
 
 

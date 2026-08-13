@@ -18,7 +18,7 @@
       <div class="player-wrapper">
         <div class="player-left">
           <img
-              :src="music.pic"
+              :src="music.pic ||  DEFAULT_AUDIO_ICON"
               :alt="music.title"
               @error="onAudioThumbError"
               class="song-cover">

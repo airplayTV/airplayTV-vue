@@ -92,7 +92,8 @@ import {NAlert, NEllipsis, NH5, NIcon, NTag, NText, useMessage,} from 'naive-ui'
 import {useRoute, useRouter} from 'vue-router'
 import {getStorageSync} from '../helpers/utils'
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from '../helpers/constant'
-import {ControlEventLoadVideo, sendControl} from '@/helpers/websocket'
+import {ControlEventLoadVideo, sendControlWithAck} from '@/helpers/websocket'
+import {createCastingCommandGuard, sendCastingCommand} from '@/helpers/casting'
 import {useAppStore} from "@/stores/app.js";
 import {getCurrentAppSource} from "@/helpers/app.js";
 import {SwitchHorizontal} from "@vicons/tabler";
@@ -111,26 +112,37 @@ const props = defineProps(['sourceList', 'vid', 'pid', 'playIndex', 'isMp3'])
 const emits = defineEmits(['changed'])
 
 const playListStyleSwitch = ref(appStore.playStyleSwitch)
+const runCastingCommand = createCastingCommandGuard()
 
 watch(() => props.playIndex, (newVal, oldVal) => {
   // console.log('[watch.music]', { newVal, oldVal })
 })
 
-const onOpenVideoPlay = (idx, source) => {
+const onOpenVideoPlay = async (idx, source) => {
   if (room.value) {
-    let tmpSource = getCurrentAppSource(appStore, route.query), tmpVid = props.vid, tmpPid = source.id;
-    // 投射播放
-    sendControl(room.value, {
-      event: ControlEventLoadVideo,
-      group: room.value,
-      vid: tmpVid,
-      pid: tmpPid,
-      // name: source.name,
-      source: tmpSource,
-      mode: appStore.sourceSecret,
+    await runCastingCommand(async () => {
+      const tmpSource = getCurrentAppSource(appStore, route.query)
+      const tmpVid = props.vid
+      const tmpPid = source.id
+
+      try {
+        await sendCastingCommand({
+          room: room.value,
+          context: {
+            event: ControlEventLoadVideo,
+            group: room.value,
+            vid: tmpVid,
+            pid: tmpPid,
+            source: tmpSource,
+            mode: appStore.sourceSecret,
+          },
+          sendControl: sendControlWithAck,
+          navigate: (path) => router.push(path),
+        })
+      } catch (_) {
+        message.warning('电视未连接，请重新扫码')
+      }
     })
-    // message.value.info('已发送投射播放请求')
-    router.push('/control')
   } else {
     emits('changed', idx, source)
   }
