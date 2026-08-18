@@ -8,8 +8,8 @@ const sourceTypeOption = {
 }
 
 const playTypeOption = {
-  dp: 1,
-  art: 2,// 不支持火狐
+  dp: 1,// 不能绕过CORS问题，浏览器支持较好
+  art: 2,// 不支持火狐，可以绕过CORS问题
   iframe: 3,
 }
 
