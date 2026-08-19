@@ -61,7 +61,7 @@
       <n-text depth="3">{{ video.updated_at }}</n-text>
     </div>
 
-    <AppSourceList :source-list="videoSourceList" :vid="video.id" />
+    <AppSourceList :source-list="videoSourceList" :vid="video.id" :video="video" />
   </div>
   <div v-else>
     <div class="padding-30px"></div>

@@ -1,4 +1,5 @@
 import {controllerPresence} from './controller-presence.js'
+import {normalizeCastSession, saveCastSession} from './cast-session.js'
 import {sendControlWithAck} from './websocket.js'
 
 const createMissingRoomError = () => new Error('room required')
@@ -27,6 +28,8 @@ export const sendCastingCommand = async ({
   room,
   context,
   sendControl = sendControlWithAck,
+  castSession,
+  saveSession = saveCastSession,
   navigate,
 }) => {
   if (!room) throw createMissingRoomError()
@@ -34,6 +37,12 @@ export const sendCastingCommand = async ({
     ? normalizeLoadVideoContext(context)
     : context
   await sendControl(room, command)
+  if (command?.event === '/ctl_load_Video') {
+    const session = normalizeCastSession({...castSession, ...command, room})
+    if (!session) throw new Error('invalid cast session')
+    const savedSession = await saveSession(session)
+    if (!savedSession) throw new Error('cast session persistence failed')
+  }
   await navigate('/control')
 }
 

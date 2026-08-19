@@ -334,6 +334,54 @@
             </svg>
           </div>
         </div>
+
+        <div
+            v-if="castSession"
+            data-testid="current-cast-card"
+            class="current-cast-card"
+        >
+          <div class="current-cast-summary">
+            <n-image
+                v-if="castSession.thumb"
+                :src="castSession.thumb"
+                width="88"
+                height="88"
+                object-fit="cover"
+                preview-disabled
+                class="current-cast-thumb"
+            />
+            <div class="current-cast-info">
+              <n-text depth="3" class="current-cast-label">当前投射</n-text>
+              <n-ellipsis class="current-cast-title">{{ castSession.title || '未命名内容' }}</n-ellipsis>
+              <n-ellipsis class="current-cast-episode">
+                当前：{{ castSession.episodeName || castSession.pid }}
+              </n-ellipsis>
+            </div>
+          </div>
+
+          <div
+              v-if="shouldShowEpisodeSwitcher(castSession)"
+              class="episode-switcher"
+          >
+            <n-tag
+                v-for="episode in castSession.episodes"
+                :key="episode.id"
+                size="small"
+                round
+                :bordered="episode.id !== castSession.pid"
+                :type="episode.id === castSession.pid ? 'success' : 'default'"
+                :disabled="switchingEpisodePid !== null"
+                :class="{
+                  'is-active': episode.id === castSession.pid,
+                  'is-pending': switchingEpisodePid === episode.id,
+                }"
+                @click="switchEpisodeHandler(episode)"
+            >
+              <n-spin v-if="switchingEpisodePid === episode.id" :size="12" />
+              <n-ellipsis style="max-width: 120px">{{ episode.name }}</n-ellipsis>
+            </n-tag>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -345,11 +393,19 @@
 import AppHeader from '../components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import {onBeforeMount, onMounted, ref} from 'vue'
-import {NAlert, NEllipsis, NText, useMessage,} from 'naive-ui'
+import {NAlert, NEllipsis, NImage, NSpin, NTag, NText, useMessage,} from 'naive-ui'
 import {useRouter} from 'vue-router'
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from '@/helpers/constant'
 import {getStorageSync} from '@/helpers/utils'
 import {sendControlCommand} from '@/helpers/casting'
+import {
+  findCastEpisode,
+  loadCastSession,
+  saveCastSession,
+  shouldShowEpisodeSwitcher,
+  updateCastSessionEpisode,
+} from '@/helpers/cast-session.js'
+import {useAppStore} from '@/stores/app.js'
 import {
   ControlEventBack,
   ControlEventForward,
@@ -357,6 +413,7 @@ import {
   ControlEventFullscreenExit,
   ControlEventHistory,
   ControlEventInfo,
+  ControlEventLoadVideo,
   ControlEventMute,
   ControlEventPause,
   ControlEventPlay,
@@ -374,7 +431,10 @@ const isFullscreen = ref(null)
 const isPlay = ref(null)
 const room = ref(null)
 const clientId = ref(null)
+const castSession = ref(null)
+const switchingEpisodePid = ref(null)
 const message = useMessage()
+const appStore = useAppStore()
 
 const onMountedHandler = () => {
   // window.onresize = () => {
@@ -389,6 +449,7 @@ const onMountedHandler = () => {
 
 const onBeforeMountHandler = async () => {
   room.value = getStorageSync(KEY_ROOM_ID)
+  castSession.value = loadCastSession(room.value)
   clientId.value = getStorageSync(KEY_CLIENT_ID)
 }
 
@@ -430,6 +491,44 @@ const sendControlHandler = async (data) => {
 
 }
 
+const switchEpisodeHandler = async (episode) => {
+  if (
+    switchingEpisodePid.value !== null
+    || episode?.id === castSession.value?.pid
+  ) return
+
+  const targetEpisode = findCastEpisode(castSession.value, episode?.id)
+  if (!targetEpisode) return
+
+  switchingEpisodePid.value = targetEpisode.id
+  try {
+    await sendControlCommand({
+      room: room.value,
+      context: {
+        group: room.value,
+        event: ControlEventLoadVideo,
+        vid: castSession.value.vid,
+        pid: targetEpisode.id,
+        source: castSession.value.source,
+        mode: appStore.sourceSecret,
+        from: clientId.value,
+      },
+      sendControl: sendControlWithAck,
+      updateState: () => {
+        const nextSession = updateCastSessionEpisode(castSession.value, targetEpisode)
+        const savedSession = saveCastSession(nextSession)
+        if (!savedSession) throw new Error('cast session persistence failed')
+        castSession.value = savedSession
+      },
+      onFailure: () => {
+        message.warning('电视未连接，请重新扫码')
+      },
+    })
+  } finally {
+    switchingEpisodePid.value = null
+  }
+}
+
 
 onMounted(onMountedHandler)
 onBeforeMount(onBeforeMountHandler)
@@ -446,6 +545,72 @@ onBeforeMount(onBeforeMountHandler)
   svg {
     color: #000000;
     fill: #000000;
+  }
+}
+
+.current-cast-card {
+  margin: 0 0 16px;
+  padding: 14px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgb(15 23 42 / 6%);
+}
+
+.current-cast-summary {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 12px;
+}
+
+.current-cast-thumb {
+  flex: 0 0 88px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.current-cast-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  gap: 5px;
+}
+
+.current-cast-label {
+  font-size: 12px;
+}
+
+.current-cast-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #172b4d;
+}
+
+.current-cast-episode {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.episode-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  gap: 8px;
+
+  .n-tag {
+    cursor: pointer;
+  }
+
+  .n-tag.is-active,
+  .n-tag.is-pending {
+    cursor: default;
+  }
+
+  .n-tag.is-pending {
+    opacity: 0.72;
   }
 }
 </style>

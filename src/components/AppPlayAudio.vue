@@ -80,6 +80,7 @@
     <AppAudioVideoList
         v-if="video"
         :vid="props.video.id"
+        :video="props.video"
         :play-index="playIndex"
         :source-list="playList"
         :is-mp3="true"
@@ -161,6 +162,7 @@ import {addHistoryWarp, addTimelineWarp, findSourceLink, handlerPlayList} from "
 import {useRoute, useRouter} from "vue-router";
 import {ControlEventLoadVideo, sendControlWithAck} from "@/helpers/websocket.js";
 import {createCastingCommandGuard, sendCastingCommand} from "@/helpers/casting.js";
+import {buildCastSessionCandidate} from '@/helpers/cast-session.js'
 import {getStorageSync} from "@/helpers/utils.js";
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from "@/helpers/constant.js";
 import {getCurrentAppSource} from "@/helpers/app.js";
@@ -420,6 +422,12 @@ const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
             source: getAppSource(),
             mode: appStore.sourceSecret,
           },
+          castSession: buildCastSessionCandidate({
+            room: room.value,
+            video: props.video,
+            current: findLink,
+            source: getAppSource(),
+          }),
           sendControl: sendControlWithAck,
           navigate: (path) => router.push(path),
         })

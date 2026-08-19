@@ -77,6 +77,7 @@
             v-if="video"
             :vid="vid"
             :pid="pid"
+            :video="video"
             :play-index="playIndex"
             :source-list="videoSourceList"
             @changed="onAudioListChange" />
@@ -155,7 +156,7 @@
             </div>
           </template>
           <n-collapse-item title="选集" name="1">
-            <AppSourceList v-if="video" :vid="vid" :pid="pid" :source-list="videoSourceList" />
+            <AppSourceList v-if="video" :vid="vid" :pid="pid" :video="video" :source-list="videoSourceList" />
           </n-collapse-item>
         </n-collapse>
       </div>

@@ -70,6 +70,7 @@
       <AppAudioVideoList
           v-if="video"
           :vid="props.video.id"
+          :video="props.video"
           :play-index="playIndex"
           :source-list="playList"
           @changed="onChangePlaying" />
@@ -110,6 +111,7 @@ import {
   sendControlWithAck
 } from "@/helpers/websocket.js";
 import {createCastingCommandGuard, sendCastingCommand} from "@/helpers/casting.js";
+import {buildCastSessionCandidate} from '@/helpers/cast-session.js'
 import hotkeys from "hotkeys-js";
 import {useRoute, useRouter} from "vue-router";
 import {getCurrentAppSource, onOpenUrl} from "@/helpers/app.js";
@@ -211,6 +213,12 @@ const initVideoPlayer = async (findLink, source) => {
             source: getAppSource(),
             mode: appStore.sourceSecret,
           },
+          castSession: buildCastSessionCandidate({
+            room: room.value,
+            video: props.video,
+            current: findLink,
+            source: getAppSource(),
+          }),
           sendControl: sendControlWithAck,
           navigate: () => router.push(`/control?t=${Math.random()}`),
         })
@@ -674,7 +682,16 @@ const loadDplayer = () => {
     theme: "#00b2c2",
     volume: 1,
     video: getDpVideoConfig(source.value),
+    hls: {
+      xhrSetup: function (xhr, url) {
+        console.log('[xhrSetup]', { xhr, url })
+        // 关键：避免 credentials 与 CORS 限制冲突
+        xhr.withCredentials = false;
+      }
+    }
   });
+
+  dpInstance.value.video.crossOrigin = 'anonymous'
 
   dpInstance.value.on('error', (a, b, c) => {
     noticeToVideo(a)

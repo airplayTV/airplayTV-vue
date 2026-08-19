@@ -2,13 +2,14 @@ import assert from 'node:assert/strict'
 import {readFile} from 'node:fs/promises'
 import test from 'node:test'
 
+import {saveCastSession} from '@/helpers/cast-session.js'
 import {
   createCastingCommandGuard,
   normalizeLoadVideoContext,
   pairController,
   sendCastingCommand,
   sendControlCommand,
-} from '../src/helpers/casting.js'
+} from '@/helpers/casting.js'
 
 test('normalizes load IDs and null mode while retaining extra fields', () => {
   assert.deepEqual(normalizeLoadVideoContext({
@@ -36,6 +37,7 @@ test('casting awaits accepted ACK before preserving target navigation', async ()
       calls.push({type: 'send', room, context})
       resolveAck = resolve
     }),
+    saveSession: () => ({saved: true}),
     navigate: (path) => calls.push({type: 'navigate', path}),
   })
   assert.equal(calls.length, 1)
@@ -44,6 +46,56 @@ test('casting awaits accepted ACK before preserving target navigation', async ()
   await sending
   assert.deepEqual(calls.at(-1), {type: 'navigate', path: '/control'})
 })
+
+test('load casting saves its normalized session after ACK and before navigation', async () => {
+  const calls = []
+  await sendCastingCommand({
+    room: 'room-a',
+    context: {event: '/ctl_load_Video', vid: 1, pid: 2, source: 'source', mode: 'secret'},
+    castSession: {
+      room: 'room-a', vid: '1', pid: '2', source: 'source', mode: 'secret',
+      title: 'Title', playbackUrl: 'https://secret.test/video',
+    },
+    sendControl: async () => calls.push('ack'),
+    saveSession: (snapshot) => calls.push({type: 'save', snapshot}),
+    navigate: () => calls.push('navigate'),
+  })
+  assert.deepEqual(calls.map((entry) => typeof entry === 'string' ? entry : entry.type), ['ack', 'save', 'navigate'])
+  assert.equal(calls[1].snapshot.mode, undefined)
+  assert.equal(calls[1].snapshot.playbackUrl, undefined)
+  assert.equal(calls[1].snapshot.version, 1)
+})
+
+test('load casting rejection leaves the session unsaved and does not navigate', async () => {
+  const calls = []
+  await assert.rejects(() => sendCastingCommand({
+    room: 'room-a',
+    context: {event: '/ctl_load_Video', vid: 1, pid: 2, source: 'source'},
+    castSession: {room: 'room-a', vid: '1', pid: '2', source: 'source'},
+    sendControl: async () => { throw new Error('rejected') },
+    saveSession: () => calls.push('save'),
+    navigate: () => calls.push('navigate'),
+  }), /rejected/)
+  assert.deepEqual(calls, [])
+})
+
+for (const [name, saveSession] of [
+  ['a null result', () => null],
+  ['a throwing storage backend', (snapshot) => saveCastSession(snapshot, {setItem: () => { throw new Error('quota') }})],
+  ['missing storage', (snapshot) => saveCastSession(snapshot, undefined)],
+]) {
+  test(`load casting does not navigate when saving returns ${name}`, async () => {
+    const calls = []
+    await assert.rejects(() => sendCastingCommand({
+      room: 'room-a',
+      context: {event: '/ctl_load_Video', vid: 1, pid: 2, source: 'source'},
+      sendControl: async () => calls.push('ack'),
+      saveSession,
+      navigate: () => calls.push('navigate'),
+    }), /cast session persistence failed/)
+    assert.deepEqual(calls, ['ack'])
+  })
+}
 
 test('casting failure does not navigate', async () => {
   let navigated = false
@@ -108,6 +160,59 @@ test('all four casting entries use the ACK sender, local guard, and keep explici
     assert.match(source, /createCastingCommandGuard/)
     assert.match(source, /await sendCastingCommand/)
     assert.match(source, /电视未连接，请重新扫码/)
+  }
+})
+
+test('all four casting entries build and pass only session metadata through the ACK path', async () => {
+  const repoRoot = new URL('..', import.meta.url)
+  const entryPoints = {
+    'src/components/AppAudioVideoList.vue': [
+      'video: props.video',
+      'current: source',
+      'source: tmpSource',
+    ],
+    'src/components/AppPlayAudio.vue': [
+      'video: props.video',
+      'current: findLink',
+      'source: getAppSource()',
+    ],
+    'src/components/AppPlayVideo.vue': [
+      'video: props.video',
+      'current: findLink',
+      'source: getAppSource()',
+    ],
+    'src/components/AppSourceList.vue': [
+      'video: props.video',
+      'current: source',
+      'source: tmpSource',
+    ],
+  }
+  for (const [path, metadataFields] of Object.entries(entryPoints)) {
+    const source = await readFile(new URL(path, repoRoot), 'utf8')
+    assert.ok(source.includes("import {buildCastSessionCandidate} from '@/helpers/cast-session.js'"))
+    const candidateStart = source.indexOf('castSession: buildCastSessionCandidate({')
+    const candidateEnd = source.indexOf('          sendControl: sendControlWithAck,', candidateStart)
+    assert.notEqual(candidateStart, -1, `${path} must construct castSession`)
+    assert.notEqual(candidateEnd, -1, `${path} must pass castSession through the ACK sender`)
+    const candidate = source.slice(candidateStart, candidateEnd)
+    assert.doesNotMatch(source, /localStorage\s*\./)
+    for (const field of metadataFields) assert.ok(candidate.includes(field), `${path} must map ${field}`)
+  }
+
+  const [video, sourceList, videoPlayView] = await Promise.all([
+    readFile(new URL('src/components/AppVideo.vue', repoRoot), 'utf8'),
+    readFile(new URL('src/components/AppSourceList.vue', repoRoot), 'utf8'),
+    readFile(new URL('src/views/VideoPlayView.vue', repoRoot), 'utf8'),
+  ])
+  assert.ok(video.includes('<AppSourceList :source-list="videoSourceList" :vid="video.id" :video="video" />'))
+  assert.ok(sourceList.includes("props: ['sourceList', 'vid', 'pid', 'video']"))
+  assert.equal(sourceList.includes('const video = ref(null)'), false)
+  for (const component of ['AppAudioList', 'AppSourceList']) {
+    const start = videoPlayView.indexOf(`<${component}`)
+    const end = videoPlayView.indexOf('/>', start)
+    assert.notEqual(start, -1, `VideoPlayView must render ${component}`)
+    assert.notEqual(end, -1, `VideoPlayView ${component} must have a closing tag`)
+    assert.ok(videoPlayView.slice(start, end).includes(':video="video"'), `VideoPlayView ${component} must pass video`)
   }
 })
 

@@ -70,9 +70,9 @@ import {getStorageSync} from '../helpers/utils'
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from '../helpers/constant'
 import {ControlEventLoadVideo, sendControlWithAck} from '@/helpers/websocket'
 import {createCastingCommandGuard, sendCastingCommand} from '@/helpers/casting'
+import {buildCastSessionCandidate} from '@/helpers/cast-session.js'
 import {useAppStore} from "@/stores/app.js";
 
-const video = ref(null)
 const route = ref(null)
 const router = ref(null)
 const room = ref(null)
@@ -81,7 +81,7 @@ const message = ref(null)
 const appStore = useAppStore()
 const runCastingCommand = createCastingCommandGuard()
 
-const onOpenVideoPlay = async (vid, source) => {
+const createOnOpenVideoPlay = (props) => async (vid, source) => {
   let tmpSource = appStore.source, tmpVid = vid, tmpPid = source.id;
 
   if (!room.value) {
@@ -99,6 +99,12 @@ const onOpenVideoPlay = async (vid, source) => {
             source: tmpSource,
             mode: appStore.sourceSecret,
           },
+          castSession: buildCastSessionCandidate({
+            room: room.value,
+            video: props.video,
+            current: source,
+            source: tmpSource,
+          }),
           sendControl: sendControlWithAck,
           navigate: (path) => router.value.push(path),
         })
@@ -138,8 +144,9 @@ export default defineComponent({
     BrokenImageRound,
     CastRound,
   },
-  props: ['sourceList', 'vid', 'pid'],
-  setup() {
+  props: ['sourceList', 'vid', 'pid', 'video'],
+  setup(props) {
+    const onOpenVideoPlay = createOnOpenVideoPlay(props)
     route.value = useRoute()
     router.value = useRouter()
     message.value = useMessage()
@@ -147,7 +154,6 @@ export default defineComponent({
     onBeforeMount(onBeforeMountHandler)
 
     return {
-      video,
       onOpenVideoPlay,
       room,
       appStore,

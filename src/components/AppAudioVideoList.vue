@@ -94,6 +94,7 @@ import {getStorageSync} from '../helpers/utils'
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from '../helpers/constant'
 import {ControlEventLoadVideo, sendControlWithAck} from '@/helpers/websocket'
 import {createCastingCommandGuard, sendCastingCommand} from '@/helpers/casting'
+import {buildCastSessionCandidate} from '@/helpers/cast-session.js'
 import {useAppStore} from "@/stores/app.js";
 import {getCurrentAppSource} from "@/helpers/app.js";
 import {SwitchHorizontal} from "@vicons/tabler";
@@ -108,7 +109,7 @@ const room = ref(null)
 const clientId = ref(null)
 const appStore = useAppStore()
 
-const props = defineProps(['sourceList', 'vid', 'pid', 'playIndex', 'isMp3'])
+const props = defineProps(['sourceList', 'vid', 'pid', 'playIndex', 'isMp3', 'video'])
 const emits = defineEmits(['changed'])
 
 const playListStyleSwitch = ref(appStore.playStyleSwitch)
@@ -136,6 +137,12 @@ const onOpenVideoPlay = async (idx, source) => {
             source: tmpSource,
             mode: appStore.sourceSecret,
           },
+          castSession: buildCastSessionCandidate({
+            room: room.value,
+            video: props.video,
+            current: source,
+            source: tmpSource,
+          }),
           sendControl: sendControlWithAck,
           navigate: (path) => router.push(path),
         })
