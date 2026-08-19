@@ -8,8 +8,8 @@ const sourceTypeOption = {
 }
 
 const playTypeOption = {
-  dp: 1,// 不能绕过CORS问题，浏览器支持较好
-  art: 2,// 不支持火狐，可以绕过CORS问题
+  dp: 1,// 不能绕过CORS问题(尝试通过m3u8p解决)，浏览器支持较好，
+  art: 2,// 不支持火狐，可以绕过CORS问题，m3u8p返回的无法播放
   iframe: 3,
 }
 
