@@ -722,9 +722,6 @@ const loadDplayer = () => {
 
   // dpInstance.value.on('timeupdate', function (ctx) {
   // });
-
-  // 电视设备播放后暂停图标不消失
-  document.querySelector('.dplayer-mobile-play').style.display = 'none';
 }
 
 const onBeforeUnmountHandler = () => {
