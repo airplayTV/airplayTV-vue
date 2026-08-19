@@ -724,7 +724,7 @@ const loadDplayer = () => {
   // });
 
   // 电视设备播放后暂停图标不消失
-  // document.querySelector('.dplayer-mobile-play').style.display = 'none';
+  document.querySelector('.dplayer-mobile-play').style.display = 'none';
 }
 
 const onBeforeUnmountHandler = () => {
