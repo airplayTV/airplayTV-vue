@@ -89,7 +89,8 @@ import {addHistoryWarp, addTimelineWarp, findSourceLink, handlerPlayList, playTy
 import {SearchSharp} from '@vicons/material'
 import AppArtplayer from '@/components/AppArtplayer.vue'
 import {NEllipsis, NH2, NIcon, NSpace, NSpin, NText, useLoadingBar, useMessage} from 'naive-ui'
-import {findTimeline} from "@/helpers/db.js";
+import {findHistory, findTimeline} from "@/helpers/db.js";
+import {resolveDefaultVideoEpisodeId} from '@/helpers/default-video-episode.js'
 import AppAudioVideoList from "@/components/AppAudioVideoList.vue";
 import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 import Hls from "hls.js";
@@ -619,7 +620,7 @@ const addHotKeyEventHandler = () => {
   })
 }
 
-const onBeforeMountHandler = () => {
+const onBeforeMountHandler = async () => {
   video.value = { ...props.video }
   room.value = getStorageSync(KEY_ROOM_ID)
   clientId.value = getStorageSync(KEY_CLIENT_ID)
@@ -632,7 +633,19 @@ const onBeforeMountHandler = () => {
   addControlEventHandler()
   addHotKeyEventHandler()
 
-  tryHandlerVideoSource(props.video.id, route.query.pid ? route.query.pid : props.video.links[0].id)
+  const pid = await resolveDefaultVideoEpisodeId({
+    links: props.video.links,
+    requestedPid: route.query.pid,
+    source: getAppSource(),
+    vid: props.video.id,
+    findHistoryRecord: findHistory,
+  })
+  if (pid === null) {
+    errMsg.value = '暂无可播放剧集'
+    return
+  }
+
+  await tryHandlerVideoSource(props.video.id, pid)
 
 }
 

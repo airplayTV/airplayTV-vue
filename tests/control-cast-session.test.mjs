@@ -16,6 +16,10 @@ const attributeValue = (node, name) => node.props?.find((prop) => (
 
 const hasClass = (node, name) => attributeValue(node, 'class')?.split(/\s+/).includes(name)
 
+const directiveExpression = (node, name) => node.props?.find((prop) => (
+  prop.type === NodeTypes.DIRECTIVE && prop.name === name
+))?.exp?.content
+
 const findElement = (predicate, node = templateAst, parent = null) => {
   if (node.type === NodeTypes.ELEMENT && predicate(node)) return {node, parent}
   for (const child of node.children ?? []) {
@@ -47,6 +51,56 @@ test('renders compact current-cast metadata and only shows a multi-episode switc
   assert.match(source, /shouldShowEpisodeSwitcher\(castSession\)/)
   assert.match(source, /v-for="episode in castSession\.episodes"/)
   assert.match(source, /episode\.id === castSession\.pid/)
+})
+
+test('将音量加放在播放控制上方，音量减放在下方', () => {
+  const volumeButtons = []
+  const collectVolumeButtons = (node = templateAst) => {
+    if (
+      node.type === NodeTypes.ELEMENT
+      && directiveExpression(node, 'on')?.includes('ControlEventVolume')
+    ) {
+      volumeButtons.push(node)
+    }
+    for (const child of node.children ?? []) collectVolumeButtons(child)
+  }
+  collectVolumeButtons()
+
+  assert.equal(volumeButtons.length, 2)
+  assert.match(directiveExpression(volumeButtons[0], 'on'), /value:\s*1/)
+  assert.match(directiveExpression(volumeButtons[1], 'on'), /value:\s*-1/)
+
+  const originalIconIds = volumeButtons.map((button) => {
+    const svg = button.children.find((child) => (
+      child.type === NodeTypes.ELEMENT && child.tag === 'svg'
+    ))
+    return svg ? attributeValue(svg, 'p-id') : null
+  })
+  assert.deepEqual(originalIconIds, ['6015', '6000'])
+})
+
+test('剧集切换器使用等宽网格和中等尺寸胶囊', () => {
+  const episodeTag = findElement((node) => (
+    node.tag === 'n-tag' && directiveExpression(node, 'for')?.includes('castSession.episodes')
+  ))
+
+  assert.ok(episodeTag)
+  assert.equal(attributeValue(episodeTag.node, 'size'), 'medium')
+  assert.match(source, /\.episode-switcher\s*{[\s\S]*display:\s*grid;/)
+  assert.match(source, /grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(96px,\s*1fr\)\);/)
+  assert.match(source, /\.n-tag\s*{[\s\S]*width:\s*100%;[\s\S]*min-height:\s*38px;/)
+})
+
+test('过长剧集名称在胶囊内单行省略并保留完整名称提示', () => {
+  const episodeName = findElement((node) => hasClass(node, 'episode-name'))
+
+  assert.ok(episodeName)
+  assert.equal(directiveExpression(episodeName.node, 'bind'), 'true')
+  assert.match(source, /\.n-tag\s*{[\s\S]*min-width:\s*0;[\s\S]*overflow:\s*hidden;/)
+  assert.match(source, /:deep\(\.n-tag__content\)\s*{[\s\S]*flex:\s*1;[\s\S]*min-width:\s*0;[\s\S]*overflow:\s*hidden;/)
+  assert.match(source, /\.episode-name\s*{[\s\S]*display:\s*block;[\s\S]*width:\s*100%;[\s\S]*min-width:\s*0;/)
+  assert.match(source, /:deep\(\.n-tag__content\)\s*{[\s\S]*justify-content:\s*center;/)
+  assert.match(source, /\.episode-name\s*{[\s\S]*text-align:\s*center;/)
 })
 
 test('shows the current source beside the episode in the cast summary', () => {
