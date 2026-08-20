@@ -90,6 +90,54 @@ const findTimeline = async (source, vid, pid) => {
   return await db.timeline.where({ source: source, vid: vid, pid: pid }).first()
 }
 
+const tvUpdatedAt = (record) => {
+  return Number.isSafeInteger(record?.tv_updated_at) ? record.tv_updated_at : -1
+}
+
+const upsertTvPlaybackHistory = async (record, database = db) => {
+  const historyTable = database.history
+  const timelineTable = database.timeline
+
+  return await database.transaction('rw', historyTable, timelineTable, async () => {
+    const history = await historyTable.where({ source: record.source, vid: record.vid }).first()
+    const timeline = await timelineTable.where({
+      source: record.source,
+      vid: record.vid,
+      pid: record.pid,
+    }).first()
+    if (Math.max(tvUpdatedAt(history), tvUpdatedAt(timeline)) >= record.tv_updated_at) {
+      return false
+    }
+
+    const historyRecord = {
+      ...record,
+      url: history?.url ?? '',
+      type: history?.type ?? '',
+    }
+    if (history) {
+      await historyTable.update(history.id, historyRecord)
+    } else {
+      await historyTable.add(historyRecord)
+    }
+
+    const timelineRecord = {
+      source: record.source,
+      vid: record.vid,
+      pid: record.pid,
+      duration: record.duration,
+      lastTime: record.lastTime,
+      updated_at: record.updated_at,
+      tv_updated_at: record.tv_updated_at,
+    }
+    if (timeline) {
+      await timelineTable.update(timeline.id, timelineRecord)
+    } else {
+      await timelineTable.add(timelineRecord)
+    }
+    return true
+  })
+}
+
 
 export {
   db,
@@ -105,4 +153,5 @@ export {
   deleteTimeline,
   clearTimeline,
   findTimeline,
+  upsertTvPlaybackHistory,
 }
