@@ -354,7 +354,7 @@
               <n-text depth="3" class="current-cast-label">当前投射</n-text>
               <n-ellipsis class="current-cast-title">{{ castSession.title || '未命名内容' }}</n-ellipsis>
               <n-ellipsis class="current-cast-episode">
-                当前：{{ castSession.episodeName || castSession.pid }}
+                当前：{{ castSession.episodeName || castSession.pid }}　源：{{ castSession.source }}
               </n-ellipsis>
             </div>
           </div>

@@ -61,6 +61,11 @@ import {
 import {useRoute, useRouter} from 'vue-router'
 import {httpSourceList} from "@/helpers/api.js";
 import {controllerPresence} from '@/helpers/controller-presence'
+import {upsertTvPlaybackHistory} from '@/helpers/db'
+import {
+  normalizePlaybackHistoryUpdate,
+  TV_HISTORY_UPDATED_EVENT,
+} from '@/helpers/playback-history'
 
 const _pageKey = '_key_app_page_app_'
 const router = useRouter()
@@ -87,6 +92,14 @@ const onBeforeMountHandler = () => {
             `/video/detail/${data.vid}?_source=${data.source}&pid=${data.pid}&t=${Math.random()}`
         )
         break
+      case 'playback-history-update': {
+        const record = normalizePlaybackHistoryUpdate(data.data, getStorageSync(KEY_ROOM_ID))
+        if (!record) break
+        void upsertTvPlaybackHistory(record).then(() => {
+          window.dispatchEvent(new CustomEvent(TV_HISTORY_UPDATED_EVENT))
+        }).catch(() => console.warn('[playback-history] persistence failed'))
+        break
+      }
     }
   })
   addEventHandler(EventNameOpen, _pageKey, () => {

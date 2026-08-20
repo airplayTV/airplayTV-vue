@@ -49,6 +49,13 @@ test('renders compact current-cast metadata and only shows a multi-episode switc
   assert.match(source, /episode\.id === castSession\.pid/)
 })
 
+test('shows the current source beside the episode in the cast summary', () => {
+  assert.match(
+    source,
+    /当前：[\s\S]*castSession\.episodeName[\s\S]*源：[\s\S]*castSession\.source/,
+  )
+})
+
 test('ignores the current episode and all clicks while another switch is pending', () => {
   assert.match(source, /if\s*\([\s\S]*switchingEpisodePid\.value\s*!==\s*null[\s\S]*episode\?\.id\s*===\s*castSession\.value\?\.pid[\s\S]*\)\s*return/)
   assert.match(source, /:disabled="switchingEpisodePid !== null"/)

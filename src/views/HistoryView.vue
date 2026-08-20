@@ -79,7 +79,7 @@
 </template>
 
 <script setup>
-import {onBeforeMount, onMounted, ref} from 'vue'
+import {onBeforeMount, onBeforeUnmount, onMounted, ref} from 'vue'
 import {computeWindowWidthColumn} from '@/helpers/utils'
 import {deleteTimeline, deleteVideoHistory, listHistory} from '@/helpers/db'
 import {NEllipsis, NGi, NGrid, NIcon, NImage, NModal, NResult, useLoadingBar} from 'naive-ui'
@@ -90,6 +90,7 @@ import AppFooter from "@/components/AppFooter.vue";
 import {CloseRound} from '@vicons/material'
 import {useAppStore} from "@/stores/app.js";
 import {apiUrl} from "@/config.js";
+import {TV_HISTORY_UPDATED_EVENT} from '@/helpers/playback-history'
 
 const router = useRouter()
 const appStore = useAppStore()
@@ -102,6 +103,7 @@ const showClearHistoryModal = ref(false)
 const selectedHistory = ref(null)
 
 const onMountedHandler = () => {
+  window.addEventListener(TV_HISTORY_UPDATED_EVENT, loadHistoryList)
   window.onresize = () => {
     const { _column, _windowWidth } = computeWindowWidthColumn()
     windowWidth.value = _windowWidth
@@ -112,13 +114,17 @@ const onMountedHandler = () => {
   cols.value = _column
 }
 
+const onBeforeUnmountHandler = () => {
+  window.removeEventListener(TV_HISTORY_UPDATED_EVENT, loadHistoryList)
+}
+
 const onBeforeMountHandler = () => {
   loadHistoryList()
 }
 
-const loadHistoryList = async (page) => {
+const loadHistoryList = async () => {
   loadingBar.start()
-  const findList = await listHistory(page, 100)
+  const findList = await listHistory(1, 100)
   historyList.value = findList.map((item) => {
     // item.updated_time = (new Date(item.updated_at)).toLocaleString()
     item.updated_time = format(new Date(item.updated_at), 'YYYY/MM/DD hh:mm:ss')
@@ -170,6 +176,7 @@ const onLoadThumbError = (video, idx) => {
 
 onMounted(onMountedHandler)
 onBeforeMount(onBeforeMountHandler)
+onBeforeUnmount(onBeforeUnmountHandler)
 
 </script>
 

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import {readFile} from 'node:fs/promises'
 import test from 'node:test'
 
 const playbackHistoryModule = await import('../src/helpers/playback-history.js').catch(() => ({}))
@@ -7,6 +8,11 @@ const dbModule = await import('../src/helpers/db.js').catch(() => ({}))
 const normalizePlaybackHistoryUpdate =
   playbackHistoryModule.normalizePlaybackHistoryUpdate ?? (() => null)
 const upsertTvPlaybackHistory = dbModule.upsertTvPlaybackHistory ?? (async () => undefined)
+
+const [appSource, historySource] = await Promise.all([
+  readFile(new URL('../src/App.vue', import.meta.url), 'utf8'),
+  readFile(new URL('../src/views/HistoryView.vue', import.meta.url), 'utf8'),
+])
 
 const validPayload = (overrides = {}) => ({
   version: 1,
@@ -201,4 +207,30 @@ test('keeps both stores unchanged when the atomic transaction fails', async () =
   await assert.rejects(upsertTvPlaybackHistory(normalizedRecord(), fakeDb), /timeline add failed/)
   assert.deepEqual(fakeDb.history.rows, [{ id: 1, source: 'other', vid: 'keep', lastTime: 12 }])
   assert.deepEqual(fakeDb.timeline.rows, [])
+})
+
+test('routes a room-scoped playback history update through the shared normalizer and upsert', () => {
+  assert.match(appSource, /case ['"]playback-history-update['"]:/)
+  assert.match(
+    appSource,
+    /normalizePlaybackHistoryUpdate\(data\.data,\s*getStorageSync\(KEY_ROOM_ID\)\)/,
+  )
+  assert.match(appSource, /if \(!record\) break/)
+  assert.match(
+    appSource,
+    /upsertTvPlaybackHistory\(record\)\.then\(\(\) => \{[\s\S]*dispatchEvent\(new CustomEvent\(TV_HISTORY_UPDATED_EVENT\)\)[\s\S]*\}\)\.catch/,
+  )
+})
+
+test('reloads history on TV updates and removes the exact listener on unmount', () => {
+  assert.match(historySource, /const loadHistoryList = async \(\) =>/)
+  assert.match(
+    historySource,
+    /addEventListener\(TV_HISTORY_UPDATED_EVENT,\s*loadHistoryList\)/,
+  )
+  assert.match(
+    historySource,
+    /removeEventListener\(TV_HISTORY_UPDATED_EVENT,\s*loadHistoryList\)/,
+  )
+  assert.match(historySource, /onBeforeUnmount\([^)]*onBeforeUnmountHandler[^)]*\)/)
 })
