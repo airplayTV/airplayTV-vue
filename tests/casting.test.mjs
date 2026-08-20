@@ -2,14 +2,14 @@ import assert from 'node:assert/strict'
 import {readFile} from 'node:fs/promises'
 import test from 'node:test'
 
-import {saveCastSession} from '@/helpers/cast-session.js'
+import {saveCastSession} from '../src/helpers/cast-session.js'
 import {
   createCastingCommandGuard,
   normalizeLoadVideoContext,
   pairController,
   sendCastingCommand,
   sendControlCommand,
-} from '@/helpers/casting.js'
+} from '../src/helpers/casting.js'
 
 test('normalizes load IDs and null mode while retaining extra fields', () => {
   assert.deepEqual(normalizeLoadVideoContext({
