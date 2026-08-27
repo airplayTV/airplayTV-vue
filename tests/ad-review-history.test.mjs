@@ -4,6 +4,7 @@ import assert from 'node:assert/strict'
 import {
   adReviewAccessAction,
   buildAdReviewCalibrationRoute,
+  consumeAdReviewAutostartQuery,
   createAdReviewSingleFlight,
   normalizeAdReviewHistoryFilter,
   normalizeAdReviewHistoryPage,
@@ -110,4 +111,13 @@ test('历史快照详情按分段序号排序并保留当前标签', () => {
   assert.deepEqual(detail.blocks.map((block) => block.id), [1, 2])
   assert.equal(detail.blocks[0].labelEvent.label, 'AD')
   assert.equal(detail.blocks[1].labelEvent, null)
+})
+
+test('自动重新校准参数只消费一次并保留其他查询条件', () => {
+  const result = consumeAdReviewAutostartQuery({
+    _source: 'source-a', pid: 'p1', ad_review_autostart: '1', keyword: 'keep',
+  })
+  assert.equal(result.shouldStart, true)
+  assert.deepEqual(result.nextQuery, { _source: 'source-a', pid: 'p1', keyword: 'keep' })
+  assert.equal(consumeAdReviewAutostartQuery({ pid: 'p1' }).shouldStart, false)
 })

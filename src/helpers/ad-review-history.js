@@ -137,3 +137,10 @@ export const buildAdReviewCalibrationRoute = ({ source, vid, pid }) => ({
     ad_review_autostart: '1',
   },
 })
+
+export const consumeAdReviewAutostartQuery = (query = {}) => {
+  const nextQuery = { ...query }
+  const shouldStart = String(nextQuery.ad_review_autostart ?? '') === '1'
+  delete nextQuery.ad_review_autostart
+  return { shouldStart, nextQuery }
+}

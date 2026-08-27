@@ -77,6 +77,7 @@ import { NAlert, NButton, NEmpty, NSelect, NTag, useDialog, useMessage } from 'n
 import { useRoute, useRouter } from 'vue-router'
 import { useAdReviewStore } from '@/stores/ad-review.js'
 import { findNextAdReviewBlockId, formatApproxTime } from '@/helpers/ad-review-state.js'
+import { consumeAdReviewAutostartQuery } from '@/helpers/ad-review-history.js'
 import AdReviewPlayer from './AdReviewPlayer.vue'
 import AdReviewRulePanel from './AdReviewRulePanel.vue'
 
@@ -90,6 +91,7 @@ const pid = ref(null)
 const error = ref('')
 const saving = ref('')
 const blockListRef = ref(null)
+const autostartAttempted = ref(false)
 const episodes = computed(() => (props.video.links || []).map((link, index) => ({
   label: link.name || link.title || `第 ${index + 1} 集`,
   value: String(link.id),
@@ -102,7 +104,12 @@ const labelTagType = (label) => ({ CONTENT: 'success', AD: 'error', UNSURE: 'def
 const analyze = async () => {
   error.value = ''
   try {
-    await store.loadSnapshot({ source: props.source, vid: String(props.video.id), pid: String(pid.value) })
+    await store.loadSnapshot({
+      source: props.source,
+      vid: String(props.video.id),
+      pid: String(pid.value),
+      video_name: props.video.name || '',
+    })
     await store.refreshActive(props.source)
     const requestedStart = Number(route.query.ad_review_start_ms)
     if (Number.isFinite(requestedStart)) {
@@ -110,8 +117,13 @@ const analyze = async () => {
         !best || Math.abs(block.startMs - requestedStart) < Math.abs(best.startMs - requestedStart) ? block : best, null)
       if (nearest) store.selectedBlockId = nearest.id
     }
-    router.replace({ path: route.path, query: { ...route.query, pid: pid.value } })
-  } catch (reason) { error.value = reason.message || '解析失败' }
+    const { nextQuery } = consumeAdReviewAutostartQuery(route.query)
+    await router.replace({ path: route.path, query: { ...nextQuery, pid: pid.value } })
+    return true
+  } catch (reason) {
+    error.value = reason.message || '解析失败'
+    return false
+  }
 }
 
 const saveLabel = async (label) => {
@@ -154,6 +166,11 @@ onMounted(async () => {
     return
   }
   pid.value = String(route.query.pid || episodes.value[0]?.value || '')
+  const { shouldStart } = consumeAdReviewAutostartQuery(route.query)
+  if (shouldStart && pid.value && !autostartAttempted.value) {
+    autostartAttempted.value = true
+    await analyze()
+  }
 })
 
 watch(() => store.selectedBlockId, async (blockId) => {
