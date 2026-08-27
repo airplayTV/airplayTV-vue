@@ -11,6 +11,7 @@ import {
   normalizeAdReviewHistoryFilter,
   normalizeAdReviewHistoryPage,
   normalizeAdReviewSnapshotDetail,
+  runAdReviewSnapshotDeletion,
   shouldShowAdReviewHistory,
 } from '../src/helpers/ad-review-history.js'
 
@@ -127,4 +128,30 @@ test('广告标记接口同时识别 HTTP 与业务响应中的认证过期', ()
   assert.equal(isAdReviewAuthenticationError({ status: 401 }), true)
   assert.equal(isAdReviewAuthenticationError({ data: { code: 401 } }), true)
   assert.equal(isAdReviewAuthenticationError({ status: 404, data: { code: 404 } }), false)
+})
+
+test('永久删除快照成功后才刷新当前广告标记列表', async () => {
+  const calls = []
+  const result = await runAdReviewSnapshotDeletion(12, {
+    deleteSnapshot: async (snapshotId) => {
+      calls.push(`delete:${snapshotId}`)
+      return { snapshot_id: snapshotId }
+    },
+    reloadHistory: async () => {
+      calls.push('reload')
+      return { total: 1 }
+    },
+  })
+
+  assert.deepEqual(calls, ['delete:12', 'reload'])
+  assert.deepEqual(result, { snapshot_id: 12 })
+})
+
+test('永久删除快照失败时保留当前列表且不触发刷新', async () => {
+  let reloaded = false
+  await assert.rejects(() => runAdReviewSnapshotDeletion(12, {
+    deleteSnapshot: async () => { throw new Error('delete failed') },
+    reloadHistory: async () => { reloaded = true },
+  }), /delete failed/)
+  assert.equal(reloaded, false)
 })

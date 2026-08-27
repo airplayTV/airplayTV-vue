@@ -131,6 +131,12 @@ export const createAdReviewSingleFlight = () => {
   }
 }
 
+export const runAdReviewSnapshotDeletion = async (snapshotId, { deleteSnapshot, reloadHistory }) => {
+  const result = await deleteSnapshot(snapshotId)
+  await reloadHistory()
+  return result
+}
+
 const createAdReviewRunId = () => globalThis.crypto?.randomUUID?.() ??
   `${Date.now()}-${Math.random().toString(36).slice(2)}`
 

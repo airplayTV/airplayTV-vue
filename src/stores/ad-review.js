@@ -6,6 +6,7 @@ import {
   isAdReviewAuthenticationError,
   normalizeAdReviewHistoryPage,
   normalizeAdReviewSnapshotDetail,
+  runAdReviewSnapshotDeletion,
 } from '@/helpers/ad-review-history.js'
 import { adReviewAPI } from '@/helpers/ad-review-api.js'
 
@@ -26,6 +27,7 @@ export const useAdReviewStore = defineStore('ad-review', () => {
   const historySnapshot = ref(null)
   const historySnapshotLoading = ref(false)
   const historySnapshotError = ref('')
+  const deletingSnapshotId = ref(null)
   const runRestore = createAdReviewSingleFlight()
 
   const selectedBlock = computed(() => blocks.value.find((block) => block.id === selectedBlockId.value) ?? null)
@@ -158,11 +160,33 @@ export const useAdReviewStore = defineStore('ad-review', () => {
     }
   }
 
+  const deleteSnapshot = async (snapshotId, filter = {}) => {
+    deletingSnapshotId.value = snapshotId
+    historyError.value = ''
+    try {
+      return await runAdReviewSnapshotDeletion(snapshotId, {
+        deleteSnapshot: adReviewAPI.deleteSnapshot,
+        reloadHistory: async () => {
+          const page = await loadHistory(filter)
+          if (page.page > 1 && page.items.length === 0) {
+            await loadHistory({ ...filter, page: page.page - 1 })
+          }
+        },
+      })
+    } catch (error) {
+      if (isAdReviewAuthenticationError(error)) exitLocal()
+      historyError.value = error.message || '永久删除快照失败'
+      throw error
+    } finally {
+      deletingSnapshotId.value = null
+    }
+  }
+
   return {
     enabled, authenticated, snapshot, blocks, selectedBlockId, selectedBlock,
     candidate, conflicts, active, loading, labeledCount, unlabeledCount,
     historyPage, historyLoading, historyError,
-    historySnapshot, historySnapshotLoading, historySnapshotError,
-    enter, restore, logout, loadSnapshot, label, markUnlabeledContent, generateCandidate, refreshActive, activate, rollback, loadHistory, loadSnapshotDetail,
+    historySnapshot, historySnapshotLoading, historySnapshotError, deletingSnapshotId,
+    enter, restore, logout, loadSnapshot, label, markUnlabeledContent, generateCandidate, refreshActive, activate, rollback, loadHistory, loadSnapshotDetail, deleteSnapshot,
   }
 })

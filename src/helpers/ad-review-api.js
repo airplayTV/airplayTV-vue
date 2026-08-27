@@ -48,6 +48,7 @@ export const adReviewAPI = {
   markUnlabeledContent: (snapshotId) => client.post(`${basePath}/snapshots/${snapshotId}/labels/content`, {}, writeConfig()),
   labeledVideos: (params) => client.get(`${basePath}/videos`, { params }),
   snapshotDetail: (snapshotId) => client.get(`${basePath}/snapshots/${snapshotId}`),
+  deleteSnapshot: (snapshotId) => client.delete(`${basePath}/snapshots/${snapshotId}`, writeConfig()),
   labelBlock: (blockId, input) => client.post(`${basePath}/blocks/${blockId}/label`, input, writeConfig()),
   generateCandidate: (source) => client.post(`${basePath}/rules/candidate`, { source }, writeConfig()),
   activateRule: (ruleId, input) => client.post(`${basePath}/rules/${ruleId}/activate`, input, writeConfig()),

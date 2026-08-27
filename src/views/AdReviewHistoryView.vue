@@ -38,7 +38,13 @@
           <n-skeleton v-for="index in 3" :key="index" height="168px" :sharp="false" />
         </div>
         <div v-else-if="store.historyPage.items.length" class="video-list">
-          <AdReviewVideoCard v-for="video in store.historyPage.items" :key="`${video.source}:${video.vid}`" :video="video" />
+          <AdReviewVideoCard
+            v-for="video in store.historyPage.items"
+            :key="`${video.source}:${video.vid}`"
+            :video="video"
+            :deleting-snapshot-id="store.deletingSnapshotId"
+            @delete-snapshot="deleteSnapshot"
+          />
         </div>
         <n-empty v-else description="暂时没有产生过人工标签的视频">
           <template #extra><n-button type="primary" secondary @click="router.push('/video/list')">开始第一次校准</n-button></template>
@@ -59,7 +65,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { NAlert, NButton, NEmpty, NInput, NPagination, NSkeleton } from 'naive-ui'
+import { NAlert, NButton, NEmpty, NInput, NPagination, NSkeleton, useMessage } from 'naive-ui'
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
@@ -70,6 +76,7 @@ import { normalizeAdReviewHistoryFilter } from '@/helpers/ad-review-history.js'
 
 const router = useRouter()
 const store = useAdReviewStore()
+const message = useMessage()
 const keyword = ref('')
 const source = ref('')
 
@@ -85,6 +92,20 @@ const submitFilters = () => loadHistory(1)
 const changePage = (page) => {
   loadHistory(page)
   window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const deleteSnapshot = async (snapshot) => {
+  try {
+    await store.deleteSnapshot(snapshot.id, normalizeAdReviewHistoryFilter({
+      keyword: keyword.value,
+      source: source.value,
+      page: store.historyPage.page,
+      pageSize: store.historyPage.pageSize,
+    }))
+    message.success(`快照 #${snapshot.id} 已永久删除`)
+  } catch (_) {
+    // The store exposes the project-style API message inline.
+  }
 }
 </script>
 

@@ -36,15 +36,39 @@
           <span v-for="item in countEntries(episode.labelCounts)" :key="item.key">{{ item.label }} {{ item.value }}</span>
         </div>
         <div class="snapshot-list">
-          <RouterLink
+          <div
             v-for="snapshot in episode.snapshots"
             :key="snapshot.id"
-            class="snapshot-link"
-            :to="{ name: 'AdReviewSnapshot', params: { snapshotId: snapshot.id } }"
+            class="snapshot-row"
           >
-            <span><strong>快照 #{{ snapshot.id }}</strong><small>{{ formatDate(snapshot.latestLabeledAt) }}</small></span>
-            <span>{{ snapshot.labeledBlockCount }} 个已标记分段</span>
-          </RouterLink>
+            <RouterLink
+              class="snapshot-link"
+              :to="{ name: 'AdReviewSnapshot', params: { snapshotId: snapshot.id } }"
+            >
+              <span><strong>快照 #{{ snapshot.id }}</strong><small>{{ formatDate(snapshot.latestLabeledAt) }}</small></span>
+              <span>{{ snapshot.labeledBlockCount }} 个已标记分段</span>
+            </RouterLink>
+            <n-popconfirm
+              positive-text="永久删除"
+              negative-text="取消"
+              :positive-button-props="{ type: 'error' }"
+              @positive-click="emit('deleteSnapshot', snapshot)"
+            >
+              <template #trigger>
+                <n-button
+                  class="snapshot-delete"
+                  type="error"
+                  secondary
+                  :loading="deletingSnapshotId === snapshot.id"
+                  :disabled="deletingSnapshotId !== null"
+                  :aria-label="`永久删除快照 #${snapshot.id}`"
+                >
+                  删除
+                </n-button>
+              </template>
+              将永久删除快照 #{{ snapshot.id }} 及其全部标记数据，无法恢复。
+            </n-popconfirm>
+          </div>
         </div>
       </section>
     </div>
@@ -53,11 +77,15 @@
 
 <script setup>
 import { ref } from 'vue'
-import { NButton } from 'naive-ui'
+import { NButton, NPopconfirm } from 'naive-ui'
 import { useRouter } from 'vue-router'
 import { buildAdReviewCalibrationRoute } from '@/helpers/ad-review-history.js'
 
-const props = defineProps({ video: { type: Object, required: true } })
+const props = defineProps({
+  video: { type: Object, required: true },
+  deletingSnapshotId: { type: Number, default: null },
+})
+const emit = defineEmits(['deleteSnapshot'])
 const router = useRouter()
 const expanded = ref(false)
 
@@ -106,11 +134,13 @@ const recalibrate = (pid) => router.push(buildAdReviewCalibrationRoute({
 .episode-heading small { grid-column: 1 / -1; }
 .episode-counts { display: flex; flex-wrap: wrap; gap: 6px 12px; color: var(--history-muted); font-size: 12px; }
 .snapshot-list { display: grid; gap: 6px; }
+.snapshot-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; gap: 8px; }
 .snapshot-link { min-height: 48px; padding: 8px 11px; border: 1px solid var(--history-border); border-radius: 10px; background: var(--history-panel); color: inherit; text-decoration: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .snapshot-link:hover { border-color: rgba(24, 160, 88, .45); }
 .snapshot-link:focus-visible { outline: 3px solid rgba(24, 160, 88, .24); outline-offset: 2px; }
 .snapshot-link > span:first-child { display: grid; gap: 2px; }
 .snapshot-link small, .snapshot-link > span:last-child { color: var(--history-muted); font-size: 12px; }
+.snapshot-delete { min-width: 64px; min-height: 48px; }
 @media (max-width: 640px) {
   .video-card { padding: 14px; }
   .video-summary { align-items: stretch; flex-direction: column; }
@@ -118,6 +148,8 @@ const recalibrate = (pid) => router.push(buildAdReviewCalibrationRoute({
   .label-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .episode-heading { align-items: stretch; flex-direction: column; }
   .episode-heading .n-button { width: 100%; }
+  .snapshot-row { grid-template-columns: 1fr; }
   .snapshot-link { align-items: flex-start; flex-direction: column; }
+  .snapshot-delete { width: 100%; }
 }
 </style>
