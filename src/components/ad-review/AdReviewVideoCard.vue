@@ -135,12 +135,12 @@ const recalibrate = (pid) => router.push(buildAdReviewCalibrationRoute({
 .episode-counts { display: flex; flex-wrap: wrap; gap: 6px 12px; color: var(--history-muted); font-size: 12px; }
 .snapshot-list { display: grid; gap: 6px; }
 .snapshot-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; gap: 8px; }
-.snapshot-link { min-height: 48px; padding: 8px 11px; border: 1px solid var(--history-border); border-radius: 10px; background: var(--history-panel); color: inherit; text-decoration: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.snapshot-link { min-height: 48px; padding: 8px 11px; box-sizing: border-box; border: 1px solid var(--history-border); border-radius: 10px; background: var(--history-panel); color: inherit; text-decoration: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .snapshot-link:hover { border-color: rgba(24, 160, 88, .45); }
 .snapshot-link:focus-visible { outline: 3px solid rgba(24, 160, 88, .24); outline-offset: 2px; }
 .snapshot-link > span:first-child { display: grid; gap: 2px; }
 .snapshot-link small, .snapshot-link > span:last-child { color: var(--history-muted); font-size: 12px; }
-.snapshot-delete { min-width: 64px; min-height: 48px; }
+.snapshot-delete { min-width: 64px; min-height: 48px; height: 100%; }
 @media (max-width: 640px) {
   .video-card { padding: 14px; }
   .video-summary { align-items: stretch; flex-direction: column; }
