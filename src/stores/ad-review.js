@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { createAdReviewSession, normalizeAdReviewSnapshot } from '@/helpers/ad-review-state.js'
+import { createAdReviewSingleFlight, normalizeAdReviewHistoryPage } from '@/helpers/ad-review-history.js'
 import { adReviewAPI } from '@/helpers/ad-review-api.js'
 
 export const useAdReviewStore = defineStore('ad-review', () => {
@@ -14,6 +15,10 @@ export const useAdReviewStore = defineStore('ad-review', () => {
   const conflicts = ref([])
   const active = ref(null)
   const loading = ref(false)
+  const historyPage = ref(normalizeAdReviewHistoryPage())
+  const historyLoading = ref(false)
+  const historyError = ref('')
+  const runRestore = createAdReviewSingleFlight()
 
   const selectedBlock = computed(() => blocks.value.find((block) => block.id === selectedBlockId.value) ?? null)
   const labeledCount = computed(() => blocks.value.filter((block) => block.labelEvent).length)
@@ -25,16 +30,19 @@ export const useAdReviewStore = defineStore('ad-review', () => {
     authenticated.value = true
   }
 
-  const restore = async () => {
+  const restore = () => {
     if (!enabled.value) return false
-    try {
-      await adReviewAPI.session()
-      authenticated.value = true
-      return true
-    } catch (_) {
-      exitLocal()
-      return false
-    }
+    if (authenticated.value) return true
+    return runRestore(async () => {
+      try {
+        await adReviewAPI.session()
+        authenticated.value = true
+        return true
+      } catch (_) {
+        exitLocal()
+        return false
+      }
+    })
   }
 
   const exitLocal = () => {
@@ -43,6 +51,7 @@ export const useAdReviewStore = defineStore('ad-review', () => {
     authenticated.value = false
     snapshot.value = null
     blocks.value = []
+    selectedBlockId.value = null
   }
 
   const logout = async () => {
@@ -103,9 +112,24 @@ export const useAdReviewStore = defineStore('ad-review', () => {
     return activation
   }
 
+  const loadHistory = async (filter = {}) => {
+    historyLoading.value = true
+    historyError.value = ''
+    try {
+      historyPage.value = normalizeAdReviewHistoryPage(await adReviewAPI.labeledVideos(filter))
+      return historyPage.value
+    } catch (error) {
+      historyError.value = error.message || '读取广告标记历史失败'
+      throw error
+    } finally {
+      historyLoading.value = false
+    }
+  }
+
   return {
     enabled, authenticated, snapshot, blocks, selectedBlockId, selectedBlock,
     candidate, conflicts, active, loading, labeledCount,
-    enter, restore, logout, loadSnapshot, label, generateCandidate, refreshActive, activate, rollback,
+    historyPage, historyLoading, historyError,
+    enter, restore, logout, loadSnapshot, label, generateCandidate, refreshActive, activate, rollback, loadHistory,
   }
 })
