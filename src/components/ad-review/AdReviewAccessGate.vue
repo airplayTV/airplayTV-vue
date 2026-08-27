@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { NButton, NSpin } from 'naive-ui'
 import { useRouter } from 'vue-router'
 import { useAdReviewStore } from '@/stores/ad-review.js'
@@ -64,6 +64,10 @@ const onLoginSuccess = () => {
   showLogin.value = false
   emit('ready')
 }
+
+watch(() => store.authenticated, (authenticated, wasAuthenticated) => {
+  if (!authenticated && wasAuthenticated) showLogin.value = true
+})
 
 onMounted(ensureAccess)
 </script>

@@ -6,6 +6,7 @@ import {
   buildAdReviewCalibrationRoute,
   consumeAdReviewAutostartQuery,
   createAdReviewSingleFlight,
+  isAdReviewAuthenticationError,
   normalizeAdReviewHistoryFilter,
   normalizeAdReviewHistoryPage,
   normalizeAdReviewSnapshotDetail,
@@ -120,4 +121,10 @@ test('自动重新校准参数只消费一次并保留其他查询条件', () =>
   assert.equal(result.shouldStart, true)
   assert.deepEqual(result.nextQuery, { _source: 'source-a', pid: 'p1', keyword: 'keep' })
   assert.equal(consumeAdReviewAutostartQuery({ pid: 'p1' }).shouldStart, false)
+})
+
+test('广告标记接口同时识别 HTTP 与业务响应中的认证过期', () => {
+  assert.equal(isAdReviewAuthenticationError({ status: 401 }), true)
+  assert.equal(isAdReviewAuthenticationError({ data: { code: 401 } }), true)
+  assert.equal(isAdReviewAuthenticationError({ status: 404, data: { code: 404 } }), false)
 })

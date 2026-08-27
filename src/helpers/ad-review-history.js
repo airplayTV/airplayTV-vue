@@ -110,6 +110,9 @@ export const normalizeAdReviewHistoryFilter = (value = {}) => {
 
 export const shouldShowAdReviewHistory = (enabled, authenticated) => Boolean(enabled && authenticated)
 
+export const isAdReviewAuthenticationError = (error = {}) =>
+  Number(error.status ?? error.data?.code) === 401
+
 export const adReviewAccessAction = ({ enabled, authenticated, restoring }) => {
   if (authenticated) return 'show'
   if (restoring) return 'loading'

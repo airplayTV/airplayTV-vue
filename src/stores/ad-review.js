@@ -1,7 +1,12 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { createAdReviewSession, normalizeAdReviewSnapshot } from '@/helpers/ad-review-state.js'
-import { createAdReviewSingleFlight, normalizeAdReviewHistoryPage, normalizeAdReviewSnapshotDetail } from '@/helpers/ad-review-history.js'
+import {
+  createAdReviewSingleFlight,
+  isAdReviewAuthenticationError,
+  normalizeAdReviewHistoryPage,
+  normalizeAdReviewSnapshotDetail,
+} from '@/helpers/ad-review-history.js'
 import { adReviewAPI } from '@/helpers/ad-review-api.js'
 
 export const useAdReviewStore = defineStore('ad-review', () => {
@@ -122,6 +127,7 @@ export const useAdReviewStore = defineStore('ad-review', () => {
       historyPage.value = normalizeAdReviewHistoryPage(await adReviewAPI.labeledVideos(filter))
       return historyPage.value
     } catch (error) {
+      if (isAdReviewAuthenticationError(error)) exitLocal()
       historyError.value = error.message || '读取广告标记历史失败'
       throw error
     } finally {
@@ -136,6 +142,7 @@ export const useAdReviewStore = defineStore('ad-review', () => {
       historySnapshot.value = normalizeAdReviewSnapshotDetail(await adReviewAPI.snapshotDetail(snapshotId))
       return historySnapshot.value
     } catch (error) {
+      if (isAdReviewAuthenticationError(error)) exitLocal()
       historySnapshotError.value = error.message || '读取历史快照失败'
       throw error
     } finally {
