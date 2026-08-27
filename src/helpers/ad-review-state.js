@@ -32,6 +32,8 @@ export const normalizeAdReviewSnapshot = (data = {}) => {
       source: read(rawSnapshot, 'source', 'Source', ''),
       vid: read(rawSnapshot, 'vid', 'VID', ''),
       pid: read(rawSnapshot, 'pid', 'PID', ''),
+      playlistURL: read(rawSnapshot, 'playlist_url', 'PlaylistURL', ''),
+      finalURL: read(rawSnapshot, 'final_url', 'FinalURL', ''),
     },
     blocks: blocks.map((block) => ({
       id: read(block, 'id', 'ID'),

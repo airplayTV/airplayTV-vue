@@ -39,7 +39,14 @@ test('广告评审会话只持久化启用标志，不保存密码', () => {
 
 test('快照响应会被规范化为稳定的前端字段并按分组序号排序', () => {
   const normalized = normalizeAdReviewSnapshot({
-    snapshot: { ID: 9, Source: '源A', VID: 'v1', PID: 'p1' },
+    snapshot: {
+      ID: 9,
+      Source: '源A',
+      VID: 'v1',
+      PID: 'p1',
+      PlaylistURL: 'https://upstream.example/master.m3u8',
+      FinalURL: 'https://cdn.example/media.m3u8',
+    },
     blocks: [
       { ID: 12, BlockIndex: 1, StartMS: 10000, EndMS: 20000, SegmentCount: 2, Duration: 10 },
       { ID: 11, BlockIndex: 0, StartMS: 0, EndMS: 10000, SegmentCount: 1, Duration: 10 },
@@ -48,6 +55,8 @@ test('快照响应会被规范化为稳定的前端字段并按分组序号排�
 
   assert.equal(normalized.snapshot.id, 9)
   assert.equal(normalized.snapshot.source, '源A')
+  assert.equal(normalized.snapshot.playlistURL, 'https://upstream.example/master.m3u8')
+  assert.equal(normalized.snapshot.finalURL, 'https://cdn.example/media.m3u8')
   assert.deepEqual(normalized.blocks.map((block) => block.id), [11, 12])
   assert.equal(normalized.blocks[0].startMs, 0)
 })

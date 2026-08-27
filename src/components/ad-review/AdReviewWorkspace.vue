@@ -25,6 +25,23 @@
 
     <n-alert v-if="error" type="error" :title="error" closable @close="error = ''" />
 
+    <section v-if="store.snapshot && resolvedPlaylistURL" class="playlist-origin" aria-label="当前分段解析来源">
+      <div class="playlist-origin-heading">
+        <span class="eyebrow">解析来源</span>
+        <small>快照 #{{ store.snapshot.id }}</small>
+      </div>
+      <div class="playlist-origin-row">
+        <span>实际分段依据</span>
+        <code :title="resolvedPlaylistURL">{{ resolvedPlaylistURL }}</code>
+        <n-button text size="small" aria-label="复制实际解析 M3U8 地址" @click="copyPlaylistURL(resolvedPlaylistURL)">复制</n-button>
+      </div>
+      <div v-if="showEntryPlaylistURL" class="playlist-origin-row">
+        <span>入口 M3U8</span>
+        <code :title="store.snapshot.playlistURL">{{ store.snapshot.playlistURL }}</code>
+        <n-button text size="small" aria-label="复制入口 M3U8 地址" @click="copyPlaylistURL(store.snapshot.playlistURL)">复制</n-button>
+      </div>
+    </section>
+
     <div v-if="store.snapshot" class="review-grid">
       <aside class="block-panel" aria-label="Discontinuity 分段列表">
         <div class="panel-heading">
@@ -84,6 +101,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { NAlert, NButton, NEmpty, NSelect, NTag, useDialog, useMessage } from 'naive-ui'
 import { useRoute, useRouter } from 'vue-router'
+import copy from 'copy-to-clipboard'
 import { useAdReviewStore } from '@/stores/ad-review.js'
 import { findNextAdReviewBlockId, formatApproxTime } from '@/helpers/ad-review-state.js'
 import AdReviewPlayer from './AdReviewPlayer.vue'
@@ -104,10 +122,18 @@ const episodes = computed(() => (props.video.links || []).map((link, index) => (
   label: link.name || link.title || `第 ${index + 1} 集`,
   value: String(link.id),
 })))
+const resolvedPlaylistURL = computed(() => store.snapshot?.finalURL || store.snapshot?.playlistURL || '')
+const showEntryPlaylistURL = computed(() => Boolean(
+  store.snapshot?.playlistURL && store.snapshot.playlistURL !== resolvedPlaylistURL.value,
+))
 
 const labelOf = (block) => block.labelEvent?.Label ?? block.labelEvent?.label
 const labelText = (label) => ({ CONTENT: '正常', AD: '广告', UNSURE: '不确定', UNPLAYABLE: '无法播放' }[label] || label)
 const labelTagType = (label) => ({ CONTENT: 'success', AD: 'error', UNSURE: 'default', UNPLAYABLE: 'warning' }[label] || 'default')
+const copyPlaylistURL = (playlistURL) => {
+  copy(playlistURL)
+  message.success('M3U8 地址已复制')
+}
 
 const analyze = async () => {
   error.value = ''
@@ -219,6 +245,13 @@ watch(() => store.selectedBlockId, async (blockId) => {
 .mode-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--review-danger); box-shadow: 0 0 0 4px var(--review-danger-soft); }
 .episode-bar { justify-content: flex-start; }
 .episode-bar .n-select { width: min(440px, 55vw); }
+.playlist-origin { padding: 13px 16px; background: var(--review-panel); border: 1px solid var(--review-border); border-radius: 14px; box-shadow: var(--review-shadow); display: grid; gap: 9px; min-width: 0; }
+.playlist-origin-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.playlist-origin-heading small { color: var(--review-muted); }
+.playlist-origin-row { min-width: 0; display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.playlist-origin-row > span { color: var(--review-muted); font-size: 12px; font-weight: 600; }
+.playlist-origin-row code { min-width: 0; overflow: hidden; color: inherit; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; line-height: 1.5; text-overflow: ellipsis; white-space: nowrap; }
+.playlist-origin-row .n-button { min-width: 44px; min-height: 36px; }
 .review-grid { display: grid; grid-template-columns: minmax(300px, 356px) minmax(0, 1fr); gap: 16px; align-items: start; }
 .block-panel { position: sticky; top: 12px; background: var(--review-panel); border: 1px solid var(--review-border); border-radius: var(--review-radius); overflow: hidden; box-shadow: var(--review-shadow); }
 .panel-heading { padding: 15px 16px; border-bottom: 1px solid var(--review-border); background: var(--review-soft); display: grid; gap: 6px; }
@@ -260,6 +293,10 @@ watch(() => store.selectedBlockId, async (blockId) => {
   .review-toolbar .n-button { min-height: 44px; }
   .episode-bar .n-select { width: 100%; }
   .episode-bar .n-button { min-height: 44px; }
+  .playlist-origin { padding: 12px; }
+  .playlist-origin-row { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; }
+  .playlist-origin-row > span { grid-column: 1 / -1; }
+  .playlist-origin-row .n-button { min-height: 44px; }
   .panel-heading { padding: 13px 14px; }
   .block-list { padding: 6px; }
   .block-item { min-height: 72px; padding-block: 7px; }
