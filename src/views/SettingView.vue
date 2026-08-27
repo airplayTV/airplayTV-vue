@@ -121,7 +121,15 @@
 
           <n-form-item label="" path="source">
             <n-space justify="end" class="flex-1">
-              <n-button strong secondary type="warning" @click="router.push('/source-stat')">
+              <n-button
+                  strong secondary type="warning"
+                  aria-label="监测；长按两秒进入广告标记模式"
+                  @pointerdown="reviewEntryPress.start"
+                  @pointerup="reviewEntryPress.end"
+                  @pointercancel="reviewEntryPress.cancel"
+                  @pointerleave="reviewEntryPress.cancel"
+                  @keydown.enter="router.push('/source-stat')"
+                  @keydown.space.prevent="router.push('/source-stat')">
                 监测
               </n-button>
             </n-space>
@@ -170,6 +178,7 @@
         <n-button strong secondary type="info" @click="copyQrResult"> 复制内容</n-button>
       </n-space>
     </n-modal>
+    <AdReviewLoginModal v-model:show="showAdReviewLogin" @success="onAdReviewLogin" />
   </div>
 </template>
 
@@ -192,11 +201,24 @@ import {Html5Qrcode} from 'html5-qrcode'
 import copy from 'copy-to-clipboard'
 import {useRoute, useRouter} from 'vue-router'
 import AppFooter from '@/components/AppFooter.vue'
+import AdReviewLoginModal from '@/components/ad-review/AdReviewLoginModal.vue'
+import {createLongPressController} from '@/helpers/long-press.js'
 
 
 const route = useRoute()
 const router = useRouter()
 const message = useMessage()
+const showAdReviewLogin = ref(false)
+const reviewEntryPress = createLongPressController({
+  delay: 2000,
+  onClick: () => router.push('/source-stat'),
+  onLongPress: () => { showAdReviewLogin.value = true },
+})
+
+const onAdReviewLogin = () => {
+  message.success('广告标记模式已开启，请从视频列表或搜索结果选择视频')
+  router.push('/video/list')
+}
 
 const source = ref(null)
 const tag = ref(null)

@@ -4,6 +4,10 @@
       <AppHeader />
       <div v-if="video" style="padding: 0 10px" :key="video.id">
         <app-play-audio v-if="video.type === sourceTypeOption.mp3" :video="video" />
+        <AdReviewWorkspace
+            v-else-if="adReviewStore.enabled && video.type !== sourceTypeOption.mp3"
+            :video="video"
+            :source="getCurrentAppSource(appStore, route.query)" />
         <app-play-video v-else :video="video" />
       </div>
       <div v-else class="flex-column flex-1 flex-justify-center flex-align-center">
@@ -31,12 +35,15 @@ import AppPlayAudio from "@/components/AppPlayAudio.vue";
 import AppPlayVideo from "@/components/AppPlayVideo.vue";
 import {sourceTypeOption} from "@/helpers/play.js";
 import {getCurrentAppSource} from "@/helpers/app.js";
+import {useAdReviewStore} from '@/stores/ad-review.js'
+import AdReviewWorkspace from '@/components/ad-review/AdReviewWorkspace.vue'
 
 const route = useRoute()
 const router = useRouter()
 const loadingBar = useLoadingBar()
 const message = useMessage()
 const appStore = useAppStore()
+const adReviewStore = useAdReviewStore()
 
 const tmpQuery = ref('')
 const video = ref(null)

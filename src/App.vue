@@ -1,7 +1,8 @@
 <template>
   <n-loading-bar-provider>
     <n-message-provider>
-      <n-notification-provider>
+      <n-dialog-provider>
+        <n-notification-provider>
         <div class="container">
           <div v-if="!sourceList" class="padding-20px">
             <n-skeleton text :repeat="2" />
@@ -22,14 +23,15 @@
           </div>
           <RouterView v-else />
         </div>
-      </n-notification-provider>
+        </n-notification-provider>
+      </n-dialog-provider>
     </n-message-provider>
   </n-loading-bar-provider>
 </template>
 
 <script setup>
 import {onBeforeMount, onBeforeUnmount, ref} from 'vue'
-import {NLoadingBarProvider, NMessageProvider, NNotificationProvider, NResult, NSkeleton, NSpin,} from 'naive-ui'
+import {NDialogProvider, NLoadingBarProvider, NMessageProvider, NNotificationProvider, NResult, NSkeleton, NSpin,} from 'naive-ui'
 // import { useAppStore } from '@/stores/app'
 import {storeToRefs} from 'pinia'
 import {useAppStore} from '@/stores/app'
