@@ -54,3 +54,8 @@ export const formatApproxTime = (milliseconds = 0) => {
   const seconds = total % 60
   return [hours, minutes, seconds].map((part) => String(part).padStart(2, '0')).join(':')
 }
+
+export const findNextAdReviewBlockId = (blocks = [], currentId) => {
+  const index = blocks.findIndex((block) => block.id === currentId)
+  return index >= 0 ? blocks[index + 1]?.id ?? null : null
+}

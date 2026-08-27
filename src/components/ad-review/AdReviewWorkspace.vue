@@ -22,19 +22,20 @@
           <div><span class="eyebrow">时间线</span><strong>{{ store.blocks.length }} 个分段</strong></div>
           <small>含开头未声明 Discontinuity 的第 0 段</small>
         </div>
-        <div class="block-list">
+        <div ref="blockListRef" class="block-list">
           <button
             v-for="block in store.blocks"
             :key="block.id"
             type="button"
             :class="['block-item', { active: block.id === store.selectedBlockId }]"
             :aria-pressed="block.id === store.selectedBlockId"
+            :data-block-id="block.id"
             @click="store.selectedBlockId = block.id"
           >
             <span class="block-index">{{ block.blockIndex + 1 }}</span>
             <span class="block-meta">
               <strong>{{ formatApproxTime(block.startMs) }}–{{ formatApproxTime(block.endMs) }}</strong>
-              <small>{{ block.segmentCount }} 个 TS · {{ Number(block.duration).toFixed(1) }} 秒</small>
+              <small>{{ block.segmentCount }} 个媒体片段 · {{ Number(block.duration).toFixed(1) }} 秒</small>
             </span>
             <n-tag v-if="block.labelEvent" size="small" :type="labelTagType(labelOf(block))" :bordered="false">{{ labelText(labelOf(block)) }}</n-tag>
             <span v-else class="unreviewed">未标记</span>
@@ -71,11 +72,11 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { NAlert, NButton, NEmpty, NSelect, NTag, useDialog, useMessage } from 'naive-ui'
 import { useRoute, useRouter } from 'vue-router'
 import { useAdReviewStore } from '@/stores/ad-review.js'
-import { formatApproxTime } from '@/helpers/ad-review-state.js'
+import { findNextAdReviewBlockId, formatApproxTime } from '@/helpers/ad-review-state.js'
 import AdReviewPlayer from './AdReviewPlayer.vue'
 import AdReviewRulePanel from './AdReviewRulePanel.vue'
 
@@ -88,6 +89,7 @@ const message = useMessage()
 const pid = ref(null)
 const error = ref('')
 const saving = ref('')
+const blockListRef = ref(null)
 const episodes = computed(() => (props.video.links || []).map((link, index) => ({
   label: link.name || link.title || `第 ${index + 1} 集`,
   value: String(link.id),
@@ -118,8 +120,8 @@ const saveLabel = async (label) => {
   try {
     await store.label(store.selectedBlock, label)
     message.success(`第 ${store.selectedBlock.blockIndex + 1} 段已标记为${labelText(label)}`)
-    const index = store.blocks.findIndex((block) => block.id === store.selectedBlockId)
-    if (index >= 0 && index < store.blocks.length - 1) store.selectedBlockId = store.blocks[index + 1].id
+    const nextBlockId = findNextAdReviewBlockId(store.blocks, store.selectedBlockId)
+    if (nextBlockId) store.selectedBlockId = nextBlockId
   } catch (reason) { error.value = reason.message || '保存标记失败' } finally { saving.value = '' }
 }
 
@@ -153,56 +155,76 @@ onMounted(async () => {
   }
   pid.value = String(route.query.pid || episodes.value[0]?.value || '')
 })
+
+watch(() => store.selectedBlockId, async (blockId) => {
+  if (!blockId) return
+  await nextTick()
+  blockListRef.value?.querySelector(`[data-block-id="${blockId}"]`)?.scrollIntoView({ block: 'nearest' })
+})
 </script>
 
 <style scoped>
 .review-workspace {
-  --review-bg: #f3f6f9; --review-panel: #fff; --review-soft: #f5f7fa; --review-border: #dce3ea; --review-muted: #5d6875;
-  box-sizing: border-box; width: min(1440px, 100%); margin: 0 auto; padding: 12px clamp(12px, 3vw, 32px) 40px; display: grid; gap: 14px; color: #17202a;
+  --review-bg: #f5f7f9; --review-panel: #fff; --review-soft: #f7f9fa; --review-border: #dfe5ea; --review-muted: #5c6874;
+  --review-accent: #18a058; --review-accent-soft: #edf8f2; --review-focus: rgba(24, 160, 88, .26);
+  --review-danger: #d03050; --review-danger-soft: #fff4f5; --review-danger-border: #f2c2cb; --review-danger-text: #7a1d30;
+  --review-radius: 16px; --review-shadow: 0 1px 2px rgba(27, 39, 51, .04), 0 8px 24px rgba(27, 39, 51, .035);
+  box-sizing: border-box; width: min(1440px, 100%); margin: 0 auto; padding: 16px clamp(12px, 3vw, 32px) 48px; display: grid; gap: 16px; color: #18212a;
 }
-.review-toolbar, .episode-bar { min-height: 64px; padding: 10px 14px; background: var(--review-panel); border: 1px solid var(--review-border); border-radius: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.review-toolbar, .episode-bar { min-height: 64px; padding: 11px 16px; background: var(--review-panel); border: 1px solid var(--review-border); border-radius: 14px; box-shadow: var(--review-shadow); display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .review-toolbar > div { display: flex; align-items: center; gap: 10px; }
-.review-toolbar div div { display: grid; }
+.review-toolbar div div { display: grid; gap: 2px; }
 .review-toolbar small, .episode-bar span, .panel-heading small { color: var(--review-muted); }
-.mode-dot { width: 10px; height: 10px; border-radius: 50%; background: #d03050; box-shadow: 0 0 0 4px #fde9ed; }
+.mode-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--review-danger); box-shadow: 0 0 0 4px var(--review-danger-soft); }
 .episode-bar { justify-content: flex-start; }
 .episode-bar .n-select { width: min(440px, 55vw); }
-.review-grid { display: grid; grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); gap: 14px; align-items: start; }
-.block-panel { background: var(--review-panel); border: 1px solid var(--review-border); border-radius: 16px; overflow: hidden; }
-.panel-heading { padding: 14px; border-bottom: 1px solid var(--review-border); display: grid; gap: 6px; }
+.review-grid { display: grid; grid-template-columns: minmax(300px, 356px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.block-panel { position: sticky; top: 12px; background: var(--review-panel); border: 1px solid var(--review-border); border-radius: var(--review-radius); overflow: hidden; box-shadow: var(--review-shadow); }
+.panel-heading { padding: 15px 16px; border-bottom: 1px solid var(--review-border); background: var(--review-soft); display: grid; gap: 6px; }
 .panel-heading > div { display: flex; justify-content: space-between; }
-.eyebrow { color: var(--review-muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
-.block-list { max-height: 620px; overflow-y: auto; padding: 8px; display: grid; gap: 6px; }
-.block-item { width: 100%; min-height: 64px; padding: 8px; border: 1px solid transparent; border-radius: 10px; background: transparent; display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 8px; color: inherit; text-align: left; cursor: pointer; }
+.eyebrow { color: var(--review-muted); font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.block-list { max-height: 640px; overflow-y: auto; padding: 8px; display: grid; gap: 4px; scrollbar-gutter: stable; }
+.block-item { position: relative; width: 100%; min-height: 68px; padding: 7px 10px 7px 12px; border: 1px solid transparent; border-radius: 11px; background: transparent; display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 9px; color: inherit; text-align: left; cursor: pointer; transition: border-color .16s ease, background-color .16s ease; }
 .block-item:hover { background: var(--review-soft); }
-.block-item:focus-visible { outline: 3px solid rgba(24, 160, 88, .28); outline-offset: 1px; }
-.block-item.active { border-color: #18a058; background: #effaf4; }
-.block-index { width: 30px; height: 30px; border-radius: 8px; background: var(--review-soft); display: grid; place-items: center; font-weight: 700; }
-.block-meta { display: grid; gap: 3px; min-width: 0; }
-.block-meta small, .unreviewed { color: var(--review-muted); font-size: 12px; }
-.review-main { display: grid; gap: 14px; min-width: 0; }
-.label-card { padding: 18px; background: var(--review-panel); border: 1px solid var(--review-border); border-radius: 16px; display: grid; grid-template-columns: minmax(220px, 1fr) auto; align-items: center; gap: 18px; }
+.block-item:focus-visible { outline: 3px solid var(--review-focus); outline-offset: 1px; }
+.block-item.active { border-color: var(--review-border); background: var(--review-accent-soft); box-shadow: inset 3px 0 var(--review-accent); }
+.block-index { width: 30px; height: 30px; border: 1px solid var(--review-border); border-radius: 9px; background: var(--review-soft); display: grid; place-items: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.block-item.active .block-index { border-color: rgba(24, 160, 88, .22); background: var(--review-panel); color: var(--review-accent); }
+.block-meta { display: grid; gap: 2px; min-width: 0; }
+.block-meta strong { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.block-meta small, .unreviewed { color: var(--review-muted); font-size: 12px; line-height: 1.45; }
+.review-main { display: grid; gap: 16px; min-width: 0; }
+.label-card { padding: 20px; background: var(--review-panel); border: 1px solid var(--review-border); border-radius: var(--review-radius); box-shadow: var(--review-shadow); display: grid; grid-template-columns: minmax(220px, 1fr) auto; align-items: center; gap: 20px; }
 .label-card h3 { margin: 2px 0 4px; font-size: 18px; }
 .label-card p { margin: 0; color: var(--review-muted); line-height: 1.5; }
 .label-actions { display: grid; grid-template-columns: repeat(2, minmax(112px, 1fr)); gap: 8px; }
 .label-actions .n-button { min-height: 44px; }
 @media (prefers-color-scheme: dark) {
-  .review-workspace { --review-bg: #101419; --review-panel: #171c22; --review-soft: #20262d; --review-border: #303943; --review-muted: #b6c0cc; color: #f3f6f9; }
-  .block-item.active { background: #153a29; }
+  .review-workspace {
+    --review-bg: #101419; --review-panel: #171c22; --review-soft: #20262d; --review-border: #343d47; --review-muted: #bac3cd;
+    --review-accent-soft: #153326; --review-danger-soft: #351b22; --review-danger-border: #70303f; --review-danger-text: #ffc1ce;
+    --review-shadow: 0 1px 2px rgba(0, 0, 0, .18), 0 10px 28px rgba(0, 0, 0, .12); color: #f3f6f9;
+  }
 }
 @media (max-width: 820px) {
   .review-grid { grid-template-columns: 1fr; }
-  .block-list { max-height: 300px; }
+  .block-panel { position: static; }
+  .block-list { max-height: 360px; }
   .label-card { grid-template-columns: 1fr; }
 }
 @media (max-width: 520px) {
-  .review-workspace { padding-inline: 8px; }
+  .review-workspace { padding: 10px 8px 36px; gap: 12px; }
   .review-toolbar, .episode-bar { align-items: stretch; flex-direction: column; }
   .review-toolbar > div { min-height: 44px; }
+  .review-toolbar .n-button { min-height: 44px; }
   .episode-bar .n-select { width: 100%; }
   .episode-bar .n-button { min-height: 44px; }
+  .panel-heading { padding: 13px 14px; }
+  .block-list { padding: 6px; }
+  .block-item { min-height: 72px; padding-block: 7px; }
   .block-item { grid-template-columns: 34px 1fr; }
   .block-item .n-tag, .unreviewed { grid-column: 2; justify-self: start; }
+  .label-card { padding: 16px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
 </style>

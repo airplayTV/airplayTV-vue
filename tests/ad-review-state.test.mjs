@@ -6,6 +6,7 @@ import {
 	AD_REVIEW_TOKEN_KEY,
 	createAdReviewAPIError,
   createAdReviewSession,
+	findNextAdReviewBlockId,
   normalizeAdReviewSnapshot,
 } from '../src/helpers/ad-review-state.js'
 
@@ -56,4 +57,13 @@ test('原项目错误响应中的业务码会保留到前端错误对象', () =>
 	assert.equal(error.message, '当前来源没有生效规则')
 	assert.equal(error.status, 404)
 	assert.deepEqual(error.data, { code: 404, msg: '当前来源没有生效规则' })
+})
+
+test('标记完成后选择时间线中的下一分段', () => {
+	const blocks = [{ id: 11 }, { id: 12 }, { id: 13 }]
+
+	assert.equal(findNextAdReviewBlockId(blocks, 11), 12)
+	assert.equal(findNextAdReviewBlockId(blocks, 12), 13)
+	assert.equal(findNextAdReviewBlockId(blocks, 13), null)
+	assert.equal(findNextAdReviewBlockId(blocks, 999), null)
 })

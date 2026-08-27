@@ -15,7 +15,7 @@
 
     <div v-if="rule" class="rule-summary">
       <div><span>来源范围</span><strong>{{ field(rule, 'Source', 'source') || '全局' }}</strong></div>
-      <div><span>最大 TS 数</span><strong>≤ {{ field(rule, 'MaxSegment', 'max_segment') }}</strong></div>
+      <div><span>最大片段数</span><strong>≤ {{ field(rule, 'MaxSegment', 'max_segment') }}</strong></div>
       <div><span>最大时长</span><strong>≤ {{ Number(field(rule, 'MaxDuration', 'max_duration')).toFixed(1) }} 秒</strong></div>
       <div><span>历史广告命中</span><strong>{{ field(evaluation, 'AdMatched', 'ad_matched') || 0 }}</strong></div>
     </div>
@@ -117,19 +117,28 @@ const rollback = async () => {
 </script>
 
 <style scoped>
-.rule-panel { display: grid; gap: 14px; padding: 18px; background: var(--review-panel); border: 1px solid var(--review-border); border-radius: 16px; }
-.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.section-heading h3 { margin: 2px 0 0; font-size: 17px; }
-.eyebrow { color: var(--review-muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
-.rule-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.rule-summary div { padding: 12px; border-radius: 10px; background: var(--review-soft); display: grid; gap: 4px; }
+.rule-panel { display: grid; gap: 16px; padding: 20px; background: var(--review-panel); border: 1px solid var(--review-border); border-radius: var(--review-radius); box-shadow: var(--review-shadow); }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.section-heading h3 { margin: 3px 0 0; font-size: 17px; line-height: 1.4; }
+.eyebrow { color: var(--review-muted); font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.rule-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.rule-summary div { min-height: 72px; padding: 12px 14px; border: 1px solid var(--review-border); border-radius: 12px; background: var(--review-soft); display: grid; align-content: center; gap: 5px; }
 .rule-summary span { color: var(--review-muted); font-size: 12px; }
+.rule-summary strong { font-size: 16px; font-variant-numeric: tabular-nums; }
 .conflict-list { display: grid; gap: 8px; max-height: 220px; overflow: auto; }
-.conflict-list button { min-height: 48px; padding: 8px 12px; border: 1px solid #f4b7b7; border-radius: 10px; background: #fff7f7; color: #611a1a; display: flex; justify-content: space-between; align-items: center; text-align: left; cursor: pointer; }
+.conflict-list button { min-height: 48px; padding: 10px 12px; border: 1px solid var(--review-danger-border); border-radius: 10px; background: var(--review-danger-soft); color: var(--review-danger-text); display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; cursor: pointer; transition: border-color .16s ease, background-color .16s ease; }
+.conflict-list button:hover { border-color: var(--review-danger); }
+.conflict-list button:focus-visible { outline: 3px solid var(--review-focus); outline-offset: 2px; }
 .publish-row { display: grid; grid-template-columns: minmax(180px, 1fr) auto auto; gap: 10px; }
 @media (max-width: 700px) {
   .rule-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .publish-row { grid-template-columns: 1fr; }
   .publish-row .n-button { min-height: 44px; }
+}
+@media (max-width: 430px) {
+  .rule-panel { padding: 16px; }
+  .section-heading { align-items: stretch; flex-direction: column; }
+  .section-heading .n-button { min-height: 44px; }
+  .conflict-list button { align-items: flex-start; flex-direction: column; }
 }
 </style>
