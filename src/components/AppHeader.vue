@@ -16,6 +16,12 @@
           <li>
             <RouterLink to="/history">历史</RouterLink>
           </li>
+          <li v-if="showAdReviewHistory">
+            <RouterLink :to="{ name: 'AdReviewHistory' }" aria-label="广告标记历史">
+              <span class="review-label-wide" aria-hidden="true">广告标记历史</span>
+              <span class="review-label-narrow" aria-hidden="true">标记历史</span>
+            </RouterLink>
+          </li>
           <li>
             <RouterLink to="/setting">设置</RouterLink>
           </li>
@@ -48,13 +54,15 @@
 </template>
 
 <script setup>
-import {onBeforeMount, onBeforeUpdate, ref} from 'vue'
+import {computed, onBeforeMount, onBeforeUpdate, ref} from 'vue'
 import {NButton, NIcon, NInput, NInputGroup, NSpace} from 'naive-ui'
 import {FavoriteFilled, SearchSharp} from '@vicons/material'
 import {useRoute, useRouter} from 'vue-router'
 import {getStorageSync} from '@/helpers/utils'
 import {KEY_ROOM_ID} from '@/helpers/constant'
 import {useAppStore} from "@/stores/app.js";
+import {useAdReviewStore} from '@/stores/ad-review.js'
+import {shouldShowAdReviewHistory} from '@/helpers/ad-review-history.js'
 
 const room = ref(null)
 const source = ref(0)
@@ -63,6 +71,8 @@ const showSearch = ref(false)
 const route = useRoute()
 const router = useRouter()
 const appStore = useAppStore()
+const adReviewStore = useAdReviewStore()
+const showAdReviewHistory = computed(() => shouldShowAdReviewHistory(adReviewStore.enabled, adReviewStore.authenticated))
 
 const onToggleSearchBox = () => {
   showSearch.value = !showSearch.value
@@ -79,12 +89,16 @@ const onClickSearch = (_source = '') => {
   router.push(`/video/search?page=1&keyword=${encodeURIComponent(keyword.value)}&source=${_source}`)
 }
 
-const onBeforeMountHandler = () => {
+const onBeforeMountHandler = async () => {
   room.value = getStorageSync(KEY_ROOM_ID)
 
   if (route.query.keyword) {
     keyword.value = route.query.keyword
     showSearch.value = true
+  }
+
+  if (adReviewStore.enabled && !adReviewStore.authenticated) {
+    await adReviewStore.restore()
   }
 
 }
@@ -129,6 +143,24 @@ ul li.active {
 
   .router-link-active {
     border-bottom: 0;
+  }
+}
+
+.review-label-narrow {
+  display: none;
+}
+
+@media (max-width: 520px) {
+  .links a {
+    margin-inline: 4px;
+  }
+
+  .review-label-wide {
+    display: none;
+  }
+
+  .review-label-narrow {
+    display: inline;
   }
 }
 </style>

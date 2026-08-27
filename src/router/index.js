@@ -44,6 +44,18 @@ const router = createRouter({
       component: () => import('../views/HistoryView.vue'),
     },
     {
+      path: '/ad-review/history',
+      name: 'AdReviewHistory',
+      component: () => import('../views/AdReviewHistoryView.vue'),
+      meta: { requiresAdReview: true },
+    },
+    {
+      path: '/ad-review/history/:snapshotId',
+      name: 'AdReviewSnapshot',
+      component: () => import('../views/AdReviewSnapshotView.vue'),
+      meta: { requiresAdReview: true },
+    },
+    {
       path: '/qr',
       name: 'Qr',
       component: () => import('../views/QrView.vue'),

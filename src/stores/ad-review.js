@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { createAdReviewSession, normalizeAdReviewSnapshot } from '@/helpers/ad-review-state.js'
-import { createAdReviewSingleFlight, normalizeAdReviewHistoryPage } from '@/helpers/ad-review-history.js'
+import { createAdReviewSingleFlight, normalizeAdReviewHistoryPage, normalizeAdReviewSnapshotDetail } from '@/helpers/ad-review-history.js'
 import { adReviewAPI } from '@/helpers/ad-review-api.js'
 
 export const useAdReviewStore = defineStore('ad-review', () => {
@@ -18,6 +18,9 @@ export const useAdReviewStore = defineStore('ad-review', () => {
   const historyPage = ref(normalizeAdReviewHistoryPage())
   const historyLoading = ref(false)
   const historyError = ref('')
+  const historySnapshot = ref(null)
+  const historySnapshotLoading = ref(false)
+  const historySnapshotError = ref('')
   const runRestore = createAdReviewSingleFlight()
 
   const selectedBlock = computed(() => blocks.value.find((block) => block.id === selectedBlockId.value) ?? null)
@@ -126,10 +129,25 @@ export const useAdReviewStore = defineStore('ad-review', () => {
     }
   }
 
+  const loadSnapshotDetail = async (snapshotId) => {
+    historySnapshotLoading.value = true
+    historySnapshotError.value = ''
+    try {
+      historySnapshot.value = normalizeAdReviewSnapshotDetail(await adReviewAPI.snapshotDetail(snapshotId))
+      return historySnapshot.value
+    } catch (error) {
+      historySnapshotError.value = error.message || '读取历史快照失败'
+      throw error
+    } finally {
+      historySnapshotLoading.value = false
+    }
+  }
+
   return {
     enabled, authenticated, snapshot, blocks, selectedBlockId, selectedBlock,
     candidate, conflicts, active, loading, labeledCount,
     historyPage, historyLoading, historyError,
-    enter, restore, logout, loadSnapshot, label, generateCandidate, refreshActive, activate, rollback, loadHistory,
+    historySnapshot, historySnapshotLoading, historySnapshotError,
+    enter, restore, logout, loadSnapshot, label, generateCandidate, refreshActive, activate, rollback, loadHistory, loadSnapshotDetail,
   }
 })

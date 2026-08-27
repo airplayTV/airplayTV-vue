@@ -60,7 +60,62 @@ export const normalizeAdReviewHistoryPage = (value = {}) => ({
   pageSize: readNumber(value, ['page_size', 'pageSize', 'PageSize'], 20),
 })
 
+const normalizeLabelEvent = (value) => value ? {
+  id: readNumber(value, ['id', 'ID']),
+  label: String(readValue(value, ['label', 'Label'], '')),
+  previousId: readValue(value, ['previous_id', 'previousId', 'PreviousID']),
+  reason: String(readValue(value, ['reason', 'Reason'], '')),
+  createdAt: readValue(value, ['created_at', 'createdAt', 'CreatedAt'], ''),
+} : null
+
+export const normalizeAdReviewSnapshotDetail = (value = {}) => {
+  const snapshot = readValue(value, ['snapshot', 'Snapshot'], {})
+  return {
+    snapshot: {
+      id: readNumber(snapshot, ['id', 'ID']),
+      source: String(readValue(snapshot, ['source', 'Source'], '')),
+      vid: String(readValue(snapshot, ['vid', 'VID'], '')),
+      pid: String(readValue(snapshot, ['pid', 'PID'], '')),
+      videoName: String(readValue(snapshot, ['video_name', 'videoName', 'VideoName'], '')),
+      playlistURL: String(readValue(snapshot, ['playlist_url', 'playlistURL', 'PlaylistURL'], '')),
+      finalURL: String(readValue(snapshot, ['final_url', 'finalURL', 'FinalURL'], '')),
+      playlistHash: String(readValue(snapshot, ['playlist_hash', 'playlistHash', 'PlaylistHash'], '')),
+      ruleVersion: String(readValue(snapshot, ['rule_version', 'ruleVersion', 'RuleVersion'], '')),
+      createdAt: readValue(snapshot, ['created_at', 'createdAt', 'CreatedAt'], ''),
+    },
+    blocks: readValue(value, ['blocks', 'Blocks'], []).map((block) => ({
+      id: readNumber(block, ['id', 'ID']),
+      snapshotId: readNumber(block, ['snapshot_id', 'snapshotId', 'SnapshotID']),
+      blockIndex: readNumber(block, ['block_index', 'blockIndex', 'BlockIndex']),
+      discontinuityId: readNumber(block, ['discontinuity_id', 'discontinuityId', 'DiscontinuityID']),
+      startMs: readNumber(block, ['start_ms', 'startMs', 'StartMS']),
+      endMs: readNumber(block, ['end_ms', 'endMs', 'EndMS']),
+      segmentCount: readNumber(block, ['segment_count', 'segmentCount', 'SegmentCount']),
+      duration: readNumber(block, ['duration', 'Duration']),
+      labelEvent: normalizeLabelEvent(readValue(block, ['label_event', 'labelEvent', 'LabelEvent'])),
+    })).sort((left, right) => left.blockIndex - right.blockIndex),
+  }
+}
+
+export const normalizeAdReviewHistoryFilter = (value = {}) => {
+  const page = Math.max(1, Number.parseInt(value.page, 10) || 1)
+  const requestedPageSize = Number.parseInt(value.pageSize ?? value.page_size, 10) || 20
+  return {
+    keyword: String(value.keyword ?? '').trim(),
+    source: String(value.source ?? '').trim(),
+    page,
+    page_size: Math.min(100, Math.max(1, requestedPageSize)),
+  }
+}
+
 export const shouldShowAdReviewHistory = (enabled, authenticated) => Boolean(enabled && authenticated)
+
+export const adReviewAccessAction = ({ enabled, authenticated, restoring }) => {
+  if (authenticated) return 'show'
+  if (restoring) return 'loading'
+  if (enabled) return 'restore'
+  return 'login'
+}
 
 export const createAdReviewSingleFlight = () => {
   let pending = null

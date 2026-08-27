@@ -2,11 +2,21 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import {
+  adReviewAccessAction,
   buildAdReviewCalibrationRoute,
   createAdReviewSingleFlight,
+  normalizeAdReviewHistoryFilter,
   normalizeAdReviewHistoryPage,
+  normalizeAdReviewSnapshotDetail,
   shouldShowAdReviewHistory,
 } from '../src/helpers/ad-review-history.js'
+
+test('广告标记受保护页面按会话状态决定展示恢复或登录', () => {
+  assert.equal(adReviewAccessAction({ authenticated: true, enabled: true, restoring: false }), 'show')
+  assert.equal(adReviewAccessAction({ authenticated: false, enabled: true, restoring: true }), 'loading')
+  assert.equal(adReviewAccessAction({ authenticated: false, enabled: true, restoring: false }), 'restore')
+  assert.equal(adReviewAccessAction({ authenticated: false, enabled: false, restoring: false }), 'login')
+})
 
 test('广告标记历史菜单只在模式开启且服务端会话有效时显示', () => {
   assert.equal(shouldShowAdReviewHistory(true, true), true)
@@ -73,4 +83,31 @@ test('广告标记历史响应归一化并按最近标记时间排列快照', ()
   assert.deepEqual(normalized.items[0].labelCounts, { CONTENT: 1, AD: 2, UNSURE: 0, UNPLAYABLE: 0 })
   assert.deepEqual(normalized.items[0].episodes[0].snapshots.map((snapshot) => snapshot.id), [12, 11])
   assert.equal(normalized.items[0].episodes[0].snapshots[0].labeledBlockCount, 2)
+})
+
+test('广告标记历史筛选会清理文本并限制分页范围', () => {
+  assert.deepEqual(normalizeAdReviewHistoryFilter({
+    keyword: '  abc ', source: ' source-a ', page: -2, pageSize: 1000,
+  }), {
+    keyword: 'abc', source: 'source-a', page: 1, page_size: 100,
+  })
+  assert.deepEqual(normalizeAdReviewHistoryFilter({}), {
+    keyword: '', source: '', page: 1, page_size: 20,
+  })
+})
+
+test('历史快照详情按分段序号排序并保留当前标签', () => {
+  const detail = normalizeAdReviewSnapshotDetail({
+    snapshot: { ID: 3, Source: 'source-a', VID: 'v1', PID: 'p1', VideoName: '示例视频' },
+    blocks: [
+      { ID: 2, BlockIndex: 1, StartMS: 6000, EndMS: 12000, LabelEvent: null },
+      { ID: 1, BlockIndex: 0, StartMS: 0, EndMS: 6000, LabelEvent: { ID: 9, Label: 'AD' } },
+    ],
+  })
+
+  assert.equal(detail.snapshot.id, 3)
+  assert.equal(detail.snapshot.videoName, '示例视频')
+  assert.deepEqual(detail.blocks.map((block) => block.id), [1, 2])
+  assert.equal(detail.blocks[0].labelEvent.label, 'AD')
+  assert.equal(detail.blocks[1].labelEvent, null)
 })

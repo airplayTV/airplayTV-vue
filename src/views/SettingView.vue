@@ -119,20 +119,24 @@
             </n-space>
           </n-form-item>
 
-          <n-form-item label="" path="source">
-            <n-space justify="end" class="flex-1">
+          <n-form-item label="管理工具：" path="source">
+            <div class="management-actions flex-1">
               <n-button
                   strong secondary type="warning"
-                  aria-label="监测；长按两秒进入广告标记模式"
-                  @pointerdown="reviewEntryPress.start"
-                  @pointerup="reviewEntryPress.end"
-                  @pointercancel="reviewEntryPress.cancel"
-                  @pointerleave="reviewEntryPress.cancel"
-                  @keydown.enter="router.push('/source-stat')"
-                  @keydown.space.prevent="router.push('/source-stat')">
+                  @click="router.push('/source-stat')">
                 监测
               </n-button>
-            </n-space>
+              <n-button
+                  strong secondary
+                  :type="adReviewStore.authenticated ? 'success' : 'primary'"
+                  @click="openAdReviewMode">
+                <template #icon><n-icon><shield-lock /></n-icon></template>
+                <span v-if="adReviewStore.authenticated" class="review-mode-label">
+                  <span class="review-mode-dot" aria-hidden="true"></span>广告标记模式已开启
+                </span>
+                <span v-else>广告标记模式</span>
+              </n-button>
+            </div>
           </n-form-item>
         </n-form>
       </div>
@@ -184,7 +188,7 @@
 
 <script setup>
 import {onBeforeMount, onBeforeUnmount, onBeforeUpdate, onMounted, ref,} from 'vue'
-import {NButton, NEllipsis, NForm, NFormItem, NInput, NModal, NSelect, NSpace, NTag, NText, useMessage,} from 'naive-ui'
+import {NButton, NEllipsis, NForm, NFormItem, NIcon, NInput, NModal, NSelect, NSpace, NTag, NText, useMessage,} from 'naive-ui'
 import AppHeader from '@/components/AppHeader.vue'
 import {useAppStore} from '@/stores/app'
 import {arrayContainsValue, getStorageSync, removeStorageSync, setStorageSync,} from '@/helpers/utils'
@@ -202,22 +206,27 @@ import copy from 'copy-to-clipboard'
 import {useRoute, useRouter} from 'vue-router'
 import AppFooter from '@/components/AppFooter.vue'
 import AdReviewLoginModal from '@/components/ad-review/AdReviewLoginModal.vue'
-import {createLongPressController} from '@/helpers/long-press.js'
+import ShieldLock from '@vicons/tabler/ShieldLock'
+import {useAdReviewStore} from '@/stores/ad-review.js'
 
 
 const route = useRoute()
 const router = useRouter()
 const message = useMessage()
 const showAdReviewLogin = ref(false)
-const reviewEntryPress = createLongPressController({
-  delay: 2000,
-  onClick: () => router.push('/source-stat'),
-  onLongPress: () => { showAdReviewLogin.value = true },
-})
+const adReviewStore = useAdReviewStore()
+
+const openAdReviewMode = async () => {
+  if (adReviewStore.authenticated || await adReviewStore.restore()) {
+    await router.push({ name: 'AdReviewHistory' })
+    return
+  }
+  showAdReviewLogin.value = true
+}
 
 const onAdReviewLogin = () => {
-  message.success('广告标记模式已开启，请从视频列表或搜索结果选择视频')
-  router.push('/video/list')
+  message.success('广告标记模式已开启')
+  router.push({ name: 'AdReviewHistory' })
 }
 
 const source = ref(null)
@@ -426,6 +435,42 @@ onBeforeUpdate(onBeforeUpdateHandler)
 </script>
 
 <style scoped lang="scss">
+.management-actions {
+  display: grid;
+  grid-template-columns: minmax(112px, auto) minmax(196px, auto);
+  justify-content: end;
+  gap: 10px;
+
+  .n-button {
+    min-height: 44px;
+  }
+}
+
+.review-mode-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.review-mode-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px rgba(24, 160, 88, .12);
+}
+
+@media (max-width: 520px) {
+  .management-actions {
+    grid-template-columns: 1fr;
+    justify-content: stretch;
+
+    .n-button {
+      width: 100%;
+    }
+  }
+}
+
 .fixed-qr-reader-content {
   width: 100%;
   min-height: 200px;
