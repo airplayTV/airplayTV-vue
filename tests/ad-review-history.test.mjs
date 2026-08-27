@@ -3,10 +3,11 @@ import assert from 'node:assert/strict'
 
 import {
   adReviewAccessAction,
+  adReviewPreviewFallbackMode,
   buildAdReviewCalibrationRoute,
-  consumeAdReviewAutostartQuery,
   createAdReviewSingleFlight,
   isAdReviewAuthenticationError,
+  normalizeAdReviewPreviewMode,
   normalizeAdReviewHistoryFilter,
   normalizeAdReviewHistoryPage,
   normalizeAdReviewSnapshotDetail,
@@ -44,11 +45,11 @@ test('并发会话恢复复用同一个请求并在结束后允许重试', async
   assert.equal(calls, 2)
 })
 
-test('重新校准使用路由对象保留源视频和剧集标识', () => {
-  assert.deepEqual(buildAdReviewCalibrationRoute({ source: '源 A', vid: 'v/1', pid: '2' }), {
+test('重新校准使用唯一运行标识强制重新解析', () => {
+  assert.deepEqual(buildAdReviewCalibrationRoute({ source: '源 A', vid: 'v/1', pid: '2', runId: 'run-2' }), {
     name: 'VideoDetail',
     params: { id: 'v/1' },
-    query: { _source: '源 A', pid: '2', ad_review_autostart: '1' },
+    query: { _source: '源 A', pid: '2', ad_review_run: 'run-2' },
   })
 })
 
@@ -114,13 +115,12 @@ test('历史快照详情按分段序号排序并保留当前标签', () => {
   assert.equal(detail.blocks[1].labelEvent, null)
 })
 
-test('自动重新校准参数只消费一次并保留其他查询条件', () => {
-  const result = consumeAdReviewAutostartQuery({
-    _source: 'source-a', pid: 'p1', ad_review_autostart: '1', keyword: 'keep',
-  })
-  assert.equal(result.shouldStart, true)
-  assert.deepEqual(result.nextQuery, { _source: 'source-a', pid: 'p1', keyword: 'keep' })
-  assert.equal(consumeAdReviewAutostartQuery({ pid: 'p1' }).shouldStart, false)
+test('分段预览默认直连且仅在直连失败时可切换代理', () => {
+  assert.equal(normalizeAdReviewPreviewMode(), 'direct')
+  assert.equal(normalizeAdReviewPreviewMode('unexpected'), 'direct')
+  assert.equal(normalizeAdReviewPreviewMode('proxy'), 'proxy')
+  assert.equal(adReviewPreviewFallbackMode('direct'), 'proxy')
+  assert.equal(adReviewPreviewFallbackMode('proxy'), null)
 })
 
 test('广告标记接口同时识别 HTTP 与业务响应中的认证过期', () => {

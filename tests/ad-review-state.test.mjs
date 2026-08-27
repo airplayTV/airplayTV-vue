@@ -4,6 +4,7 @@ import assert from 'node:assert/strict'
 import {
   AD_REVIEW_MODE_KEY,
 	AD_REVIEW_TOKEN_KEY,
+	applyAdReviewLabelEvents,
 	createAdReviewAPIError,
   createAdReviewSession,
 	findNextAdReviewBlockId,
@@ -66,4 +67,22 @@ test('标记完成后选择时间线中的下一分段', () => {
 	assert.equal(findNextAdReviewBlockId(blocks, 12), 13)
 	assert.equal(findNextAdReviewBlockId(blocks, 13), null)
 	assert.equal(findNextAdReviewBlockId(blocks, 999), null)
+})
+
+test('批量标记响应只更新返回事件对应的未标记分段', () => {
+	const adEvent = { ID: 20, BlockID: 2, Label: 'AD' }
+	const blocks = [
+		{ id: 1, labelEvent: null },
+		{ id: 2, labelEvent: adEvent },
+		{ id: 3, labelEvent: null },
+	]
+	const result = applyAdReviewLabelEvents(blocks, [
+		{ ID: 21, BlockID: 1, Label: 'CONTENT' },
+		{ ID: 22, BlockID: 3, Label: 'CONTENT' },
+	])
+
+	assert.equal(result, blocks)
+	assert.equal(blocks[0].labelEvent.Label, 'CONTENT')
+	assert.equal(blocks[1].labelEvent, adEvent)
+	assert.equal(blocks[2].labelEvent.ID, 22)
 })

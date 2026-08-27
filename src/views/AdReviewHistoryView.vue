@@ -89,8 +89,8 @@ const changePage = (page) => {
 </script>
 
 <style scoped>
-.history-shell { min-height: 100vh; display: flex; flex-direction: column; background: var(--history-bg, #f5f7f9); }
-.history-page { --history-bg: #f5f7f9; --history-panel: #fff; --history-soft: #f5f8f6; --history-border: #dfe6e1; --history-muted: #61706a; --history-text: #17211c; --history-accent: #18a058; --history-accent-soft: #eaf7ef; --history-shadow: 0 1px 2px rgba(24, 38, 30, .04), 0 10px 28px rgba(24, 38, 30, .04); width: min(1160px, 100%); flex: 1; margin: 0 auto; padding: 24px clamp(12px, 3vw, 30px) 48px; box-sizing: border-box; color: var(--history-text); display: grid; align-content: start; gap: 16px; }
+.history-shell { min-height: 100vh; display: flex; flex-direction: column; }
+.history-page { --history-panel: #fff; --history-soft: #f5f8f6; --history-border: #dfe6e1; --history-muted: #61706a; --history-text: #17211c; --history-accent: #18a058; --history-accent-soft: #eaf7ef; --history-shadow: 0 1px 2px rgba(24, 38, 30, .04), 0 10px 28px rgba(24, 38, 30, .04); width: 100%; flex: 1; padding: 10px 10px 48px; box-sizing: border-box; color: var(--history-text); display: grid; align-content: start; gap: 16px; }
 .page-hero { padding: 22px; border: 1px solid var(--history-border); border-radius: 18px; background: var(--history-panel); box-shadow: var(--history-shadow); display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .page-hero h1 { margin: 3px 0 5px; font-size: clamp(25px, 4vw, 34px); letter-spacing: -.025em; }
 .page-hero p { margin: 0; color: var(--history-muted); line-height: 1.55; }
@@ -106,8 +106,7 @@ const changePage = (page) => {
 .video-list, .loading-list { display: grid; gap: 12px; }
 .n-pagination { justify-self: center; margin-top: 8px; }
 @media (prefers-color-scheme: dark) {
-  .history-shell { background: #101419; }
-  .history-page { --history-bg: #101419; --history-panel: #171d22; --history-soft: #20272c; --history-border: #354039; --history-muted: #b7c1bb; --history-text: #f1f5f2; --history-accent-soft: #153326; --history-shadow: 0 10px 28px rgba(0, 0, 0, .13); }
+  .history-page { --history-panel: #171d22; --history-soft: #20272c; --history-border: #354039; --history-muted: #b7c1bb; --history-text: #f1f5f2; --history-accent-soft: #153326; --history-shadow: 0 10px 28px rgba(0, 0, 0, .13); }
 }
 @media (max-width: 640px) {
   .history-page { padding: 12px 8px 36px; gap: 12px; }

@@ -11,6 +11,15 @@
     <section class="episode-bar">
       <n-select v-model:value="pid" :options="episodes" filterable aria-label="选择待评审剧集" />
       <n-button type="primary" :loading="store.loading" :disabled="!pid" @click="analyze">解析当前集</n-button>
+      <n-button
+        v-if="store.snapshot"
+        secondary
+        type="success"
+        :loading="batchSaving"
+        :disabled="store.unlabeledCount === 0"
+        @click="confirmMarkUnlabeledContent">
+        {{ store.unlabeledCount ? `其余 ${store.unlabeledCount} 段设为正常` : '全部已标记' }}
+      </n-button>
       <span v-if="store.blocks.length">已标记 {{ store.labeledCount }} / {{ store.blocks.length }} 段</span>
     </section>
 
@@ -77,7 +86,6 @@ import { NAlert, NButton, NEmpty, NSelect, NTag, useDialog, useMessage } from 'n
 import { useRoute, useRouter } from 'vue-router'
 import { useAdReviewStore } from '@/stores/ad-review.js'
 import { findNextAdReviewBlockId, formatApproxTime } from '@/helpers/ad-review-state.js'
-import { consumeAdReviewAutostartQuery } from '@/helpers/ad-review-history.js'
 import AdReviewPlayer from './AdReviewPlayer.vue'
 import AdReviewRulePanel from './AdReviewRulePanel.vue'
 
@@ -90,8 +98,8 @@ const message = useMessage()
 const pid = ref(null)
 const error = ref('')
 const saving = ref('')
+const batchSaving = ref(false)
 const blockListRef = ref(null)
-const autostartAttempted = ref(false)
 const episodes = computed(() => (props.video.links || []).map((link, index) => ({
   label: link.name || link.title || `第 ${index + 1} 集`,
   value: String(link.id),
@@ -117,8 +125,6 @@ const analyze = async () => {
         !best || Math.abs(block.startMs - requestedStart) < Math.abs(best.startMs - requestedStart) ? block : best, null)
       if (nearest) store.selectedBlockId = nearest.id
     }
-    const { nextQuery } = consumeAdReviewAutostartQuery(route.query)
-    await router.replace({ path: route.path, query: { ...nextQuery, pid: pid.value } })
     return true
   } catch (reason) {
     error.value = reason.message || '解析失败'
@@ -135,6 +141,28 @@ const saveLabel = async (label) => {
     const nextBlockId = findNextAdReviewBlockId(store.blocks, store.selectedBlockId)
     if (nextBlockId) store.selectedBlockId = nextBlockId
   } catch (reason) { error.value = reason.message || '保存标记失败' } finally { saving.value = '' }
+}
+
+const confirmMarkUnlabeledContent = () => {
+  const count = store.unlabeledCount
+  if (!count || batchSaving.value) return
+  dialog.warning({
+    title: `将其余 ${count} 个分段设为正常内容？`,
+    content: '仅处理当前快照中尚未标记的分段，不会覆盖任何已有标签。',
+    positiveText: '设为正常内容',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      batchSaving.value = true
+      try {
+        const marked = await store.markUnlabeledContent()
+        message.success(`已将 ${marked} 个未标记分段设为正常内容`)
+      } catch (reason) {
+        error.value = reason.message || '批量标记正常内容失败'
+      } finally {
+        batchSaving.value = false
+      }
+    },
+  })
 }
 
 const jumpToConflict = (conflict) => {
@@ -166,11 +194,7 @@ onMounted(async () => {
     return
   }
   pid.value = String(route.query.pid || episodes.value[0]?.value || '')
-  const { shouldStart } = consumeAdReviewAutostartQuery(route.query)
-  if (shouldStart && pid.value && !autostartAttempted.value) {
-    autostartAttempted.value = true
-    await analyze()
-  }
+  if (pid.value) await analyze()
 })
 
 watch(() => store.selectedBlockId, async (blockId) => {

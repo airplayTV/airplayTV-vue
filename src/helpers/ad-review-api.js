@@ -45,6 +45,7 @@ export const adReviewAPI = {
   session: () => client.get(`${basePath}/session`),
   logout: () => client.delete(`${basePath}/session`, writeConfig()),
   createSnapshot: (input) => client.post(`${basePath}/snapshots`, input, writeConfig()),
+  markUnlabeledContent: (snapshotId) => client.post(`${basePath}/snapshots/${snapshotId}/labels/content`, {}, writeConfig()),
   labeledVideos: (params) => client.get(`${basePath}/videos`, { params }),
   snapshotDetail: (snapshotId) => client.get(`${basePath}/snapshots/${snapshotId}`),
   labelBlock: (blockId, input) => client.post(`${basePath}/blocks/${blockId}/label`, input, writeConfig()),
@@ -53,5 +54,6 @@ export const adReviewAPI = {
   rollbackActivation: (activationId, reason) => client.post(`${basePath}/activations/${activationId}/rollback`, { reason }, writeConfig()),
   conflicts: (ruleId, status = 'pending') => client.get(`${basePath}/conflicts`, { params: { rule_id: ruleId, status } }),
   activeRule: (source) => client.get(`${basePath}/rules/active`, { params: { source } }),
-  previewURL: (snapshotId, blockId, count = 1) => `${apiUrl}${basePath}/snapshots/${snapshotId}/blocks/${blockId}/preview.m3u8?count=${count}`,
+  previewURL: (snapshotId, blockId, count = 1, mode = 'direct') =>
+    `${apiUrl}${basePath}/snapshots/${snapshotId}/blocks/${blockId}/preview.m3u8?count=${count}&mode=${mode}`,
 }

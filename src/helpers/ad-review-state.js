@@ -59,3 +59,12 @@ export const findNextAdReviewBlockId = (blocks = [], currentId) => {
   const index = blocks.findIndex((block) => block.id === currentId)
   return index >= 0 ? blocks[index + 1]?.id ?? null : null
 }
+
+export const applyAdReviewLabelEvents = (blocks = [], events = []) => {
+  const eventsByBlock = new Map(events.map((event) => [read(event, 'block_id', 'BlockID'), event]))
+  for (const block of blocks) {
+    const event = eventsByBlock.get(block.id)
+    if (event) block.labelEvent = event
+  }
+  return blocks
+}

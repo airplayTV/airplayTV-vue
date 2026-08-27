@@ -131,19 +131,20 @@ export const createAdReviewSingleFlight = () => {
   }
 }
 
-export const buildAdReviewCalibrationRoute = ({ source, vid, pid }) => ({
+const createAdReviewRunId = () => globalThis.crypto?.randomUUID?.() ??
+  `${Date.now()}-${Math.random().toString(36).slice(2)}`
+
+export const buildAdReviewCalibrationRoute = ({ source, vid, pid, runId = createAdReviewRunId() }) => ({
   name: 'VideoDetail',
   params: { id: String(vid ?? '') },
   query: {
     _source: String(source ?? ''),
     pid: String(pid ?? ''),
-    ad_review_autostart: '1',
+    ad_review_run: String(runId),
   },
 })
 
-export const consumeAdReviewAutostartQuery = (query = {}) => {
-  const nextQuery = { ...query }
-  const shouldStart = String(nextQuery.ad_review_autostart ?? '') === '1'
-  delete nextQuery.ad_review_autostart
-  return { shouldStart, nextQuery }
-}
+export const normalizeAdReviewPreviewMode = (mode) => mode === 'proxy' ? 'proxy' : 'direct'
+
+export const adReviewPreviewFallbackMode = (mode) =>
+  normalizeAdReviewPreviewMode(mode) === 'direct' ? 'proxy' : null

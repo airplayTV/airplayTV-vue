@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { createAdReviewSession, normalizeAdReviewSnapshot } from '@/helpers/ad-review-state.js'
+import { applyAdReviewLabelEvents, createAdReviewSession, normalizeAdReviewSnapshot } from '@/helpers/ad-review-state.js'
 import {
   createAdReviewSingleFlight,
   isAdReviewAuthenticationError,
@@ -30,6 +30,7 @@ export const useAdReviewStore = defineStore('ad-review', () => {
 
   const selectedBlock = computed(() => blocks.value.find((block) => block.id === selectedBlockId.value) ?? null)
   const labeledCount = computed(() => blocks.value.filter((block) => block.labelEvent).length)
+  const unlabeledCount = computed(() => blocks.value.length - labeledCount.value)
 
   const enter = async (password) => {
     const result = await adReviewAPI.login(password)
@@ -89,6 +90,13 @@ export const useAdReviewStore = defineStore('ad-review', () => {
     })
     block.labelEvent = event
     return event
+  }
+
+  const markUnlabeledContent = async () => {
+    if (!snapshot.value?.id) return 0
+    const result = await adReviewAPI.markUnlabeledContent(snapshot.value.id)
+    applyAdReviewLabelEvents(blocks.value, result.events ?? result.Events ?? [])
+    return Number(result.count ?? result.Count ?? 0)
   }
 
   const generateCandidate = async (source) => {
@@ -152,9 +160,9 @@ export const useAdReviewStore = defineStore('ad-review', () => {
 
   return {
     enabled, authenticated, snapshot, blocks, selectedBlockId, selectedBlock,
-    candidate, conflicts, active, loading, labeledCount,
+    candidate, conflicts, active, loading, labeledCount, unlabeledCount,
     historyPage, historyLoading, historyError,
     historySnapshot, historySnapshotLoading, historySnapshotError,
-    enter, restore, logout, loadSnapshot, label, generateCandidate, refreshActive, activate, rollback, loadHistory, loadSnapshotDetail,
+    enter, restore, logout, loadSnapshot, label, markUnlabeledContent, generateCandidate, refreshActive, activate, rollback, loadHistory, loadSnapshotDetail,
   }
 })
