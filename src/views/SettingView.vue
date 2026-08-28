@@ -81,6 +81,18 @@
             </div>
           </n-form-item>
 
+          <n-form-item label="播放器：" path="player">
+            <div class="flex-row flex-1">
+              <n-select
+                  v-model:value="player"
+                  placeholder="选择视频播放器"
+                  aria-label="视频播放器"
+                  @update:value="onUpdatePlayer"
+                  :options="playerOptions"
+              />
+            </div>
+          </n-form-item>
+
           <n-form-item label="账号：" path="defaultStyle">
             <div class="flex-row flex-1 ">
               <n-input
@@ -195,6 +207,7 @@ import {arrayContainsValue, getStorageSync, removeStorageSync, setStorageSync,} 
 import {
   KEY_APP_USERNAME,
   KEY_ROOM_ID,
+  KEY_VIDEO_PLAYER,
   KEY_VIDEO_SOURCE,
   KEY_VIDEO_SOURCE_SECRET,
   KEY_VIDEO_STYLE_CONFIG,
@@ -208,6 +221,8 @@ import AppFooter from '@/components/AppFooter.vue'
 import AdReviewLoginModal from '@/components/ad-review/AdReviewLoginModal.vue'
 import ShieldLock from '@vicons/tabler/ShieldLock'
 import {useAdReviewStore} from '@/stores/ad-review.js'
+import {playTypeOption} from '@/helpers/play.js'
+import {resolvePlayerPreference} from '@/helpers/player-preference.js'
 
 
 const route = useRoute()
@@ -248,6 +263,12 @@ const appStore = useAppStore()
 const sourceSecret = ref(null)
 const appUsername = ref(null)
 const defaultStyle = ref(0)
+const player = ref(playTypeOption.dp)
+const playerOptions = Object.freeze([
+  {value: playTypeOption.dp, label: 'DPlayer（默认）'},
+  {value: playTypeOption.art, label: 'ArtPlayer'},
+  {value: playTypeOption.libmedia, label: 'Libmedia AVPlayer'},
+])
 const styleConfig = ref([
   { value: 0, label: '正常人视图', },
   { value: 1, label: '异常人视图', }
@@ -258,6 +279,7 @@ const onBeforeMountHandler = () => {
   source.value = appStore.source
   tag.value = appStore.tags
   room.value = getStorageSync(KEY_ROOM_ID)
+  player.value = resolvePlayerPreference(getStorageSync(KEY_VIDEO_PLAYER))
 
   appStore.setSourceSecret(getStorageSync(KEY_VIDEO_SOURCE_SECRET))
   sourceSecret.value = appStore.sourceSecret
@@ -334,6 +356,11 @@ const onUpdateSource = (value) => {
 const onUpdateStyleConfig = (value) => {
   defaultStyle.value = value
   appStore.setStyleConfig(value)
+}
+
+const onUpdatePlayer = (value) => {
+  player.value = resolvePlayerPreference(value)
+  setStorageSync(KEY_VIDEO_PLAYER, player.value)
 }
 
 const onUpdateTag = (value) => {

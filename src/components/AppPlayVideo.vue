@@ -22,6 +22,20 @@
             :style="artStyle"
             @get-instance="getArtInstance"
         />
+        <LibmediaPlayer
+            v-else-if="playType===playTypeOption.libmedia"
+            ref="libmediaRef"
+            :src="libmediaSource"
+            :poster="video.thumb"
+            :autoplay="true"
+            :style="artStyle"
+            @ready="onLibmediaReady"
+            @play="onLibmediaPlay"
+            @timeupdate="onLibmediaTimeUpdate"
+            @volumechange="onLibmediaVolumeChange"
+            @ended="onLibmediaEnded"
+            @error="onLibmediaError"
+        />
         <iframe
             v-else-if="playType===playTypeOption.iframe"
             style="border:none; background-color: #f2f2f2;"
@@ -117,8 +131,16 @@ import hotkeys from "hotkeys-js";
 import {useRoute, useRouter} from "vue-router";
 import {getCurrentAppSource, onOpenUrl} from "@/helpers/app.js";
 import {getStorageSync} from "@/helpers/utils.js";
-import {KEY_CLIENT_ID, KEY_ROOM_ID} from "@/helpers/constant.js";
+import {KEY_CLIENT_ID, KEY_ROOM_ID, KEY_VIDEO_PLAYER} from "@/helpers/constant.js";
 import DPlayer from 'dplayer';
+import {LibmediaPlayer} from 'libmedia-avp-vue3'
+import 'libmedia-avp-vue3/style.css'
+import {resolvePlayerPreference} from '@/helpers/player-preference.js'
+import {
+  createLatestOperationGuard,
+  mergePlaylistSource,
+  runPlayerCommand,
+} from '@/helpers/player-session.js'
 
 const appStore = useAppStore()
 const message = useMessage()
@@ -131,13 +153,17 @@ const props = defineProps(['video'])
 const video = ref({})
 const source = ref({})
 const _source = ref(null)
-const playType = ref(playTypeOption.dp)
+const playType = ref(resolvePlayerPreference(getStorageSync(KEY_VIDEO_PLAYER)))
 const artInstance = ref(null)
 const artOption = ref({})
 const artStyle = ref({ width: '100%', height: '180px', })
 const dplayerRef = ref(null)
 const dpInstance = ref(null)
 const dpHls = ref(null)
+const libmediaRef = ref(null)
+const libmediaSource = ref(null)
+const libmediaTime = ref({currentTime: 0, duration: 0})
+const libmediaVolume = ref({volume: 1, muted: false})
 const errMsg = ref('')
 const timer = ref(null)
 const spinning = ref(false)
@@ -148,8 +174,29 @@ const clientId = ref(null)
 const playIndex = ref(0)
 const playList = ref({})
 const runCastingCommand = createCastingCommandGuard()
+const episodeSwitchGuard = createLatestOperationGuard()
+const libmediaSourceGuard = createLatestOperationGuard()
+const activeLibmediaSource = ref(null)
 
 const _pageKey = '_key_app_page_video_play_'
+
+const handleLibmediaCommandError = (error) => {
+  message.warning(error?.message || `${error}` || 'Libmedia 操作失败')
+}
+
+const runLibmediaCommand = (command) => (
+  runPlayerCommand(command, handleLibmediaCommandError)
+)
+
+const activateLibmediaSource = (url) => {
+  const operation = libmediaSourceGuard.begin()
+  activeLibmediaSource.value = {
+    operation,
+    pid: source.value.id,
+    url,
+  }
+  libmediaSource.value = url
+}
 
 const tryHandlerVideoSource = async (vid, pid, _m3u8p = false) => {
   spinning.value = true
@@ -227,6 +274,8 @@ const initVideoPlayer = async (findLink, source) => {
         message.warning('电视未连接，请重新扫码')
       }
     })
+  } else if (playType.value === playTypeOption.libmedia) {
+    activateLibmediaSource(source.url)
   } else if (dplayerRef.value) {
     loadDplayer()
   } else if (artInstance.value) {
@@ -392,6 +441,11 @@ const networkCheck = (playUrl) => {
         // Delete the layer by name
         artInstance.value.layers.remove('network')
       }, 4000)
+    } else if (libmediaRef.value) {
+      const resolved = resp.data.resolved.map(item => {
+        return `[${d1}秒] ${item.addr}(${item.ip}) ${item.url}`
+      })
+      message.info(resolved.join('\n'), {duration: 4000})
     }
 
 
@@ -407,7 +461,11 @@ const handlerTimeUpdate = () => {
     clearInterval(timer.value)
   }
   timer.value = setInterval(() => {
-    const playerCtx = artInstance.value || dpInstance.value || {}
+    const playerCtx = artInstance.value || dpInstance.value || (
+      playType.value === playTypeOption.libmedia
+        ? {playing: true, ...libmediaTime.value}
+        : {}
+    )
     const findLink = findSourceLink(props.video.links, source.value.id)
     addTimelineWarp(playerCtx, getAppSource(), video.value, source.value)
     addHistoryWarp(playerCtx, getAppSource(), video.value, { ...source.value, name: findLink.name || '' })
@@ -420,6 +478,8 @@ const noticeToVideo = (msg, timeout = 3000) => {
     artInstance.value.notice.show = msg
   } else if (dplayerRef.value) {
     dpInstance.value.notice(msg, timeout)
+  } else if (playType.value === playTypeOption.libmedia) {
+    message.info(msg, {duration: timeout})
   }
 }
 
@@ -461,9 +521,13 @@ const computePlayerHeight = () => {
 }
 
 const onChangePlaying = async (idx, ctx) => {
-  playIndex.value = idx
   if (idx >= playList.value.length || idx < 0) {
     return noticeToVideo('切换音频失败，音频不在列表中')
+  }
+
+  const operation = episodeSwitchGuard.begin()
+  if (playType.value === playTypeOption.libmedia) {
+    libmediaSourceGuard.invalidate()
   }
 
   let tmpVideo = playList.value[idx]
@@ -474,7 +538,12 @@ const onChangePlaying = async (idx, ctx) => {
       tmpVideo.src = ''
     }
   }
-  source.value = { ...source.value, ...tmpVideo }
+  if (!episodeSwitchGuard.isCurrent(operation)) {
+    return
+  }
+
+  source.value = mergePlaylistSource(source.value, tmpVideo)
+  playIndex.value = idx
   // console.log('[tmpVideo]', tmpVideo)
   router.replace({ path: route.path, query: { ...route.query, pid: tmpVideo.id } })
   if (artInstance.value) {
@@ -482,6 +551,9 @@ const onChangePlaying = async (idx, ctx) => {
     await artInstance.value.switchUrl(tmpVideo.src)
     showVideoTitle()
     artInstance.value.play()
+  } else if (playType.value === playTypeOption.libmedia) {
+    libmediaTime.value = {currentTime: 0, duration: 0}
+    activateLibmediaSource(source.value.url)
   }
 }
 
@@ -499,6 +571,12 @@ const addControlEventHandler = () => {
           }
         } else if (artInstance.value) {
           artInstance.value.muted = !artInstance.value.muted
+        } else if (libmediaRef.value) {
+          void runLibmediaCommand(() => (
+            libmediaVolume.value.muted
+              ? libmediaRef.value.unmute()
+              : libmediaRef.value.mute()
+          ))
         }
         break
       case ControlEventFullscreen:
@@ -507,6 +585,8 @@ const addControlEventHandler = () => {
         } else if (artInstance.value) {
           artInstance.value.fullscreen = true
           artInstance.value.fullscreenWeb = true
+        } else if (libmediaRef.value) {
+          void runLibmediaCommand(() => libmediaRef.value.enterFullscreen())
         }
         break
       case ControlEventFullscreenExit:
@@ -515,6 +595,8 @@ const addControlEventHandler = () => {
         } else if (artInstance.value) {
           artInstance.value.fullscreen = false
           artInstance.value.fullscreenWeb = false
+        } else if (libmediaRef.value) {
+          void runLibmediaCommand(() => libmediaRef.value.exitFullscreen())
         }
         break
       case ControlEventQrcode:
@@ -527,6 +609,9 @@ const addControlEventHandler = () => {
           artInstance.value.controls.show = true
           noticeToVideo(`正在播放：${artOption.value.video.title}`)
           networkCheck(artOption.value.url)
+        } else if (libmediaRef.value) {
+          noticeToVideo(`正在播放：${video.value.name}`)
+          networkCheck(source.value.url)
         }
         break
       case ControlEventVolume:
@@ -534,6 +619,10 @@ const addControlEventHandler = () => {
           dpInstance.value.volume(formatNewVolume(dpInstance.value.video.volume, data.value), true, false);
         } else if (artInstance.value) {
           artInstance.value.volume = formatNewVolume(artInstance.value.volume, data.value)
+        } else if (libmediaRef.value) {
+          void runLibmediaCommand(() => (
+            libmediaRef.value.setVolume(formatNewVolume(libmediaVolume.value.volume, data.value))
+          ))
         }
         break
       case ControlEventBack:
@@ -541,6 +630,10 @@ const addControlEventHandler = () => {
           dpInstance.value.seek(dpInstance.value.video.currentTime - 15)
         } else if (artInstance.value) {
           artInstance.value.backward = 15
+        } else if (libmediaRef.value) {
+          void runLibmediaCommand(() => (
+            libmediaRef.value.seek(Math.max(0, libmediaTime.value.currentTime - 15))
+          ))
         }
         break
       case ControlEventForward:
@@ -548,6 +641,13 @@ const addControlEventHandler = () => {
           dpInstance.value.seek(dpInstance.value.video.currentTime + 15)
         } else if (artInstance.value) {
           artInstance.value.forward = 15
+        } else if (libmediaRef.value) {
+          void runLibmediaCommand(() => (
+            libmediaRef.value.seek(Math.min(
+              libmediaTime.value.duration || Number.POSITIVE_INFINITY,
+              libmediaTime.value.currentTime + 15,
+            ))
+          ))
         }
         break
       case ControlEventPlay:
@@ -559,6 +659,8 @@ const addControlEventHandler = () => {
           }).catch(err => {
             message.info(`${err}`)
           })
+        } else if (libmediaRef.value) {
+          void runLibmediaCommand(() => libmediaRef.value.play())
         }
         break
       case ControlEventPause:
@@ -567,6 +669,8 @@ const addControlEventHandler = () => {
           dpInstance.value.video.pause()
         } else if (artInstance.value) {
           artInstance.value.pause()
+        } else if (libmediaRef.value) {
+          void runLibmediaCommand(() => libmediaRef.value.pause())
         }
         break
       case ControlEventHistory:
@@ -612,6 +716,12 @@ const addHotKeyEventHandler = () => {
           }
         } else if (artInstance.value) {
           artInstance.value.fullscreen = !artInstance.value.fullscreen
+        } else if (libmediaRef.value) {
+          if (document.fullscreenElement) {
+            void runLibmediaCommand(() => libmediaRef.value.exitFullscreen())
+          } else {
+            void runLibmediaCommand(() => libmediaRef.value.enterFullscreen())
+          }
         }
         break
       default:
@@ -647,6 +757,72 @@ const onBeforeMountHandler = async () => {
 
   await tryHandlerVideoSource(props.video.id, pid)
 
+}
+
+const onLibmediaReady = async ({duration = 0} = {}) => {
+  const activeSource = activeLibmediaSource.value
+  if (
+      !activeSource ||
+      activeSource.url !== libmediaSource.value ||
+      !libmediaSourceGuard.isCurrent(activeSource.operation)
+  ) {
+    return
+  }
+
+  libmediaTime.value = {...libmediaTime.value, duration}
+  let latestTimeline = null
+  try {
+    latestTimeline = await findTimeline(getAppSource(), video.value.id, activeSource.pid)
+  } catch (_) {
+    // 历史读取失败不阻断当前源播放。
+  }
+  if (!libmediaSourceGuard.isCurrent(activeSource.operation)) {
+    return
+  }
+
+  if (
+      latestTimeline &&
+      latestTimeline.lastTime &&
+      duration - latestTimeline.lastTime >= 60
+  ) {
+    const seeked = await runLibmediaCommand(() => (
+      libmediaRef.value?.seek(latestTimeline.lastTime)
+    ))
+    if (!seeked || !libmediaSourceGuard.isCurrent(activeSource.operation)) {
+      return
+    }
+    libmediaTime.value = {
+      currentTime: latestTimeline.lastTime,
+      duration,
+    }
+    message.info('已跳转到最新进度播放')
+  }
+  if (libmediaSourceGuard.isCurrent(activeSource.operation)) {
+    await runLibmediaCommand(() => libmediaRef.value?.play())
+  }
+}
+
+const onLibmediaPlay = () => {
+  handlerTimeUpdate()
+}
+
+const onLibmediaTimeUpdate = ({currentTime = 0, duration = 0} = {}) => {
+  libmediaTime.value = {currentTime, duration}
+}
+
+const onLibmediaVolumeChange = ({volume = 1, muted = false} = {}) => {
+  libmediaVolume.value = {volume, muted}
+}
+
+const onLibmediaEnded = () => {
+  if (libmediaTime.value.currentTime > 0) {
+    onChangePlaying(playIndex.value + 1)
+  }
+}
+
+const onLibmediaError = (error = {}) => {
+  errMsg.value = error.message || 'Libmedia 播放失败'
+  message.error(errMsg.value)
 }
 
 const getAppSource = () => {
@@ -738,6 +914,8 @@ const loadDplayer = () => {
 }
 
 const onBeforeUnmountHandler = () => {
+  episodeSwitchGuard.invalidate()
+  libmediaSourceGuard.invalidate()
   if (timer.value) {
     clearInterval(timer.value)
   }

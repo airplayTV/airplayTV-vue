@@ -1,16 +1,11 @@
 import {addHistory, addTimeline, findHistory, findTimeline, updateHistory, updateTimeline} from "@/helpers/db.js";
 import {httpVideoSource} from "@/helpers/api.js";
+import {playTypeOption} from '@/helpers/player-preference.js'
 
 const sourceTypeOption = {
   mp3: 'mp3',
   mp4: 'mp4',
   m3u8: 'm3u8',
-}
-
-const playTypeOption = {
-  dp: 1,// 不能绕过CORS问题(尝试通过m3u8p解决)，浏览器支持较好，
-  art: 2,// 不支持火狐，可以绕过CORS问题，m3u8p返回的无法播放
-  iframe: 3,
 }
 
 const findSourceLink = (links, pid) => {

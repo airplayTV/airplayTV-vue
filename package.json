@@ -21,6 +21,7 @@
     "hls.js": "^1.6.16",
     "hotkeys-js": "^4.0.1",
     "html5-qrcode": "^2.3.8",
+    "libmedia-avp-vue3": "https://github.com/airplayTV/libmedia-avp-vue3/releases/download/v0.1.1/libmedia-avp-vue3-0.1.1.tgz",
     "naive-ui": "^2.41.0",
     "pinia": "^3.0.1",
     "qrcode": "^1.5.4",
