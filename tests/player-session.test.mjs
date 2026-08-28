@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import {readFile} from 'node:fs/promises'
 
 import {
   createLatestOperationGuard,
@@ -57,4 +58,21 @@ test('player commands report success without calling the error handler', async (
 
   assert.equal(succeeded, true)
   assert.deepEqual(errors, [])
+})
+
+test('libmedia history resume owns the seek then play sequence', async () => {
+  const componentSource = await readFile(
+    new URL('../src/components/AppPlayVideo.vue', import.meta.url),
+    'utf8',
+  )
+  const readyHandlerStart = componentSource.indexOf('const onLibmediaReady')
+  const readyHandlerEnd = componentSource.indexOf('const onLibmediaPlay', readyHandlerStart)
+  const readyHandler = componentSource.slice(readyHandlerStart, readyHandlerEnd)
+  const seekIndex = readyHandler.indexOf('.seek(')
+  const playIndex = readyHandler.indexOf('.play(')
+
+  assert.match(componentSource, /:autoplay="false"/)
+  assert.notEqual(seekIndex, -1)
+  assert.notEqual(playIndex, -1)
+  assert.ok(seekIndex < playIndex)
 })

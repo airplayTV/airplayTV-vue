@@ -27,7 +27,7 @@
             ref="libmediaRef"
             :src="libmediaSource"
             :poster="video.thumb"
-            :autoplay="true"
+            :autoplay="false"
             :style="artStyle"
             @ready="onLibmediaReady"
             @play="onLibmediaPlay"
