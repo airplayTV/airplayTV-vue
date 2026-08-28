@@ -61,9 +61,6 @@
                 :title="source.source">
               {{ source.url }}
             </div>
-            <div class="bottom-dashed " @click="gotoAvp">
-              <b>libmedia(avp)解码</b>
-            </div>
           </n-space>
         </div>
 
@@ -481,27 +478,6 @@ const noticeToVideo = (msg, timeout = 3000) => {
   } else if (playType.value === playTypeOption.libmedia) {
     message.info(msg, {duration: timeout})
   }
-}
-
-const gotoAvp = () => {
-  if (!source.value.url) {
-    return message.warning('没有可播放数据')
-  }
-
-  const q = btoa(JSON.stringify({
-    id: encodeURIComponent(`${source.value.vid},${source.value.id}`),
-    name: encodeURIComponent(`${artOption.value.video.title}`),
-    url: encodeURIComponent(source.value.url),
-    t: Date.now(),
-  }))
-
-  playType.value = playTypeOption.iframe
-  artOption.value.url = `https://libmedia-avp.pages.dev/?config=${q}`
-
-  message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
-  message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
-  message.warning('解码资源加载较慢，请稍等', { duration: 12 * 1000 })
-  // window.location.href = `https://libmedia-avp.pages.dev/?config=${q}`
 }
 
 const computePlayerHeight = () => {
@@ -959,11 +935,6 @@ video {
 .bottom-dashed {
   border-bottom: 1px dashed #50555b;
   cursor: pointer;
-}
-
-.avp-link {
-  color: #000000;
-  font-family: DM Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
 }
 
 .source-url {
