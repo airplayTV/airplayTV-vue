@@ -9,6 +9,7 @@ import {
   runAdReviewSnapshotDeletion,
 } from '@/helpers/ad-review-history.js'
 import { adReviewAPI } from '@/helpers/ad-review-api.js'
+import { loadCandidateConflictsSafely, mergeCandidateActivation } from '@/helpers/ad-review-publication.js'
 
 export const useAdReviewStore = defineStore('ad-review', () => {
   const session = createAdReviewSession(typeof sessionStorage === 'undefined' ? null : sessionStorage)
@@ -19,6 +20,7 @@ export const useAdReviewStore = defineStore('ad-review', () => {
   const selectedBlockId = ref(null)
   const candidate = ref(null)
   const conflicts = ref([])
+  const conflictsError = ref('')
   const active = ref(null)
   const loading = ref(false)
   const historyPage = ref(normalizeAdReviewHistoryPage())
@@ -78,6 +80,7 @@ export const useAdReviewStore = defineStore('ad-review', () => {
       selectedBlockId.value = normalized.blocks[0]?.id ?? null
       candidate.value = null
       conflicts.value = []
+      conflictsError.value = ''
       return normalized
     } finally {
       loading.value = false
@@ -103,8 +106,11 @@ export const useAdReviewStore = defineStore('ad-review', () => {
 
   const generateCandidate = async (source) => {
     candidate.value = await adReviewAPI.generateCandidate(source)
+    active.value = mergeCandidateActivation(active.value, candidate.value)
     const ruleId = candidate.value.rule?.ID ?? candidate.value.rule?.id
-    conflicts.value = ruleId ? await adReviewAPI.conflicts(ruleId) : []
+    const conflictResult = await loadCandidateConflictsSafely(ruleId, adReviewAPI.conflicts)
+    conflicts.value = conflictResult.conflicts
+    conflictsError.value = conflictResult.error?.message || ''
     return candidate.value
   }
 
@@ -184,7 +190,7 @@ export const useAdReviewStore = defineStore('ad-review', () => {
 
   return {
     enabled, authenticated, snapshot, blocks, selectedBlockId, selectedBlock,
-    candidate, conflicts, active, loading, labeledCount, unlabeledCount,
+    candidate, conflicts, conflictsError, active, loading, labeledCount, unlabeledCount,
     historyPage, historyLoading, historyError,
     historySnapshot, historySnapshotLoading, historySnapshotError, deletingSnapshotId,
     enter, restore, logout, loadSnapshot, label, markUnlabeledContent, generateCandidate, refreshActive, activate, rollback, loadHistory, loadSnapshotDetail, deleteSnapshot,
