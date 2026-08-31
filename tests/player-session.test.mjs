@@ -60,7 +60,7 @@ test('player commands report success without calling the error handler', async (
   assert.deepEqual(errors, [])
 })
 
-test('libmedia history resume owns the seek then play sequence', async () => {
+test('libmedia history resume seeks without starting audible autoplay', async () => {
   const componentSource = await readFile(
     new URL('../src/components/AppPlayVideo.vue', import.meta.url),
     'utf8',
@@ -73,6 +73,5 @@ test('libmedia history resume owns the seek then play sequence', async () => {
 
   assert.match(componentSource, /:autoplay="false"/)
   assert.notEqual(seekIndex, -1)
-  assert.notEqual(playIndex, -1)
-  assert.ok(seekIndex < playIndex)
+  assert.equal(playIndex, -1)
 })

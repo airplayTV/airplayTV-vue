@@ -773,9 +773,7 @@ const onLibmediaReady = async ({duration = 0} = {}) => {
     }
     message.info('已跳转到最新进度播放')
   }
-  if (libmediaSourceGuard.isCurrent(activeSource.operation)) {
-    await runLibmediaCommand(() => libmediaRef.value?.play())
-  }
+  // Keep playback user-driven so Web Audio can resume within a user gesture.
 }
 
 const onLibmediaPlay = () => {
