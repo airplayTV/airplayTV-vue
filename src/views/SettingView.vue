@@ -9,109 +9,155 @@
     <div>
       <AppHeader :key="pageViewKey" />
 
-      <div style="padding: 0 10px">
+      <main class="settings-page">
         <div class="padding-10px"></div>
 
         <n-form
             ref="formRef"
+            class="settings-form"
             label-placement="left"
-            label-width="auto"
+            :label-width="96"
             require-mark-placement="right-hanging"
         >
-          <n-form-item label="换源：" path="source">
-            <div class="flex-row flex-1 xxxx">
-              <n-select
-                  v-model:value="source"
-                  placeholder="切换源"
-                  @update:value="onUpdateSource"
-                  :options="formattedSourceList"
-                  filterable
-                  clearable
-              />
-            </div>
-            <div class="padding-10px"></div>
-            <div class="flex-row flex-1 xxxx">
-              <n-select
-                  v-if="formattedTagList"
-                  v-model:value="tag"
-                  placeholder="选择类型"
-                  @update:value="onUpdateTag"
-                  :options="formattedTagList"
-                  filterable
-                  clearable
-              />
-            </div>
-          </n-form-item>
-
-          <n-form-item label="房间：" path="tag" v-if="formattedTagList">
-            <n-space justify="space-between" class="flex-1 flex-align-center">
+          <section class="settings-section" aria-labelledby="content-room-title">
+            <div class="settings-section-heading">
               <div>
-                <n-ellipsis v-if="room" style="width: 100px">
-                  {{ room }}
-                </n-ellipsis>
-                <n-text v-else depth="3">扫码加入即可投射视频</n-text>
+                <h2 id="content-room-title">内容与房间</h2>
+                <p>选择内容来源，并连接用于投屏的房间</p>
               </div>
-              <n-space>
-                <n-button v-if="room" secondary type="warning" @click="showClearRoomId = true">
-                  退出
-                </n-button>
-                <n-button secondary type="primary" @click="startScanning"> 扫码加入</n-button>
-              </n-space>
-            </n-space>
-          </n-form-item>
-
-
-          <n-form-item label="配置：" path="defaultStyle">
-            <div class="flex-row flex-1 ">
-              <n-select
-                  v-model:value="defaultStyle"
-                  placeholder="选择样式风格"
-                  @update:value="onUpdateStyleConfig"
-                  :options="styleConfig"
-                  clearable
-              />
             </div>
-            <div class="padding-10px"></div>
-            <div class="flex-row flex-1 ">
-              <n-input
-                  v-model:value="sourceSecret"
-                  placeholder="请输入兑换码，解锁更多资源"
-                  @keyup="onUpdateSourceSecret"
-                  @clear="onUpdateSourceSecret(true)" clearable />
-            </div>
-          </n-form-item>
+            <div class="settings-card">
+              <n-form-item label="换源：" path="source">
+                <div class="field-stack source-select-grid">
+                  <n-select
+                      v-model:value="source"
+                      placeholder="切换源"
+                      @update:value="onUpdateSource"
+                      :options="formattedSourceList"
+                      filterable
+                      clearable
+                  />
+                  <n-select
+                      v-if="formattedTagList"
+                      v-model:value="tag"
+                      placeholder="选择类型"
+                      @update:value="onUpdateTag"
+                      :options="formattedTagList"
+                      filterable
+                      clearable
+                  />
+                </div>
+              </n-form-item>
 
-          <n-form-item label="播放器：" path="player">
-            <div class="flex-row flex-1">
-              <n-select
-                  v-model:value="player"
-                  placeholder="选择视频播放器"
-                  aria-label="视频播放器"
-                  @update:value="onUpdatePlayer"
-                  :options="playerOptions"
-              />
+              <n-form-item label="房间：" path="tag" v-if="formattedTagList">
+                <div class="room-row">
+                  <div class="room-status">
+                    <n-ellipsis v-if="room" class="room-id">
+                      {{ room }}
+                    </n-ellipsis>
+                    <n-text v-else depth="3">扫码加入即可投射视频</n-text>
+                  </div>
+                  <div class="room-actions">
+                    <n-button v-if="room" secondary type="warning" @click="showClearRoomId = true">
+                      退出
+                    </n-button>
+                    <n-button secondary type="primary" @click="startScanning">扫码加入</n-button>
+                  </div>
+                </div>
+              </n-form-item>
             </div>
-          </n-form-item>
+          </section>
 
-          <n-form-item label="账号：" path="defaultStyle">
-            <div class="flex-row flex-1 ">
-              <n-input
-                  v-model:value="appUsername"
-                  placeholder="请输入账号，可同步收藏夹"
-                  @keyup="onUpdateAppUsername"
-                  @clear="onUpdateAppUsername(true)" clearable />
+          <section class="settings-section" aria-labelledby="playback-title">
+            <div class="settings-section-heading">
+              <div>
+                <h2 id="playback-title">播放偏好</h2>
+                <p>调整界面、播放器与账号同步选项</p>
+              </div>
             </div>
-            <div class="padding-10px"></div>
-            <div class="flex-row flex-1 ">
+            <div class="settings-card">
+              <n-form-item label="配置：" path="defaultStyle">
+                <div class="field-stack">
+                  <n-select
+                      v-model:value="defaultStyle"
+                      placeholder="选择样式风格"
+                      @update:value="onUpdateStyleConfig"
+                      :options="styleConfig"
+                      clearable
+                  />
+                  <n-input
+                      v-model:value="sourceSecret"
+                      placeholder="请输入兑换码，解锁更多资源"
+                      @keyup="onUpdateSourceSecret"
+                      @clear="onUpdateSourceSecret(true)" clearable />
+                </div>
+              </n-form-item>
 
+              <n-form-item label="播放器：" path="player">
+                <n-select
+                    v-model:value="player"
+                    placeholder="选择视频播放器"
+                    aria-label="视频播放器"
+                    @update:value="onUpdatePlayer"
+                    :options="playerOptions"
+                />
+              </n-form-item>
+
+              <n-form-item label="账号：" path="defaultStyle">
+                <n-input
+                    v-model:value="appUsername"
+                    placeholder="请输入账号，可同步收藏夹"
+                    @keyup="onUpdateAppUsername"
+                    @clear="onUpdateAppUsername(true)" clearable />
+              </n-form-item>
+
+              <div class="settings-notice" role="note">
+                <span class="settings-notice-dot" aria-hidden="true"></span>
+                修改配置后刷新页面生效
+              </div>
             </div>
-          </n-form-item>
+          </section>
 
-          <n-form-item label="" path="source">
-            <n-space justify="end" class="flex-1">
-              <n-text depth="3">修改<b>配置</b>后刷新页面生效！！！</n-text>
-            </n-space>
-          </n-form-item>
+          <section class="settings-section" aria-labelledby="data-tools-title">
+            <div class="settings-section-heading">
+              <div>
+                <h2 id="data-tools-title">数据与工具</h2>
+                <p>维护本地数据并进入管理功能</p>
+              </div>
+            </div>
+            <div class="settings-card">
+              <n-form-item label="缓存：" path="source">
+                <div class="tool-actions">
+                  <n-button strong secondary type="warning" @click="showClearHistoryModal = true">
+                    清空历史
+                  </n-button>
+                  <n-button strong secondary type="warning" @click="showClearStorageModal = true">
+                    清空缓存
+                  </n-button>
+                </div>
+              </n-form-item>
+
+              <n-form-item label="管理工具：" path="source">
+                <div class="tool-actions">
+                  <n-button
+                      strong secondary type="warning"
+                      @click="router.push('/source-stat')">
+                    监测
+                  </n-button>
+                  <n-button
+                      strong secondary
+                      :type="adReviewStore.authenticated ? 'success' : 'primary'"
+                      @click="openAdReviewMode">
+                    <template #icon><n-icon><shield-lock /></n-icon></template>
+                    <span v-if="adReviewStore.authenticated" class="review-mode-label">
+                      <span class="review-mode-dot" aria-hidden="true"></span>广告标记模式已开启
+                    </span>
+                    <span v-else>广告标记模式</span>
+                  </n-button>
+                </div>
+              </n-form-item>
+            </div>
+          </section>
 
           <div class="fixed-qr-reader-content" v-show="showQrReader">
             <div id="qr-reader" class="qr-reader"></div>
@@ -119,39 +165,8 @@
               <n-tag :bordered="false" type="warning" @click="stopScanning">停止扫码</n-tag>
             </div>
           </div>
-
-          <n-form-item label="缓存：" path="source">
-            <n-space justify="end" class="flex-1">
-              <n-button strong secondary type="warning" @click="showClearHistoryModal = true">
-                清空历史
-              </n-button>
-              <n-button strong secondary type="warning" @click="showClearStorageModal = true">
-                清空缓存
-              </n-button>
-            </n-space>
-          </n-form-item>
-
-          <n-form-item label="管理工具：" path="source">
-            <div class="management-actions flex-1">
-              <n-button
-                  strong secondary type="warning"
-                  @click="router.push('/source-stat')">
-                监测
-              </n-button>
-              <n-button
-                  strong secondary
-                  :type="adReviewStore.authenticated ? 'success' : 'primary'"
-                  @click="openAdReviewMode">
-                <template #icon><n-icon><shield-lock /></n-icon></template>
-                <span v-if="adReviewStore.authenticated" class="review-mode-label">
-                  <span class="review-mode-dot" aria-hidden="true"></span>广告标记模式已开启
-                </span>
-                <span v-else>广告标记模式</span>
-              </n-button>
-            </div>
-          </n-form-item>
         </n-form>
-      </div>
+      </main>
     </div>
 
     <AppFooter />
@@ -462,9 +477,123 @@ onBeforeUpdate(onBeforeUpdateHandler)
 </script>
 
 <style scoped lang="scss">
-.management-actions {
+.settings-page {
+  box-sizing: border-box;
+  padding: 0 10px;
+}
+
+.settings-section + .settings-section {
+  margin-top: 24px;
+}
+
+.settings-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  margin: 0 4px 10px;
+
+  h2 {
+    margin: 0;
+    color: var(--color-heading, #1f2329);
+    font-size: 17px;
+    font-weight: 650;
+    line-height: 1.4;
+  }
+
+  p {
+    margin: 2px 0 0;
+    color: var(--color-text, #4b5563);
+    opacity: .58;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+}
+
+.settings-card {
+  padding: 20px 20px 4px;
+  overflow: hidden;
+  background: var(--color-background-soft, #fff);
+  border: 1px solid var(--color-border, #e8ecea);
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(31, 35, 48, .045);
+}
+
+.settings-form :deep(.n-form-item-label) {
+  justify-content: flex-start;
+  padding-right: 16px;
+  color: var(--color-heading, #1f2329);
+  font-weight: 600;
+}
+
+.settings-form :deep(.n-form-item-blank) {
+  min-width: 0;
+}
+
+.field-stack {
   display: grid;
-  grid-template-columns: minmax(112px, auto) minmax(196px, auto);
+  width: 100%;
+  gap: 10px;
+}
+
+.source-select-grid {
+  grid-template-columns: minmax(0, 3fr) minmax(220px, 2fr);
+}
+
+.room-row {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.room-status {
+  min-width: 0;
+}
+
+.room-id {
+  max-width: 220px;
+}
+
+.room-actions {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  gap: 10px;
+
+  .n-button {
+    min-height: 44px;
+  }
+}
+
+.settings-notice {
+  display: flex;
+  min-height: 40px;
+  margin: -2px 0 16px 96px;
+  padding: 9px 12px;
+  align-items: center;
+  gap: 9px;
+  color: var(--color-text, #4b5563);
+  background: rgba(24, 160, 88, .07);
+  border: 1px solid rgba(24, 160, 88, .15);
+  border-radius: 9px;
+  font-size: 13px;
+}
+
+.settings-notice-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  background: #18a058;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(24, 160, 88, .1);
+}
+
+.tool-actions {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 112px 196px;
   justify-content: end;
   gap: 10px;
 
@@ -487,14 +616,57 @@ onBeforeUpdate(onBeforeUpdateHandler)
   box-shadow: 0 0 0 3px rgba(24, 160, 88, .12);
 }
 
+@media (max-width: 640px) {
+  .source-select-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 520px) {
-  .management-actions {
+  .settings-card {
+    padding: 16px 14px 2px;
+    border-radius: 12px;
+  }
+
+  .settings-section-heading {
+    margin-inline: 2px;
+  }
+
+  .room-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .room-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+
+    .n-button {
+      width: 100%;
+    }
+  }
+
+  .settings-notice {
+    margin-left: 96px;
+  }
+
+  .tool-actions {
     grid-template-columns: 1fr;
     justify-content: stretch;
 
     .n-button {
       width: 100%;
     }
+  }
+}
+
+@media (max-width: 390px) {
+  .settings-form :deep(.n-form-item-label) {
+    padding-right: 10px;
+  }
+
+  .settings-notice {
+    margin-left: 0;
   }
 }
 
