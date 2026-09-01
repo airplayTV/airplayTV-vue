@@ -15,8 +15,8 @@
 
     <div v-if="rule" class="rule-summary">
       <div><span>来源范围</span><strong>{{ field(rule, 'Source', 'source') || '全局' }}</strong></div>
-      <div><span>最大片段数</span><strong>≤ {{ field(rule, 'MaxSegment', 'max_segment') }}</strong></div>
-      <div><span>最大时长</span><strong>≤ {{ Number(field(rule, 'MaxDuration', 'max_duration')).toFixed(1) }} 秒</strong></div>
+      <div><span>片段数范围</span><strong>{{ segmentRange }}</strong></div>
+      <div><span>时长范围</span><strong>{{ durationRange }}</strong></div>
       <div><span>历史广告命中</span><strong>{{ field(evaluation, 'AdMatched', 'ad_matched') || 0 }}</strong></div>
     </div>
 
@@ -56,7 +56,7 @@
 import { computed, ref } from 'vue'
 import { NAlert, NButton, NInput, NModal, useMessage } from 'naive-ui'
 import { useAdReviewStore } from '@/stores/ad-review.js'
-import { formatApproxTime } from '@/helpers/ad-review-state.js'
+import { formatAdRuleRange, formatApproxTime } from '@/helpers/ad-review-state.js'
 
 const props = defineProps({ source: String })
 defineEmits(['review-conflict'])
@@ -79,6 +79,15 @@ const candidateRuleId = computed(() => field(rule.value, 'ID', 'id'))
 const candidateIsActive = computed(() => activeRuleId.value && activeRuleId.value === candidateRuleId.value)
 const activeReason = computed(() => field(activeActivation.value, 'Reason', 'reason'))
 const field = (value, pascal, snake) => value?.[pascal] ?? value?.[snake]
+const segmentRange = computed(() => formatAdRuleRange(
+  field(rule.value, 'MinSegment', 'min_segment'),
+  field(rule.value, 'MaxSegment', 'max_segment'),
+))
+const durationRange = computed(() => formatAdRuleRange(
+  field(rule.value, 'MinDuration', 'min_duration'),
+  field(rule.value, 'MaxDuration', 'max_duration'),
+  { digits: 1, suffix: ' 秒' },
+))
 
 const generate = async () => {
   generating.value = true

@@ -57,6 +57,16 @@ export const formatApproxTime = (milliseconds = 0) => {
   return [hours, minutes, seconds].map((part) => String(part).padStart(2, '0')).join(':')
 }
 
+export const formatAdRuleRange = (minimum, maximum, options = {}) => {
+  const { digits = 0, suffix = '' } = options
+  const min = Number(minimum) || 0
+  const max = Number(maximum) || 0
+  const format = (value) => Number(value).toFixed(digits)
+  if (min <= 0) return `≤ ${format(max)}${suffix}`
+  if (min === max) return `${format(min)}${suffix}`
+  return `${format(min)}–${format(max)}${suffix}`
+}
+
 export const findNextAdReviewBlockId = (blocks = [], currentId) => {
   const index = blocks.findIndex((block) => block.id === currentId)
   return index >= 0 ? blocks[index + 1]?.id ?? null : null

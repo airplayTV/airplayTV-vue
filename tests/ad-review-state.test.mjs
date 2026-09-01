@@ -8,7 +8,8 @@ import {
 	createAdReviewAPIError,
   createAdReviewSession,
 	findNextAdReviewBlockId,
-  normalizeAdReviewSnapshot,
+	formatAdRuleRange,
+	normalizeAdReviewSnapshot,
 } from '../src/helpers/ad-review-state.js'
 
 const createStorage = () => {
@@ -35,6 +36,13 @@ test('广告评审会话只持久化启用标志，不保存密码', () => {
   session.disable()
   assert.equal(session.enabled(), false)
   assert.equal(session.token(), '')
+})
+
+test('广告规则范围兼容区间规则和旧的最大值规则', () => {
+	assert.equal(formatAdRuleRange(7, 7), '7')
+	assert.equal(formatAdRuleRange(25.5, 26.5, { digits: 1, suffix: ' 秒' }), '25.5–26.5 秒')
+	assert.equal(formatAdRuleRange(0, 7), '≤ 7')
+	assert.equal(formatAdRuleRange(undefined, 26, { digits: 1, suffix: ' 秒' }), '≤ 26.0 秒')
 })
 
 test('快照响应会被规范化为稳定的前端字段并按分组序号排序', () => {
