@@ -238,6 +238,7 @@ import ShieldLock from '@vicons/tabler/ShieldLock'
 import {useAdReviewStore} from '@/stores/ad-review.js'
 import {playTypeOption} from '@/helpers/play.js'
 import {resolvePlayerPreference} from '@/helpers/player-preference.js'
+import {formatVideoSourceOptions} from '@/helpers/video-source-options.js'
 
 
 const route = useRoute()
@@ -305,13 +306,7 @@ const onBeforeMountHandler = () => {
   appStore.setStyleConfig(getStorageSync(KEY_VIDEO_STYLE_CONFIG))
   defaultStyle.value = appStore.styleConfig
 
-  formattedSourceList.value = appStore.sourceList?.map((item, idx) => {
-    return {
-      label: `(${idx + 1}) ${item.name} [${item.id}]`,
-      value: item.name,
-      data: item,
-    }
-  })
+  formattedSourceList.value = formatVideoSourceOptions(appStore.sourceList)
 
 }
 

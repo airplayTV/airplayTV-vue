@@ -1,6 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
+import { formatVideoSourceOptions } from '../src/helpers/video-source-options.js'
+
 import {
   adReviewAccessAction,
   adReviewPreviewFallbackMode,
@@ -14,6 +16,18 @@ import {
   runAdReviewSnapshotDeletion,
   shouldShowAdReviewHistory,
 } from '../src/helpers/ad-review-history.js'
+
+test('来源列表按设置页格式生成可筛选选项', () => {
+  const sourceList = [
+    { id: 'source-a', name: '来源 A', tags: [{ name: '电影', value: 'movie' }] },
+    { id: 27, name: '来源 B', tags: [] },
+  ]
+
+  assert.deepEqual(formatVideoSourceOptions(sourceList), [
+    { label: '(1) 来源 A [source-a]', value: '来源 A', data: sourceList[0] },
+    { label: '(2) 来源 B [27]', value: '来源 B', data: sourceList[1] },
+  ])
+})
 
 test('广告标记受保护页面按会话状态决定展示恢复或登录', () => {
   assert.equal(adReviewAccessAction({ authenticated: true, enabled: true, restoring: false }), 'show')

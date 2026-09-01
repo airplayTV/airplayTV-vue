@@ -14,12 +14,18 @@
 
         <form class="filter-panel" @submit.prevent="submitFilters">
           <label>
-            <span>视频或 VID</span>
-            <n-input v-model:value="keyword" clearable placeholder="输入名称或 VID" />
+            <span>来源</span>
+            <n-select
+              v-model:value="source"
+              :options="sourceOptions"
+              filterable
+              clearable
+              placeholder="全部来源"
+            />
           </label>
           <label>
-            <span>来源</span>
-            <n-input v-model:value="source" clearable placeholder="全部来源" />
+            <span>视频或 VID</span>
+            <n-input v-model:value="keyword" clearable placeholder="输入名称或 VID" />
           </label>
           <n-button attr-type="submit" type="primary" :loading="store.historyLoading">查询</n-button>
         </form>
@@ -64,21 +70,25 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { NAlert, NButton, NEmpty, NInput, NPagination, NSkeleton, useMessage } from 'naive-ui'
+import { computed, ref } from 'vue'
+import { NAlert, NButton, NEmpty, NInput, NPagination, NSelect, NSkeleton, useMessage } from 'naive-ui'
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import AdReviewAccessGate from '@/components/ad-review/AdReviewAccessGate.vue'
 import AdReviewVideoCard from '@/components/ad-review/AdReviewVideoCard.vue'
 import { useAdReviewStore } from '@/stores/ad-review.js'
+import { useAppStore } from '@/stores/app.js'
 import { normalizeAdReviewHistoryFilter } from '@/helpers/ad-review-history.js'
+import { formatVideoSourceOptions } from '@/helpers/video-source-options.js'
 
 const router = useRouter()
 const store = useAdReviewStore()
+const appStore = useAppStore()
 const message = useMessage()
 const keyword = ref('')
 const source = ref('')
+const sourceOptions = computed(() => formatVideoSourceOptions(appStore.sourceList))
 
 const loadHistory = async (page = 1) => {
   try {
