@@ -6,14 +6,35 @@
         <h2>{{ video.videoName || video.vid }}</h2>
         <p>VID {{ video.vid }} · {{ video.episodeCount }} 个已标记剧集 · 最近标记 {{ formatDate(video.latestLabeledAt) }}</p>
       </div>
-      <n-button
-        secondary
-        class="expand-button"
-        :aria-expanded="expanded"
-        @click="expanded = !expanded"
-      >
-        {{ expanded ? '收起记录' : '查看记录' }}
-      </n-button>
+      <div class="video-actions">
+        <n-button
+          secondary
+          class="expand-button"
+          :aria-expanded="expanded"
+          :disabled="Boolean(deletingVideoKey)"
+          @click="expanded = !expanded"
+        >
+          {{ expanded ? '收起记录' : '查看记录' }}
+        </n-button>
+        <n-popconfirm
+          positive-text="永久删除"
+          negative-text="取消"
+          :positive-button-props="{ type: 'error' }"
+          @positive-click="emit('deleteVideo', video)"
+        >
+          <template #trigger>
+            <n-button
+              secondary
+              type="error"
+              :loading="deletingThisVideo"
+              :disabled="Boolean(deletingVideoKey)"
+            >
+              删除视频标记
+            </n-button>
+          </template>
+          将永久删除该来源下 VID {{ video.vid }} 的全部剧集、快照及相关标记数据，无法恢复。
+        </n-popconfirm>
+      </div>
     </div>
 
     <div class="label-stats" aria-label="标签统计">
@@ -60,7 +81,7 @@
                   type="error"
                   secondary
                   :loading="deletingSnapshotId === snapshot.id"
-                  :disabled="deletingSnapshotId !== null"
+                  :disabled="deletingSnapshotId !== null || Boolean(deletingVideoKey)"
                   :aria-label="`永久删除快照 #${snapshot.id}`"
                 >
                   删除
@@ -76,7 +97,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { NButton, NPopconfirm } from 'naive-ui'
 import { useRouter } from 'vue-router'
 import { buildAdReviewCalibrationRoute } from '@/helpers/ad-review-history.js'
@@ -84,10 +105,12 @@ import { buildAdReviewCalibrationRoute } from '@/helpers/ad-review-history.js'
 const props = defineProps({
   video: { type: Object, required: true },
   deletingSnapshotId: { type: Number, default: null },
+  deletingVideoKey: { type: String, default: '' },
 })
-const emit = defineEmits(['deleteSnapshot'])
+const emit = defineEmits(['deleteSnapshot', 'deleteVideo'])
 const router = useRouter()
 const expanded = ref(false)
+const deletingThisVideo = computed(() => props.deletingVideoKey === `${props.video.source}\u0000${props.video.vid}`)
 
 const countEntries = (counts = {}) => [
   { key: 'CONTENT', label: '正常', value: counts.CONTENT || 0 },
@@ -118,7 +141,8 @@ const recalibrate = (pid) => router.push(buildAdReviewCalibrationRoute({
 .source-chip { display: inline-flex; padding: 3px 8px; border-radius: 999px; background: var(--history-accent-soft); color: var(--history-accent); font-size: 12px; font-weight: 600; }
 .video-copy h2 { margin: 7px 0 3px; font-size: 19px; line-height: 1.35; overflow-wrap: anywhere; }
 .video-copy p { margin: 0; color: var(--history-muted); font-size: 13px; line-height: 1.55; }
-.expand-button, .episode-heading .n-button { min-height: 44px; flex: 0 0 auto; }
+.video-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.video-actions .n-button, .episode-heading .n-button { min-height: 44px; flex: 0 0 auto; }
 .label-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .stat-item { min-height: 54px; padding: 9px 11px; border-radius: 11px; background: var(--history-soft); display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--history-muted); }
 .stat-item strong { color: var(--history-text); font-size: 17px; font-variant-numeric: tabular-nums; }
@@ -144,7 +168,8 @@ const recalibrate = (pid) => router.push(buildAdReviewCalibrationRoute({
 @media (max-width: 640px) {
   .video-card { padding: 14px; }
   .video-summary { align-items: stretch; flex-direction: column; }
-  .expand-button { width: 100%; }
+  .video-actions { display: grid; grid-template-columns: 1fr; }
+  .video-actions .n-button { width: 100%; }
   .label-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .episode-heading { align-items: stretch; flex-direction: column; }
   .episode-heading .n-button { width: 100%; }

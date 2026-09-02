@@ -1,21 +1,51 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 
 import { formatVideoSourceOptions } from '../src/helpers/video-source-options.js'
+
+const historyViewSource = readFileSync(new URL('../src/views/AdReviewHistoryView.vue', import.meta.url), 'utf8')
 
 import {
   adReviewAccessAction,
   adReviewPreviewFallbackMode,
   buildAdReviewCalibrationRoute,
+  buildAdReviewHistoryListRoute,
+  buildAdReviewHistoryRouteQuery,
   createAdReviewSingleFlight,
   isAdReviewAuthenticationError,
   normalizeAdReviewPreviewMode,
   normalizeAdReviewHistoryFilter,
+  normalizeAdReviewHistoryRouteQuery,
   normalizeAdReviewHistoryPage,
   normalizeAdReviewSnapshotDetail,
   runAdReviewSnapshotDeletion,
+  runAdReviewSourceDeletion,
+  runAdReviewVideoDeletion,
   shouldShowAdReviewHistory,
 } from '../src/helpers/ad-review-history.js'
+
+test('来源规则跳转到独立历史页并通过查询参数保留来源', () => {
+  assert.deepEqual(buildAdReviewHistoryListRoute(' 非凡资源 '), {
+    name: 'AdReviewHistoryList',
+    query: { source: '非凡资源' },
+  })
+})
+
+test('历史页路由查询归一化并在清除来源后移除空参数', () => {
+  assert.deepEqual(normalizeAdReviewHistoryRouteQuery({ source: ' 来源 A ', keyword: ' v1 ', page: '3' }), {
+    source: '来源 A', keyword: 'v1', page: 3,
+  })
+  assert.deepEqual(buildAdReviewHistoryRouteQuery({ source: '', keyword: '', page: 1 }), {})
+  assert.deepEqual(buildAdReviewHistoryRouteQuery({ source: '来源 A', keyword: 'v1', page: 2 }), {
+    source: '来源 A', keyword: 'v1', page: '2',
+  })
+})
+
+test('独立历史页提供不依赖下拉状态的显式来源清除操作', () => {
+  assert.match(historyViewSource, /aria-label="清除来源筛选"/)
+  assert.match(historyViewSource, /@click="changeSource\(''\)"/)
+})
 
 test('来源列表按设置页格式生成可筛选选项', () => {
   const sourceList = [
@@ -165,6 +195,25 @@ test('永久删除快照失败时保留当前列表且不触发刷新', async ()
   let reloaded = false
   await assert.rejects(() => runAdReviewSnapshotDeletion(12, {
     deleteSnapshot: async () => { throw new Error('delete failed') },
+    reloadHistory: async () => { reloaded = true },
+  }), /delete failed/)
+  assert.equal(reloaded, false)
+})
+
+test('删除来源成功后才刷新规则概览', async () => {
+  const calls = []
+  const result = await runAdReviewSourceDeletion('来源 A', {
+    deleteSource: async (source) => { calls.push(`delete:${source}`); return { snapshot_count: 3 } },
+    reloadOverview: async () => { calls.push('reload') },
+  })
+  assert.deepEqual(result, { snapshot_count: 3 })
+  assert.deepEqual(calls, ['delete:来源 A', 'reload'])
+})
+
+test('删除视频失败时保留当前列表且不触发刷新', async () => {
+  let reloaded = false
+  await assert.rejects(() => runAdReviewVideoDeletion({ source: '来源 A', vid: 'v1' }, {
+    deleteVideo: async () => { throw new Error('delete failed') },
     reloadHistory: async () => { reloaded = true },
   }), /delete failed/)
   assert.equal(reloaded, false)

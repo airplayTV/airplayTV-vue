@@ -108,6 +108,25 @@ export const normalizeAdReviewHistoryFilter = (value = {}) => {
   }
 }
 
+export const normalizeAdReviewHistoryRouteQuery = (value = {}) => {
+  const filter = normalizeAdReviewHistoryFilter(value)
+  return { source: filter.source, keyword: filter.keyword, page: filter.page }
+}
+
+export const buildAdReviewHistoryRouteQuery = (value = {}) => {
+  const filter = normalizeAdReviewHistoryRouteQuery(value)
+  const query = {}
+  if (filter.source) query.source = filter.source
+  if (filter.keyword) query.keyword = filter.keyword
+  if (filter.page > 1) query.page = String(filter.page)
+  return query
+}
+
+export const buildAdReviewHistoryListRoute = (source = '') => ({
+  name: 'AdReviewHistoryList',
+  query: buildAdReviewHistoryRouteQuery({ source }),
+})
+
 export const shouldShowAdReviewHistory = (enabled, authenticated) => Boolean(enabled && authenticated)
 
 export const isAdReviewAuthenticationError = (error = {}) =>
@@ -133,6 +152,18 @@ export const createAdReviewSingleFlight = () => {
 
 export const runAdReviewSnapshotDeletion = async (snapshotId, { deleteSnapshot, reloadHistory }) => {
   const result = await deleteSnapshot(snapshotId)
+  await reloadHistory()
+  return result
+}
+
+export const runAdReviewSourceDeletion = async (source, { deleteSource, reloadOverview }) => {
+  const result = await deleteSource(source)
+  await reloadOverview()
+  return result
+}
+
+export const runAdReviewVideoDeletion = async (video, { deleteVideo, reloadHistory }) => {
+  const result = await deleteVideo(video.source, video.vid)
   await reloadHistory()
   return result
 }

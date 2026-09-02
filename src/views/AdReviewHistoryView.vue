@@ -1,7 +1,7 @@
 <template>
   <div class="history-shell">
     <AppHeader />
-    <AdReviewAccessGate @ready="loadHistory">
+    <AdReviewAccessGate @ready="loadFromRoute">
       <main class="history-page">
         <header class="page-hero">
           <div>
@@ -9,20 +9,27 @@
             <h1>广告标记历史</h1>
             <p>仅展示产生过人工标签的视频。普通观看历史不会出现在这里。</p>
           </div>
-          <n-button type="primary" size="large" @click="router.push('/video/list')">去选择视频校准</n-button>
+          <div class="hero-actions">
+            <n-button secondary size="large" @click="router.push({ name: 'AdReviewHistory' })">返回来源规则</n-button>
+            <n-button type="primary" size="large" @click="router.push('/video/list')">去选择视频校准</n-button>
+          </div>
         </header>
 
         <form class="filter-panel" @submit.prevent="submitFilters">
-          <label>
+          <div class="filter-field">
             <span>来源</span>
-            <n-select
-              v-model:value="source"
-              :options="sourceOptions"
-              filterable
-              clearable
-              placeholder="全部来源"
-            />
-          </label>
+            <div class="source-filter-control">
+              <n-select
+                v-model:value="source"
+                :options="sourceOptions"
+                filterable
+                clearable
+                placeholder="全部来源"
+                @update:value="changeSource"
+              />
+              <n-button v-if="source" secondary aria-label="清除来源筛选" @click="changeSource('')">清除</n-button>
+            </div>
+          </div>
           <label>
             <span>视频或 VID</span>
             <n-input v-model:value="keyword" clearable placeholder="输入名称或 VID" />
@@ -49,7 +56,9 @@
             :key="`${video.source}:${video.vid}`"
             :video="video"
             :deleting-snapshot-id="store.deletingSnapshotId"
+            :deleting-video-key="store.deletingVideoKey"
             @delete-snapshot="deleteSnapshot"
+            @delete-video="deleteVideo"
           />
         </div>
         <n-empty v-else description="暂时没有产生过人工标签的视频">
@@ -70,25 +79,38 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { NAlert, NButton, NEmpty, NInput, NPagination, NSelect, NSkeleton, useMessage } from 'naive-ui'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import AdReviewAccessGate from '@/components/ad-review/AdReviewAccessGate.vue'
 import AdReviewVideoCard from '@/components/ad-review/AdReviewVideoCard.vue'
 import { useAdReviewStore } from '@/stores/ad-review.js'
 import { useAppStore } from '@/stores/app.js'
-import { normalizeAdReviewHistoryFilter } from '@/helpers/ad-review-history.js'
+import {
+  buildAdReviewHistoryRouteQuery,
+  normalizeAdReviewHistoryFilter,
+  normalizeAdReviewHistoryRouteQuery,
+} from '@/helpers/ad-review-history.js'
 import { formatVideoSourceOptions } from '@/helpers/video-source-options.js'
 
 const router = useRouter()
+const route = useRoute()
 const store = useAdReviewStore()
 const appStore = useAppStore()
 const message = useMessage()
 const keyword = ref('')
 const source = ref('')
-const sourceOptions = computed(() => formatVideoSourceOptions(appStore.sourceList))
+const sourceOptions = computed(() => {
+  const options = formatVideoSourceOptions(appStore.sourceList)
+  if (source.value && !options.some((item) => item.value === source.value)) {
+    return [{ label: source.value, value: source.value }, ...options]
+  }
+  return options
+})
+let routeReady = false
+let loadedRouteKey = ''
 
 const loadHistory = async (page = 1) => {
   try {
@@ -98,9 +120,29 @@ const loadHistory = async (page = 1) => {
   }
 }
 
-const submitFilters = () => loadHistory(1)
+const routeFilter = () => normalizeAdReviewHistoryRouteQuery(route.query)
+const filterKey = (filter) => JSON.stringify([filter.source, filter.keyword, filter.page])
+const loadFromRoute = async () => {
+  routeReady = true
+  const filter = routeFilter()
+  source.value = filter.source
+  keyword.value = filter.keyword
+  loadedRouteKey = filterKey(filter)
+  await loadHistory(filter.page)
+}
+const navigateHistory = async (filter) => {
+  const normalized = normalizeAdReviewHistoryRouteQuery(filter)
+  if (filterKey(normalized) === loadedRouteKey) return loadHistory(normalized.page)
+  await router.push({ name: 'AdReviewHistoryList', query: buildAdReviewHistoryRouteQuery(normalized) })
+}
+
+const submitFilters = () => navigateHistory({ source: source.value, keyword: keyword.value, page: 1 })
+const changeSource = (value) => {
+  source.value = value || ''
+  return navigateHistory({ source: source.value, keyword: keyword.value, page: 1 })
+}
 const changePage = (page) => {
-  loadHistory(page)
+  navigateHistory({ source: source.value, keyword: keyword.value, page })
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
@@ -113,10 +155,38 @@ const deleteSnapshot = async (snapshot) => {
       pageSize: store.historyPage.pageSize,
     }))
     message.success(`快照 #${snapshot.id} 已永久删除`)
+    await syncRoutePage()
   } catch (_) {
     // The store exposes the project-style API message inline.
   }
 }
+
+const deleteVideo = async (video) => {
+  try {
+    const result = await store.deleteVideoReviewData(video, normalizeAdReviewHistoryFilter({
+      keyword: keyword.value,
+      source: source.value,
+      page: store.historyPage.page,
+      pageSize: store.historyPage.pageSize,
+    }))
+    message.success(`已删除 ${result.snapshot_count || 0} 个快照及相关标记数据`)
+    await syncRoutePage()
+  } catch (_) {
+    // The store exposes the project-style API message inline.
+  }
+}
+
+const syncRoutePage = async () => {
+  if (store.historyPage.page === routeFilter().page) return
+  await router.replace({
+    name: 'AdReviewHistoryList',
+    query: buildAdReviewHistoryRouteQuery({ source: source.value, keyword: keyword.value, page: store.historyPage.page }),
+  })
+}
+
+watch(() => route.fullPath, () => {
+  if (routeReady) void loadFromRoute()
+})
 </script>
 
 <style scoped>
@@ -126,9 +196,12 @@ const deleteSnapshot = async (snapshot) => {
 .page-hero h1 { margin: 3px 0 5px; font-size: clamp(25px, 4vw, 34px); letter-spacing: -.025em; }
 .page-hero p { margin: 0; color: var(--history-muted); line-height: 1.55; }
 .page-hero .n-button { min-height: 46px; flex: 0 0 auto; }
+.hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .eyebrow { color: var(--history-accent); font-size: 11px; font-weight: 700; letter-spacing: .12em; }
 .filter-panel { padding: 14px; border: 1px solid var(--history-border); border-radius: 14px; background: var(--history-panel); display: grid; grid-template-columns: minmax(180px, 1.4fr) minmax(150px, 1fr) auto; align-items: end; gap: 10px; }
-.filter-panel label { display: grid; gap: 6px; color: var(--history-muted); font-size: 12px; font-weight: 600; }
+.filter-panel label, .filter-field { display: grid; gap: 6px; color: var(--history-muted); font-size: 12px; font-weight: 600; }
+.source-filter-control { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.source-filter-control .n-button { min-width: 64px; }
 .filter-panel .n-button { min-width: 92px; min-height: 34px; }
 .result-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; }
 .result-heading > div { display: flex; align-items: baseline; gap: 6px; }
@@ -142,7 +215,8 @@ const deleteSnapshot = async (snapshot) => {
 @media (max-width: 640px) {
   .history-page { padding: 12px 8px 36px; gap: 12px; }
   .page-hero { align-items: stretch; flex-direction: column; padding: 17px; }
-  .page-hero .n-button { width: 100%; }
+  .page-hero .n-button, .hero-actions { width: 100%; }
+  .hero-actions { display: grid; grid-template-columns: 1fr; }
   .filter-panel { grid-template-columns: 1fr; }
   .filter-panel .n-button { min-height: 44px; }
 }

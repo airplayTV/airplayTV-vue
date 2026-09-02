@@ -46,6 +46,12 @@ const router = createRouter({
     {
       path: '/ad-review/history',
       name: 'AdReviewHistory',
+      component: () => import('../views/AdReviewRuleInventoryView.vue'),
+      meta: { requiresAdReview: true },
+    },
+    {
+      path: '/ad-review/history/list',
+      name: 'AdReviewHistoryList',
       component: () => import('../views/AdReviewHistoryView.vue'),
       meta: { requiresAdReview: true },
     },

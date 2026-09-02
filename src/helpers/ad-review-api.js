@@ -49,12 +49,15 @@ export const adReviewAPI = {
   labeledVideos: (params) => client.get(`${basePath}/videos`, { params }),
   snapshotDetail: (snapshotId) => client.get(`${basePath}/snapshots/${snapshotId}`),
   deleteSnapshot: (snapshotId) => client.delete(`${basePath}/snapshots/${snapshotId}`, writeConfig()),
+  deleteSourceReviewData: (source) => client.delete(`${basePath}/data/source`, { ...writeConfig(), params: { source } }),
+  deleteVideoReviewData: (source, vid) => client.delete(`${basePath}/data/video`, { ...writeConfig(), params: { source, vid } }),
   labelBlock: (blockId, input) => client.post(`${basePath}/blocks/${blockId}/label`, input, writeConfig()),
   generateCandidate: (source) => client.post(`${basePath}/rules/candidate`, { source }, writeConfig()),
   activateRule: (ruleId, input) => client.post(`${basePath}/rules/${ruleId}/activate`, input, writeConfig()),
   rollbackActivation: (activationId, reason) => client.post(`${basePath}/activations/${activationId}/rollback`, { reason }, writeConfig()),
   conflicts: (ruleId, status = 'pending') => client.get(`${basePath}/conflicts`, { params: { rule_id: ruleId, status } }),
   activeRule: (source) => client.get(`${basePath}/rules/active`, { params: { source } }),
+  ruleOverview: () => client.get(`${basePath}/rules/overview`),
   previewURL: (snapshotId, blockId, count = 1, mode = 'direct') =>
     `${apiUrl}${basePath}/snapshots/${snapshotId}/blocks/${blockId}/preview.m3u8?count=${count}&mode=${mode}`,
 }

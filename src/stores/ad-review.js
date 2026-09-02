@@ -7,9 +7,12 @@ import {
   normalizeAdReviewHistoryPage,
   normalizeAdReviewSnapshotDetail,
   runAdReviewSnapshotDeletion,
+  runAdReviewSourceDeletion,
+  runAdReviewVideoDeletion,
 } from '@/helpers/ad-review-history.js'
 import { adReviewAPI } from '@/helpers/ad-review-api.js'
 import { loadCandidateConflictsSafely, mergeCandidateActivation } from '@/helpers/ad-review-publication.js'
+import { normalizeAdReviewRuleOverview } from '@/helpers/ad-review-rule-overview.js'
 
 export const useAdReviewStore = defineStore('ad-review', () => {
   const session = createAdReviewSession(typeof sessionStorage === 'undefined' ? null : sessionStorage)
@@ -26,10 +29,15 @@ export const useAdReviewStore = defineStore('ad-review', () => {
   const historyPage = ref(normalizeAdReviewHistoryPage())
   const historyLoading = ref(false)
   const historyError = ref('')
+  const ruleOverview = ref(normalizeAdReviewRuleOverview())
+  const ruleOverviewLoading = ref(false)
+  const ruleOverviewError = ref('')
   const historySnapshot = ref(null)
   const historySnapshotLoading = ref(false)
   const historySnapshotError = ref('')
   const deletingSnapshotId = ref(null)
+  const deletingSource = ref('')
+  const deletingVideoKey = ref('')
   const runRestore = createAdReviewSingleFlight()
 
   const selectedBlock = computed(() => blocks.value.find((block) => block.id === selectedBlockId.value) ?? null)
@@ -151,6 +159,21 @@ export const useAdReviewStore = defineStore('ad-review', () => {
     }
   }
 
+  const loadRuleOverview = async () => {
+    ruleOverviewLoading.value = true
+    ruleOverviewError.value = ''
+    try {
+      ruleOverview.value = normalizeAdReviewRuleOverview(await adReviewAPI.ruleOverview())
+      return ruleOverview.value
+    } catch (error) {
+      if (isAdReviewAuthenticationError(error)) exitLocal()
+      ruleOverviewError.value = error.message || '读取来源规则概览失败'
+      throw error
+    } finally {
+      ruleOverviewLoading.value = false
+    }
+  }
+
   const loadSnapshotDetail = async (snapshotId) => {
     historySnapshotLoading.value = true
     historySnapshotError.value = ''
@@ -188,11 +211,51 @@ export const useAdReviewStore = defineStore('ad-review', () => {
     }
   }
 
+  const deleteSourceReviewData = async (source) => {
+    deletingSource.value = source
+    ruleOverviewError.value = ''
+    try {
+      return await runAdReviewSourceDeletion(source, {
+        deleteSource: adReviewAPI.deleteSourceReviewData,
+        reloadOverview: loadRuleOverview,
+      })
+    } catch (error) {
+      if (isAdReviewAuthenticationError(error)) exitLocal()
+      ruleOverviewError.value = error.message || '删除来源广告标记数据失败'
+      throw error
+    } finally {
+      deletingSource.value = ''
+    }
+  }
+
+  const deleteVideoReviewData = async (video, filter = {}) => {
+    deletingVideoKey.value = `${video.source}\u0000${video.vid}`
+    historyError.value = ''
+    try {
+      return await runAdReviewVideoDeletion(video, {
+        deleteVideo: adReviewAPI.deleteVideoReviewData,
+        reloadHistory: async () => {
+          const page = await loadHistory(filter)
+          if (page.page > 1 && page.items.length === 0) {
+            await loadHistory({ ...filter, page: page.page - 1 })
+          }
+        },
+      })
+    } catch (error) {
+      if (isAdReviewAuthenticationError(error)) exitLocal()
+      historyError.value = error.message || '删除视频广告标记数据失败'
+      throw error
+    } finally {
+      deletingVideoKey.value = ''
+    }
+  }
+
   return {
     enabled, authenticated, snapshot, blocks, selectedBlockId, selectedBlock,
     candidate, conflicts, conflictsError, active, loading, labeledCount, unlabeledCount,
-    historyPage, historyLoading, historyError,
-    historySnapshot, historySnapshotLoading, historySnapshotError, deletingSnapshotId,
-    enter, restore, logout, loadSnapshot, label, markUnlabeledContent, generateCandidate, refreshActive, activate, rollback, loadHistory, loadSnapshotDetail, deleteSnapshot,
+    historyPage, historyLoading, historyError, ruleOverview, ruleOverviewLoading, ruleOverviewError,
+    historySnapshot, historySnapshotLoading, historySnapshotError, deletingSnapshotId, deletingSource, deletingVideoKey,
+    enter, restore, logout, loadSnapshot, label, markUnlabeledContent, generateCandidate, refreshActive, activate, rollback,
+    loadHistory, loadRuleOverview, loadSnapshotDetail, deleteSnapshot, deleteSourceReviewData, deleteVideoReviewData,
   }
 })
