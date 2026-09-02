@@ -1,6 +1,11 @@
 export const AD_REVIEW_MODE_KEY = 'airplay_ad_review_mode'
 export const AD_REVIEW_TOKEN_KEY = 'airplay_ad_review_token'
 
+export const withAdReviewDeleteJSONBody = (config = {}) => ({
+  ...config,
+  data: {},
+})
+
 const read = (value, camel, pascal, fallback = null) => value?.[camel] ?? value?.[pascal] ?? fallback
 
 export const createAdReviewSession = (storage) => ({

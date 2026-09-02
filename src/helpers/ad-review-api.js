@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { v4 as uuid } from 'uuid'
 import { apiUrl } from '../config'
-import { AD_REVIEW_TOKEN_KEY, createAdReviewAPIError } from './ad-review-state.js'
+import { AD_REVIEW_TOKEN_KEY, createAdReviewAPIError, withAdReviewDeleteJSONBody } from './ad-review-state.js'
 
 const basePath = '/api/admin/ad-review'
 
@@ -43,14 +43,14 @@ const writeConfig = () => ({
 export const adReviewAPI = {
   login: (password) => client.post(`${basePath}/session`, { password }, writeConfig()),
   session: () => client.get(`${basePath}/session`),
-  logout: () => client.delete(`${basePath}/session`, writeConfig()),
+  logout: () => client.delete(`${basePath}/session`, withAdReviewDeleteJSONBody(writeConfig())),
   createSnapshot: (input) => client.post(`${basePath}/snapshots`, input, writeConfig()),
   markUnlabeledContent: (snapshotId) => client.post(`${basePath}/snapshots/${snapshotId}/labels/content`, {}, writeConfig()),
   labeledVideos: (params) => client.get(`${basePath}/videos`, { params }),
   snapshotDetail: (snapshotId) => client.get(`${basePath}/snapshots/${snapshotId}`),
-  deleteSnapshot: (snapshotId) => client.delete(`${basePath}/snapshots/${snapshotId}`, writeConfig()),
-  deleteSourceReviewData: (source) => client.delete(`${basePath}/data/source`, { ...writeConfig(), params: { source } }),
-  deleteVideoReviewData: (source, vid) => client.delete(`${basePath}/data/video`, { ...writeConfig(), params: { source, vid } }),
+  deleteSnapshot: (snapshotId) => client.delete(`${basePath}/snapshots/${snapshotId}`, withAdReviewDeleteJSONBody(writeConfig())),
+  deleteSourceReviewData: (source) => client.delete(`${basePath}/data/source`, withAdReviewDeleteJSONBody({ ...writeConfig(), params: { source } })),
+  deleteVideoReviewData: (source, vid) => client.delete(`${basePath}/data/video`, withAdReviewDeleteJSONBody({ ...writeConfig(), params: { source, vid } })),
   labelBlock: (blockId, input) => client.post(`${basePath}/blocks/${blockId}/label`, input, writeConfig()),
   generateCandidate: (source) => client.post(`${basePath}/rules/candidate`, { source }, writeConfig()),
   activateRule: (ruleId, input) => client.post(`${basePath}/rules/${ruleId}/activate`, input, writeConfig()),
