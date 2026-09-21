@@ -41,15 +41,33 @@ const normalizeUpdatedAt = (value) => (
   Number.isSafeInteger(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER ? value : Date.now()
 )
 
+export const normalizeCastChannels = (channels) => {
+  if (!Array.isArray(channels)) return []
+  const seen = new Set()
+  const result = []
+  for (const channel of channels) {
+    const id = normalizeRequiredIdentifier(channel?.id)
+    const pid = normalizeRequiredIdentifier(channel?.pid)
+    const name = normalizeOptionalText(channel?.name, MAX_TITLE_LENGTH)
+    const group = normalizeOptionalText(channel?.group, MAX_TITLE_LENGTH)
+    if (!id || !pid || !name || seen.has(id)) continue
+    seen.add(id)
+    result.push({id, name, ...(group ? {group} : {}), pid})
+    if (result.length >= MAX_EPISODES) break
+  }
+  return result
+}
+
 export const buildCastSessionCandidate = ({room, video = {}, current = {}, source} = {}) => ({
   room,
   vid: video.id,
   pid: current.id,
   source,
   title: video.name,
-  thumb: video.thumb,
+  thumb: video.media_kind === 'live' ? video.thumb || undefined : video.thumb,
   episodeName: current.name || current.title,
-  episodes: Array.isArray(video.links)
+  ...(video.media_kind === 'live' ? {media_kind: 'live', channels: normalizeCastChannels(video.channels)} : {}),
+  episodes: video.media_kind !== 'live' && Array.isArray(video.links)
     ? video.links.map((link) => ({id: link?.id, name: link?.name || link?.title}))
     : [],
 })
@@ -81,7 +99,8 @@ export const normalizeCastSession = (candidate) => {
     ...(title ? {title} : {}),
     ...(thumb ? {thumb} : {}),
     ...(episodeName ? {episodeName} : {}),
-    episodes,
+    ...(candidate.media_kind === 'live' ? {media_kind: 'live', channels: normalizeCastChannels(candidate.channels)} : {}),
+    episodes: candidate.media_kind === 'live' ? [] : episodes,
     updatedAt: normalizeUpdatedAt(candidate.updatedAt),
   }
 }
@@ -113,6 +132,7 @@ export const loadCastSession = (room, storage = globalThis.localStorage) => {
 }
 
 export const findCastEpisode = (session, pid) => {
+  if (session?.media_kind === 'live') return null
   const episodeId = normalizeRequiredIdentifier(pid)
   if (!episodeId || !Array.isArray(session?.episodes)) return null
   return session.episodes
@@ -121,7 +141,7 @@ export const findCastEpisode = (session, pid) => {
 }
 
 export const shouldShowEpisodeSwitcher = (session) => (
-  Array.isArray(session?.episodes)
+  session?.media_kind !== 'live' && Array.isArray(session?.episodes)
   && session.episodes.filter((episode) => normalizeEpisode(episode)).length > 1
 )
 
@@ -140,4 +160,22 @@ export const updateCastSessionEpisode = (session, episode) => {
     episodeName: matchingEpisode.name,
     updatedAt: Math.max(Date.now(), normalizedSession.updatedAt + 1),
   })
+}
+
+export const adjacentCastChannel = (session, direction) => {
+  if (session?.media_kind !== 'live' || ![-1, 1].includes(direction)) return null
+  const channels = normalizeCastChannels(session.channels)
+  const index = channels.findIndex((channel) => channel.id === session.vid)
+  if (index < 0 || channels.length < 2) return null
+  return channels[(index + direction + channels.length) % channels.length]
+}
+
+export const updateCastSessionChannel = (session, channelId) => {
+  const normalized = normalizeCastSession(session)
+  if (normalized?.media_kind !== 'live') return null
+  const channel = normalized.channels.find((item) => item.id === channelId)
+  if (!channel || normalized.updatedAt === Number.MAX_SAFE_INTEGER) return null
+  return normalizeCastSession({...normalized, vid: channel.id, pid: channel.pid,
+    title: channel.name, episodeName: channel.name,
+    updatedAt: Math.max(Date.now(), normalized.updatedAt + 1)})
 }

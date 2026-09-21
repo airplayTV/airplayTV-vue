@@ -222,7 +222,7 @@ test('scan saves room then waits for Presence before navigating and App rejoins 
     readFile(new URL('src/views/JoinRoomView.vue', repoRoot), 'utf8'),
     readFile(new URL('src/App.vue', repoRoot), 'utf8'),
   ])
-  assert.match(join, /setStorageSync\(KEY_ROOM_ID, tmpRoom\.value\)[\s\S]*await controllerPresence\.start\(tmpRoom\.value\)[\s\S]*router\.value\.push\('\/\?from-join-room'\)/)
+  assert.match(join, /setStorageSync\(KEY_ROOM_ID, tmpRoom\.value\)[\s\S]*await controllerPresence\.start\(tmpRoom\.value\)[\s\S]*router\.value\.push\(pairingReturnPath\(/)
   assert.match(join, /ControllerOfflineMessage/)
   assert.match(app, /await joinGroup\(clientId\)[\s\S]*await controllerPresence\.start\(room\)/)
   assert.doesNotMatch(app, /controllerPresence\.refresh\(\)/)

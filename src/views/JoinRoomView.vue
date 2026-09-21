@@ -27,6 +27,7 @@ import AppHeader from '@/components/AppHeader.vue'
 import {NText} from 'naive-ui'
 import {controllerPresence} from '@/helpers/controller-presence'
 import {ControllerOfflineMessage} from '@/helpers/websocket-ack'
+import {IPTV_PAIRING_RETURN_KEY, pairingReturnPath} from '@/helpers/iptv.js'
 
 const route = ref(null)
 const router = ref(null)
@@ -39,7 +40,12 @@ const onBeforeMountHandler = async () => {
     setStorageSync(KEY_ROOM_ID, tmpRoom.value)
     try {
       await controllerPresence.start(tmpRoom.value)
-      await router.value.push('/?from-join-room')
+      let pendingReturn
+      try {
+        pendingReturn = sessionStorage.getItem(IPTV_PAIRING_RETURN_KEY)
+        sessionStorage.removeItem(IPTV_PAIRING_RETURN_KEY)
+      } catch (_) { /* Storage can be unavailable in private mode. */ }
+      await router.value.push(pairingReturnPath(route.value.query.returnTo || pendingReturn))
     } catch (error) {
       errorMessage.value = ControllerOfflineMessage
     }

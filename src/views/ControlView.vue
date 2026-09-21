@@ -198,7 +198,7 @@
           <!-- 三个按钮 -->
           <div class="flex-row flex-justify-between">
             <!-- 后退 -->
-            <div @click="sendControlHandler({ event: ControlEventBack })">
+            <div v-if="!isLive" @click="sendControlHandler({ event: ControlEventBack })">
               <svg
                   class="icon"
                   style="
@@ -227,7 +227,7 @@
             </div>
 
             <!-- 播放/暂停 -->
-            <div>
+            <div v-if="!isLive">
               <div v-if="isPlay" @click="sendControlHandler({ event: ControlEventPause })">
                 <svg
                     class="icon"
@@ -275,7 +275,7 @@
             </div>
 
             <!-- 前进 -->
-            <div @click="sendControlHandler({ event: ControlEventForward })">
+            <div v-if="!isLive" @click="sendControlHandler({ event: ControlEventForward })">
               <svg
                   class="icon"
                   style="
@@ -306,6 +306,11 @@
 
           <div class="padding-30px"></div>
           <div class="padding-10px"></div>
+
+          <n-space v-if="isLive" justify="center">
+            <n-button @click="sendControlHandler({ event: ControlEventPause })">暂停直播</n-button>
+            <n-button @click="sendControlHandler({ event: ControlEventPlay })">回到直播</n-button>
+          </n-space>
 
           <!-- 声音小 -->
           <div
@@ -351,12 +356,17 @@
                 class="current-cast-thumb"
             />
             <div class="current-cast-info">
-              <n-text depth="3" class="current-cast-label">当前投射</n-text>
+              <n-text depth="3" class="current-cast-label">{{ isLive ? '最近发送的直播频道' : '当前投射' }}</n-text>
               <n-ellipsis class="current-cast-title">{{ castSession.title || '未命名内容' }}</n-ellipsis>
               <n-ellipsis class="current-cast-episode">
                 当前：{{ castSession.episodeName || castSession.pid }}　源：{{ castSession.source }}
               </n-ellipsis>
             </div>
+          </div>
+
+          <div v-if="isLive" class="live-channel-controls">
+            <n-text depth="3">指令已发送，播放状态以电视端为准</n-text>
+            <RouterLink to="/tv">返回电视源选台</RouterLink>
           </div>
 
           <div
@@ -392,8 +402,8 @@
 <script setup>
 import AppHeader from '../components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
-import {onBeforeMount, onMounted, ref} from 'vue'
-import {NAlert, NEllipsis, NImage, NSpin, NTag, NText, useMessage,} from 'naive-ui'
+import {computed, onBeforeMount, onMounted, ref} from 'vue'
+import {NAlert, NButton, NEllipsis, NImage, NSpace, NSpin, NTag, NText, useMessage,} from 'naive-ui'
 import {useRouter} from 'vue-router'
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from '@/helpers/constant'
 import {getStorageSync} from '@/helpers/utils'
@@ -432,6 +442,7 @@ const isPlay = ref(null)
 const room = ref(null)
 const clientId = ref(null)
 const castSession = ref(null)
+const isLive = computed(() => castSession.value?.media_kind === 'live')
 const switchingEpisodePid = ref(null)
 const message = useMessage()
 const appStore = useAppStore()
@@ -457,6 +468,7 @@ const onOpenVideo = () => {
 }
 
 const sendControlHandler = async (data) => {
+  if (isLive.value && [ControlEventBack, ControlEventForward].includes(data.event)) return
   // console.log('[sendControlHandler]', data)
 
   await sendControlCommand({
@@ -469,6 +481,10 @@ const sendControlHandler = async (data) => {
     },
     sendControl: sendControlWithAck,
     updateState: () => {
+      if (isLive.value) {
+        message.info('指令已发送')
+        return
+      }
       switch (data.event) {
         case ControlEventPause:
           isPlay.value = false
@@ -547,6 +563,8 @@ onBeforeMount(onBeforeMountHandler)
     fill: #000000;
   }
 }
+
+.live-channel-controls { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
 
 .current-cast-card {
   margin: 0 0 16px;

@@ -21,7 +21,7 @@
           </n-icon>
         </div>
         <div v-if="!isMp3" class="color-grey font-size-12px">
-          快捷键：上一集(p)，下一集(n)，全屏切换(f)
+          快捷键：{{ isLive ? '上一台(p)，下一台(n)' : '上一集(p)，下一集(n)' }}，全屏切换(f)
         </div>
       </div>
       <div class="padding-5px"></div>
@@ -49,7 +49,7 @@
           <div class="idx text-align-center">序号</div>
           <div class="title">
             <text v-if="isMp3">歌曲</text>
-            <text v-else>选集</text>
+            <text v-else>{{ isLive ? '频道' : '选集' }}</text>
           </div>
           <div class="artist">
             <text v-if="isMp3">歌手</text>
@@ -109,7 +109,7 @@ const room = ref(null)
 const clientId = ref(null)
 const appStore = useAppStore()
 
-const props = defineProps(['sourceList', 'vid', 'pid', 'playIndex', 'isMp3', 'video'])
+const props = defineProps(['sourceList', 'vid', 'pid', 'playIndex', 'isMp3', 'isLive', 'video'])
 const emits = defineEmits(['changed'])
 
 const playListStyleSwitch = ref(appStore.playStyleSwitch)
@@ -120,6 +120,8 @@ watch(() => props.playIndex, (newVal, oldVal) => {
 })
 
 const onOpenVideoPlay = async (idx, source) => {
+  // A channel changes both vid and pid; the detail page owns playback/casting.
+  if (props.isLive) return emits('changed', idx, source)
   if (room.value) {
     await runCastingCommand(async () => {
       const tmpSource = getCurrentAppSource(appStore, route.query)

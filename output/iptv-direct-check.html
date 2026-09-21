@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><title>IPTV 直连验证</title>
+<style>body{font:16px system-ui;margin:24px}video{width:480px;max-width:100%;background:#111}pre{white-space:pre-wrap}button{padding:10px}</style>
+<h1>IPTV 浏览器直连验证</h1><p>只测试公开频道；报告不记录带签名的上游地址。直连模式仅由 GoAPI 提供清单，视频分片直接请求上游。</p>
+<button id="run">开始验证</button><br><video id="video" muted playsinline controls></video><pre id="report">等待开始</pre>
+<script type="module">
+import Hls from '/node_modules/hls.js/dist/hls.mjs'
+const report = document.querySelector('#report'), video = document.querySelector('#video'), button = document.querySelector('#run')
+const results = []
+const params = new URLSearchParams(location.search)
+const seconds = Math.min(60, Math.max(2, Number(params.get('seconds')) || 2))
+const draw = () => { report.textContent = JSON.stringify(results, null, 2) }
+async function check(id, proxy) {
+  const result = {channel:id, mode:proxy?'proxy':'direct', state:'running', errors:[]}
+  results.push(result); draw()
+  const url = `http://127.0.0.1:18082/api/iptv/live/${id}.m3u8${proxy?'?web=1':''}`
+  try {
+    const manifest = await fetch(url, {signal:AbortSignal.timeout(15000)})
+    result.manifestStatus = manifest.status
+    if (!manifest.ok) throw Error('manifest unavailable')
+    const text = await manifest.text()
+    const segment = text.split('\n').map(v=>v.trim()).find(v=>v&&!v.startsWith('#'))
+    const segmentUrl = new URL(segment, url)
+    result.segmentHost = segmentUrl.host
+    try {
+      const response = await fetch(segmentUrl, {signal:AbortSignal.timeout(12000)})
+      result.segmentStatus = response.status
+      result.segmentResponseType = response.type
+      result.segmentContentType = response.headers.get('content-type')
+      await response.body?.cancel()
+    } catch(e) { result.segmentFetchError = e.name + ': ' + e.message }
+    await new Promise(resolve => {
+      const hls = new Hls({fragLoadingMaxRetry:0, manifestLoadingMaxRetry:0, levelLoadingMaxRetry:0})
+      let done = false, first = null, started = null
+      const finish = state => {
+        if(done)return; done=true; result.state=state
+        result.videoWidth=video.videoWidth; result.videoHeight=video.videoHeight; result.currentTime=video.currentTime
+        result.observedSeconds = started ? Math.round((Date.now()-started)/1000) : 0
+        clearTimeout(timer); clearInterval(poll); hls.destroy(); video.pause(); video.removeAttribute('src'); video.load(); draw(); resolve()
+      }
+      const timer = setTimeout(()=>finish('timeout'), seconds*1000+18000)
+      const poll = setInterval(()=>{
+        if(video.readyState>=2&&video.videoWidth){
+          first ??= video.currentTime
+          started ??= Date.now()
+          if(video.currentTime-first>2 && Date.now()-started>=seconds*1000) finish('playing')
+        }
+      },250)
+      hls.on(Hls.Events.ERROR,(_,data)=>{
+        result.errors.push({type:data.type,details:data.details,fatal:data.fatal,status:data.response?.code??null,message:String(data.error?.message || data.reason || '').replace(/https?:\/\/\S+/g,'[url]')})
+        draw(); if(data.fatal)finish('failed')
+      })
+      hls.on(Hls.Events.MANIFEST_PARSED,()=>video.play().catch(e=>{result.playError=e.name;draw()}))
+      hls.loadSource(url); hls.attachMedia(video)
+    })
+  } catch(e) { result.state='failed';result.error=e.name+': '+e.message;draw() }
+}
+button.onclick = async () => {
+  button.disabled=true;results.length=0
+  const channels = ['cctv1','hnws','cgtn'].filter(id => !params.get('channel') || params.get('channel')===id)
+  for(const id of channels) { await check(id,false);if(params.get('mode')!=='direct')await check(id,true) }
+  button.disabled=false
+}
+</script></html>

@@ -1,0 +1,39 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>IPTV 直连优先回退验收</title>
+<style>body{font:16px system-ui;margin:24px}video{width:480px;max-width:100%;background:#111}pre{white-space:pre-wrap}</style>
+<h1>IPTV 直连优先回退验收</h1><button id="run">运行实播及模拟403回退</button><br><video id="video" muted playsinline controls></video><pre id="report">等待开始</pre>
+<script type="module">
+import Hls from '/node_modules/hls.js/dist/hls.mjs'
+import {createLiveDelivery} from '/src/helpers/iptv-delivery.js'
+const video=document.querySelector('video'), report=document.querySelector('#report'), button=document.querySelector('button'),results=[]
+const draw=()=>{report.textContent=JSON.stringify(results,null,2)}
+async function run(forced){
+ const result={test:forced?'simulated-direct-403':'real-direct',modes:[],state:'running'};results.push(result);draw()
+ let rejected=false
+ class RejectLoader extends Hls.DefaultConfig.loader {
+  load(context,config,callbacks){
+   if(forced&&!rejected&&new URL(context.url).host!=='127.0.0.1:18082'){
+    rejected=true;result.injected403=true;callbacks.onError({code:403,text:'Simulated direct-only 403'},context,null,this.stats);return
+   }
+   super.load(context,config,callbacks)
+  }
+ }
+ class TestHls extends Hls {static get DefaultConfig(){return {...Hls.DefaultConfig,loader:RejectLoader}} constructor(config){super(config);this.on(Hls.Events.ERROR,(_,d)=>{(result.errors??=[]).push({detail:d.details,status:d.response?.code,fatal:d.fatal,message:String(d.error?.message||'').replace(/https?:\/\/\S+/g,'[url]')});draw()})}}
+ const start=performance.now();let failed=false
+ const delivery=createLiveDelivery({Hls:TestHls,video,url:'http://127.0.0.1:18082/api/iptv/live/cctv1.m3u8',proxyUrl:'http://127.0.0.1:18082/api/iptv/live/cctv1.m3u8?web=1',onMode:mode=>{result.modes.push(mode);draw()},onError:()=>{failed=true;result.state='failed';draw()}})
+ const errorHandler=()=>delivery.mediaError();video.addEventListener('error',errorHandler)
+ await new Promise(resolve=>{
+  let first=null;const timer=setInterval(()=>{
+   delivery.tick()
+   if(video.readyState>=2&&video.videoWidth)first??=performance.now()
+   if(failed||(first&&performance.now()-first>(forced?8000:35000))||performance.now()-start>60000){
+    result.state=failed?'failed':video.videoWidth&&video.currentTime>2?'playing':'timeout';result.videoWidth=video.videoWidth;result.currentTime=video.currentTime;result.seconds=first?Math.round((performance.now()-first)/1000):0
+    const resources=performance.getEntriesByType('resource').filter(r=>r.startTime>=start)
+    result.apiMediaRequests=resources.filter(r=>r.name.includes('/api/iptv/media/')).length
+    result.upstreamRequests=resources.filter(r=>new URL(r.name).hostname.endsWith('.cctv.cn')).length
+    clearInterval(timer);delivery.destroy();video.removeEventListener('error',errorHandler);video.pause();video.removeAttribute('src');video.load();draw();resolve()
+   }
+  },500)
+ })
+}
+button.onclick=async()=>{button.disabled=true;results.length=0;await run(false);await run(true);button.disabled=false}
+</script></html>

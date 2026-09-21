@@ -11,8 +11,8 @@
             <n-image
                 :width="width"
                 :height="height"
-                :src="video.thumb"
-                :key="video.thumb"
+                :src="videoThumbnail(video)"
+                :key="videoThumbnail(video)"
                 @error="onLoadThumbError(video)"
                 class="thumb"
                 object-fit="cover"
@@ -49,6 +49,7 @@
 </template>
 
 <script>
+import {videoThumbnail} from '@/helpers/iptv-presentation.js'
 import {defineComponent, ref} from 'vue'
 import {NButton, NEllipsis, NGi, NGrid, NIcon, NImage, NInput, NInputGroup, NPagination, NSelect,} from 'naive-ui'
 import {BrokenImageRound} from '@vicons/material'
@@ -88,7 +89,7 @@ const onLoadThumbError = (video) => {
 }
 
 export default defineComponent({
-  methods: { FormatToDate },
+  methods: { FormatToDate, videoThumbnail },
   components: {
     NSelect,
     NInputGroup,

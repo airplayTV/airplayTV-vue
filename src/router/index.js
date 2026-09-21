@@ -6,6 +6,11 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '/tv',
+      name: 'Tv',
+      component: () => import('../views/TvView.vue'),
+    },
+    {
       path: '/',
       name: 'home',
       component: VideoListView,
@@ -92,6 +97,11 @@ router.beforeEach(async (to, from, next) => {
   }
   if (to.query.hasOwnProperty('tag') && to.query.tag !== appStore.tags) {
     appStore.setTags(to.query.tag)
+  }
+
+  if (['/', '/video/list'].includes(to.path) && (to.query._source || appStore.source) === '电视源') {
+    next('/tv')
+    return
   }
 
   next()

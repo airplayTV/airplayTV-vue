@@ -10,6 +10,14 @@ const templateSource = source.slice(
 )
 const templateAst = parse(templateSource)
 
+test('直播遥控隐藏前后跳转并提供选台入口', () => {
+  for (const event of ['ControlEventForward', 'ControlEventBack']) {
+    const button = findElement((node) => directiveExpression(node, 'on')?.includes(event))
+    assert.equal(directiveExpression(button.node, 'if'), '!isLive')
+  }
+  assert.ok(findElement((node) => node.tag === 'RouterLink' && attributeValue(node, 'to') === '/tv'))
+})
+
 const attributeValue = (node, name) => node.props?.find((prop) => (
   prop.type === NodeTypes.ATTRIBUTE && prop.name === name
 ))?.value?.content

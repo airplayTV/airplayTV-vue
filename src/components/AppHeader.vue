@@ -6,6 +6,7 @@
           <RouterLink to="/" style="color: #18a058;">AirplayTV</RouterLink>
         </div>
         <ul class="links">
+          <li><RouterLink to="/tv">电视源</RouterLink></li>
           <li v-if="room">
             <RouterLink to="/control">遥控</RouterLink>
           </li>
@@ -42,19 +43,19 @@
     <div v-if="showSearch">
       <div style="padding: 2px"></div>
       <n-input-group>
-        <n-input v-model:value="keyword" type="text" @keyup.enter="onClickSearch" placeholder="请输入关键字进行查找" />
+        <n-input v-model:value="keyword" type="text" clearable @keyup.enter="onClickSearch" placeholder="请输入关键字进行查找" />
 
         <div style="padding: 5px"></div>
         <n-button type="primary" ghost @click="onClickSearch(appStore.source)">搜索</n-button>
         <div style="padding: 5px"></div>
-        <n-button type="warning" ghost @click="onClickSearch()">全网搜</n-button>
+        <n-button v-if="route.path !== '/tv'" type="warning" ghost @click="onClickSearch()">全网搜</n-button>
       </n-input-group>
     </div>
   </div>
 </template>
 
 <script setup>
-import {computed, onBeforeMount, onBeforeUpdate, ref} from 'vue'
+import {computed, onBeforeMount, onBeforeUpdate, ref, watch} from 'vue'
 import {NButton, NIcon, NInput, NInputGroup, NSpace} from 'naive-ui'
 import {FavoriteFilled, SearchSharp} from '@vicons/material'
 import {useRoute, useRouter} from 'vue-router'
@@ -63,6 +64,7 @@ import {KEY_ROOM_ID} from '@/helpers/constant'
 import {useAppStore} from "@/stores/app.js";
 import {useAdReviewStore} from '@/stores/ad-review.js'
 import {shouldShowAdReviewHistory} from '@/helpers/ad-review-history.js'
+import {tvSearchLocation} from '@/helpers/iptv-presentation.js'
 
 const room = ref(null)
 const source = ref(0)
@@ -79,10 +81,12 @@ const onToggleSearchBox = () => {
 }
 
 const onGotoCollect = () => {
+  if (route.path === '/tv') return router.push({path: '/tv', query: {...route.query, group: 'favorites'}})
   router.push('/?_source=我的收藏')
 }
 
 const onClickSearch = (_source = '') => {
+  if (route.path === '/tv') return router.push(tvSearchLocation(route.query, keyword.value))
   if (_source && _source.code) {
     _source = appStore.source//键盘输入
   }
@@ -107,6 +111,10 @@ const onBeforeUpdateHandler = () => {
 }
 
 onBeforeMount(onBeforeMountHandler)
+watch(() => route.query.keyword, value => {
+  keyword.value = typeof value === 'string' ? value : ''
+  if (keyword.value) showSearch.value = true
+})
 onBeforeUpdate(onBeforeUpdateHandler)
 
 </script>
@@ -151,6 +159,12 @@ ul li.active {
 }
 
 @media (max-width: 520px) {
+  .header-container > .flex-row,
+  .header-container > .flex-row > .flex-row:first-child {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
   .links a {
     margin-inline: 4px;
   }

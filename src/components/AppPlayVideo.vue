@@ -13,7 +13,8 @@
       </div>
 
       <div style="border-radius: 4px; display: flex; min-height: 180px" class="player-container">
-        <div v-if="playType===playTypeOption.dp" id="dplayer" ref="dplayerRef" :style="artStyle"></div>
+        <AppPlayLive v-if="isLive" :video="liveVideo" :style="artStyle" @source-loaded="source = $event" @change-channel="onChangeLiveChannel" />
+        <div v-else-if="playType===playTypeOption.dp" id="dplayer" ref="dplayerRef" :style="artStyle"></div>
         <AppArtplayer
             v-else-if="playType===playTypeOption.art && artOption"
             :key="artOption"
@@ -82,6 +83,7 @@
           v-if="video"
           :vid="props.video.id"
           :video="props.video"
+          :is-live="isLive"
           :play-index="playIndex"
           :source-list="playList"
           @changed="onChangePlaying" />
@@ -94,7 +96,10 @@
 <script setup>
 
 import {useAppStore} from "@/stores/app.js";
-import {onBeforeMount, onBeforeUnmount, ref} from "vue";
+import {computed, onBeforeMount, onBeforeUnmount, ref} from "vue";
+import AppPlayLive from '@/components/AppPlayLive.vue'
+import {channelPlaylist, isLiveVideo} from '@/helpers/iptv-presentation.js'
+import {IPTV_SOURCE} from '@/helpers/iptv.js'
 import {httpCollectList, httpPlayUrlNetworkCheck, httpVideoSource} from "@/helpers/api.js";
 import {addHistoryWarp, addTimelineWarp, findSourceLink, handlerPlayList, playTypeOption} from "@/helpers/play.js";
 import {SearchSharp} from '@vicons/material'
@@ -146,6 +151,8 @@ const router = useRouter()
 const loadingBar = useLoadingBar()
 
 const props = defineProps(['video'])
+const isLive = computed(() => isLiveVideo(props.video))
+const liveVideo = computed(() => ({...props.video, media_kind: 'live'}))
 
 const video = ref({})
 const source = ref({})
@@ -501,6 +508,14 @@ const onChangePlaying = async (idx, ctx) => {
     return noticeToVideo('切换音频失败，音频不在列表中')
   }
 
+  if (isLive.value) {
+    const channel = playList.value[idx]
+    if (channel.vid !== props.video.id) {
+      await router.push({path: `/video/detail/${channel.vid}`, query: {_source: IPTV_SOURCE, pid: channel.id}})
+    }
+    return
+  }
+
   const operation = episodeSwitchGuard.begin()
   if (playType.value === playTypeOption.libmedia) {
     libmediaSourceGuard.invalidate()
@@ -712,8 +727,12 @@ const onBeforeMountHandler = async () => {
   clientId.value = getStorageSync(KEY_CLIENT_ID)
 
   artStyle.value.height = `${computePlayerHeight()}px`
-  window.onresize = () => {
-    artStyle.value.height = `${computePlayerHeight()}px`
+  window.addEventListener('resize', resizePlayer)
+
+  if (isLive.value) {
+    playList.value = channelPlaylist(props.video.channels)
+    playIndex.value = playList.value.findIndex(channel => channel.vid === props.video.id)
+    return
   }
 
   addControlEventHandler()
@@ -888,6 +907,7 @@ const loadDplayer = () => {
 }
 
 const onBeforeUnmountHandler = () => {
+  window.removeEventListener('resize', resizePlayer)
   episodeSwitchGuard.invalidate()
   libmediaSourceGuard.invalidate()
   if (timer.value) {
@@ -913,6 +933,12 @@ const loadHttpCollectList = () => {
   }).finally(() => {
     spinning.value = false
   })
+}
+
+const resizePlayer = () => { artStyle.value.height = `${computePlayerHeight()}px` }
+const onChangeLiveChannel = direction => {
+  if (!playList.value.length) return
+  void onChangePlaying((playIndex.value + direction + playList.value.length) % playList.value.length)
 }
 
 onBeforeMount(onBeforeMountHandler)

@@ -239,6 +239,7 @@ import {useAdReviewStore} from '@/stores/ad-review.js'
 import {playTypeOption} from '@/helpers/play.js'
 import {resolvePlayerPreference} from '@/helpers/player-preference.js'
 import {formatVideoSourceOptions} from '@/helpers/video-source-options.js'
+import {pairingScanRoute} from '@/helpers/iptv.js'
 
 
 const route = useRoute()
@@ -360,6 +361,11 @@ const onUpdateSource = (value) => {
   source.value = value
   appStore.setSource(value)
 
+  if (value === '电视源') {
+    router.push('/tv')
+    return
+  }
+
   handleTagList(source.value)
 }
 
@@ -420,6 +426,11 @@ const startScanning = () => {
       (decodedText) => {
         qrResult.value = decodedText // 解析的二维码内容
         stopScanning()
+        const joinRoute = pairingScanRoute(decodedText, window.location.origin, route.query.returnTo)
+        if (joinRoute) {
+          router.push(joinRoute)
+          return
+        }
         showQrResultModal.value = true
       },
       (errorMessage) => {
