@@ -48,9 +48,10 @@ const directLoadErrors = new Set([
 ])
 
 // Direct -> proxy -> visible error. Never oscillate or keep old engine callbacks alive.
-export const createLiveDelivery = ({Hls, video, url, proxyUrl, onMode, onError, now = Date.now}) => {
+export const createLiveDelivery = ({Hls, video, url, proxyUrl, initialMode = 'direct', onMode, onError, now = Date.now}) => {
   let engine = null
-  let mode = 'direct'
+  let mode = initialMode === 'proxy' ? 'proxy' : 'direct'
+  let target = url
   let closed = false
   let failed = false
   let lastProgress = now()
@@ -65,8 +66,9 @@ export const createLiveDelivery = ({Hls, video, url, proxyUrl, onMode, onError, 
   }
   const recover = () => {
     if (closed || failed) return
-    if (mode === 'proxy') { fail(); return }
+    if (mode === 'proxy' || !proxyUrl) { fail(); return }
     mode = 'proxy'
+    target = proxyUrl
     load()
   }
   const load = () => {
@@ -74,10 +76,10 @@ export const createLiveDelivery = ({Hls, video, url, proxyUrl, onMode, onError, 
     stop()
     lastTime = video.currentTime
     lastProgress = now()
-    const target = mode === 'direct' ? url : proxyUrl
     onMode(mode, target)
     if (Hls.isSupported()) {
-      const instance = new Hls(mode === 'direct' ? {loader: createDirectLoader(Hls.DefaultConfig.loader)} : {})
+      const nativeGateway = /\/api\/iptv\/live\/[^/]+\.m3u8(?:\?|$)/.test(url)
+      const instance = new Hls(mode === 'direct' && nativeGateway ? {loader: createDirectLoader(Hls.DefaultConfig.loader)} : {})
       engine = instance
       instance.on(Hls.Events.ERROR, (_, data) => {
         if (closed || failed || engine !== instance) return

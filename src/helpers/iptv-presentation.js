@@ -4,6 +4,10 @@ const escapeXml = value => String(value ?? '').replace(/[<>&"']/g, char => ({'<'
 
 export const isLiveVideo = video => video?.media_kind === 'live' || video?.type === 'iptv'
 
+export const liveLineSelector = (links, pid) => (links || []).filter(line => line?.id).map((line, index) => ({
+  id: line.id, html: escapeXml(line.name || '直播线路'), default: pid ? line.id === pid : index === 0,
+}))
+
 export const channelPlaylist = channels => normalizeCastChannels(channels).map(channel => ({
   id: channel.pid, vid: channel.id, title: channel.name, artist: channel.group,
 }))

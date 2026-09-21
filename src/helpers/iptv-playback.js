@@ -22,9 +22,7 @@ export const startLivePlayback = async ({
   const response = await loadSource(video.id, line.id, IPTV_SOURCE)
   if (!isCurrent()) return null
   if (!response?.data?.url || response.data.type !== 'hls') throw new Error('直播源暂时不可用')
-  const url = new URL(response.data.url)
-  url.searchParams.delete('web')
-  const directUrl = url.toString()
-  url.searchParams.set('web', '1')
-  return {...response.data, url: directUrl, proxyUrl: url.toString()}
+  const source = response.data
+  const deliveryMode = ['auto', 'proxy'].includes(source.delivery_mode) ? source.delivery_mode : 'direct'
+  return {...source, delivery_mode: deliveryMode, proxyUrl: deliveryMode === 'auto' ? source.proxy_url : undefined}
 }

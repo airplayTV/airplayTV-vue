@@ -15,7 +15,7 @@ test('未加入房间或本机作为接收端时加载网页源，不发送投�
     })
     assert.deepEqual(calls, [['cctv1', 'ysp-cctv1', '电视源']])
     assert.equal(result.url, 'https://api.test/api/iptv/live/cctv1.m3u8')
-    assert.equal(result.proxyUrl, 'https://api.test/api/iptv/live/cctv1.m3u8?web=1')
+    assert.equal(result.proxyUrl, undefined)
   }
 })
 

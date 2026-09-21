@@ -20,6 +20,7 @@ import AppArtplayer from '@/components/AppArtplayer.vue'
 import {httpVideoSource} from '@/helpers/api.js'
 import {createLiveDelivery} from '@/helpers/iptv-delivery.js'
 import {startLivePlayback} from '@/helpers/iptv-playback.js'
+import {liveLineSelector} from '@/helpers/iptv-presentation.js'
 import {getStorageSync} from '@/helpers/utils.js'
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from '@/helpers/constant.js'
 import {useAppStore} from '@/stores/app.js'
@@ -63,6 +64,11 @@ const start = async () => {
       url: source.url, type: 'm3u8', isLive: true, autoplay: true,
       playsInline: true, fullscreen: true, fullscreenWeb: true, volume: 0.7,
       controls: [
+        ...(props.video.links?.length > 1 ? [{
+          name: 'live-line', position: 'right', html: '线路',
+          selector: liveLineSelector(props.video.links, route.query.pid),
+          onSelect: item => { if (active) router.push({path: route.path, query: {...route.query, pid: item.id}}) },
+        }] : []),
         {name: 'previous-channel', position: 'left', html: '上一台', click: () => emit('change-channel', -1)},
         {name: 'next-channel', position: 'left', html: '下一台', click: () => emit('change-channel', 1)},
         {name: 'live-edge', position: 'right', html: '直播', tooltip: '回到直播', click: () => backToLive()},
@@ -74,7 +80,7 @@ const start = async () => {
         if (installed) { art.loading.show = video.readyState < 2; return }
         installed = true
         const controller = createLiveDelivery({
-          Hls, video, url, proxyUrl: source.proxyUrl,
+          Hls, video, url, proxyUrl: source.proxyUrl, initialMode: source.delivery_mode,
           onMode: (mode, target) => {
             if (!active || generation.value !== current) return
             video.dataset.iptvDelivery = mode
