@@ -110,3 +110,64 @@ export const createLiveDelivery = ({Hls, video, url, proxyUrl, initialMode = 'di
     destroy() { closed = true; stop() },
   }
 }
+
+// Libmedia owns decoding, so use its public events instead of attaching Hls to its surface.
+export const createLibmediaLiveDelivery = ({url, proxyUrl, initialMode = 'direct', load, onMode, onError, now = Date.now}) => {
+  let mode = initialMode === 'proxy' ? 'proxy' : 'direct'
+  let target = url
+  let generation = 0
+  let closed = false
+  let failed = false
+  let paused = false
+  let lastTime = null
+  let lastProgress = now()
+  const recover = () => {
+    if (closed || failed) return
+    if (mode === 'proxy' || !proxyUrl) {
+      failed = true
+      generation++
+      onError()
+      return
+    }
+    mode = 'proxy'
+    target = proxyUrl
+    open()
+  }
+  const open = () => {
+    const current = ++generation
+    const isCurrent = () => !closed && !failed && current === generation
+    lastTime = null
+    lastProgress = now()
+    paused = false
+    onMode(mode, target)
+    load({
+      url: target,
+      onError: error => {
+        if (!isCurrent()) return
+        if (error?.code === 'AUTOPLAY_BLOCKED' || error?.requiresUserGesture) {
+          paused = true
+          return
+        }
+        recover()
+      },
+      onPause: () => { if (isCurrent()) paused = true },
+      onPlay: () => { if (isCurrent()) { paused = false; lastProgress = now() } },
+      onTimeupdate: ({currentTime} = {}) => {
+        if (isCurrent() && Number.isFinite(currentTime) && currentTime !== lastTime) {
+          lastTime = currentTime
+          lastProgress = now()
+        }
+      },
+      onDiagnostic: diagnostic => {
+        // User interaction is required; changing delivery cannot fix autoplay policy.
+        if (isCurrent() && diagnostic?.code === 'AUTOPLAY_BLOCKED') paused = true
+      },
+    })
+  }
+  open()
+  return {
+    tick: () => { if (!closed && !failed && !paused && now() - lastProgress >= 20000) recover() },
+    restart: () => { if (!closed && !failed) open() },
+    destroy: () => { closed = true; generation++ },
+  }
+}

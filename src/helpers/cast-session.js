@@ -67,8 +67,8 @@ export const buildCastSessionCandidate = ({room, video = {}, current = {}, sourc
   thumb: video.media_kind === 'live' ? video.thumb || undefined : video.thumb,
   episodeName: current.name || current.title,
   ...(video.media_kind === 'live' ? {media_kind: 'live', channels: normalizeCastChannels(video.channels)} : {}),
-  episodes: video.media_kind !== 'live' && Array.isArray(video.links)
-    ? video.links.map((link) => ({id: link?.id, name: link?.name || link?.title}))
+  episodes: Array.isArray(video.links)
+    ? video.links.map((link) => ({id: link?.id, name: link?.name || link?.title || (video.media_kind === 'live' ? '直播线路' : undefined)}))
     : [],
 })
 
@@ -100,7 +100,7 @@ export const normalizeCastSession = (candidate) => {
     ...(thumb ? {thumb} : {}),
     ...(episodeName ? {episodeName} : {}),
     ...(candidate.media_kind === 'live' ? {media_kind: 'live', channels: normalizeCastChannels(candidate.channels)} : {}),
-    episodes: candidate.media_kind === 'live' ? [] : episodes,
+    episodes,
     updatedAt: normalizeUpdatedAt(candidate.updatedAt),
   }
 }
@@ -132,7 +132,6 @@ export const loadCastSession = (room, storage = globalThis.localStorage) => {
 }
 
 export const findCastEpisode = (session, pid) => {
-  if (session?.media_kind === 'live') return null
   const episodeId = normalizeRequiredIdentifier(pid)
   if (!episodeId || !Array.isArray(session?.episodes)) return null
   return session.episodes
@@ -141,8 +140,8 @@ export const findCastEpisode = (session, pid) => {
 }
 
 export const shouldShowEpisodeSwitcher = (session) => (
-  session?.media_kind !== 'live' && Array.isArray(session?.episodes)
-  && session.episodes.filter((episode) => normalizeEpisode(episode)).length > 1
+  Array.isArray(session?.episodes)
+  && session.episodes.filter((episode) => normalizeEpisode(episode)).length > (session.media_kind === 'live' ? 0 : 1)
 )
 
 export const updateCastSessionEpisode = (session, episode) => {
@@ -176,6 +175,6 @@ export const updateCastSessionChannel = (session, channelId) => {
   const channel = normalized.channels.find((item) => item.id === channelId)
   if (!channel || normalized.updatedAt === Number.MAX_SAFE_INTEGER) return null
   return normalizeCastSession({...normalized, vid: channel.id, pid: channel.pid,
-    title: channel.name, episodeName: channel.name,
+    title: channel.name, episodeName: channel.name, episodes: [],
     updatedAt: Math.max(Date.now(), normalized.updatedAt + 1)})
 }

@@ -8,13 +8,15 @@ const candidate = () => sessions.buildCastSessionCandidate({room: 'room', source
   links: [{id: 'ysp-a', name: '高清'}, {id: 'backup-a', name: '备用'}],
 }, current: {id: 'ysp-a', name: '高清'}})
 
-test('直播保留独立频道目录，不把本频道线路当剧集', () => {
+test('直播保留独立频道目录，并在原切换列表中提供本频道线路', () => {
   const session = sessions.normalizeCastSession(candidate())
   assert.equal(session.media_kind, 'live')
   assert.deepEqual(session.channels, channels)
-  assert.deepEqual(session.episodes, [])
-  assert.equal(sessions.shouldShowEpisodeSwitcher(session), false)
-  assert.equal(sessions.updateCastSessionEpisode(session, {id: 'backup-a'}), null)
+  assert.deepEqual(session.episodes, [{id: 'ysp-a', name: '高清'}, {id: 'backup-a', name: '备用'}])
+  assert.equal(sessions.shouldShowEpisodeSwitcher(session), true)
+  const switched = sessions.updateCastSessionEpisode(session, {id: 'backup-a'})
+  assert.equal(switched.vid, 'a')
+  assert.equal(switched.pid, 'backup-a')
 })
 
 test('上下台按频道顺序循环，同时修改 vid 和 pid', () => {

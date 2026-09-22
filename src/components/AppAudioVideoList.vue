@@ -49,7 +49,7 @@
           <div class="idx text-align-center">序号</div>
           <div class="title">
             <text v-if="isMp3">歌曲</text>
-            <text v-else>{{ isLive ? '频道' : '选集' }}</text>
+            <text v-else>{{ isLive ? '线路' : '选集' }}</text>
           </div>
           <div class="artist">
             <text v-if="isMp3">歌手</text>
@@ -120,7 +120,7 @@ watch(() => props.playIndex, (newVal, oldVal) => {
 })
 
 const onOpenVideoPlay = async (idx, source) => {
-  // A channel changes both vid and pid; the detail page owns playback/casting.
+  // The live detail page owns line switching and playback/casting.
   if (props.isLive) return emits('changed', idx, source)
   if (room.value) {
     await runCastingCommand(async () => {

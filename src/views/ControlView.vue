@@ -198,7 +198,7 @@
           <!-- 三个按钮 -->
           <div class="flex-row flex-justify-between">
             <!-- 后退 -->
-            <div v-if="!isLive" @click="sendControlHandler({ event: ControlEventBack })">
+            <div :title="isLive ? '上一频道' : '快退'" :aria-label="isLive ? '上一频道' : '快退'" @click="sendControlHandler({ event: ControlEventBack })">
               <svg
                   class="icon"
                   style="
@@ -227,8 +227,8 @@
             </div>
 
             <!-- 播放/暂停 -->
-            <div v-if="!isLive">
-              <div v-if="isPlay" @click="sendControlHandler({ event: ControlEventPause })">
+            <div>
+              <div v-if="!isPlay" title="播放" aria-label="播放" @click="sendControlHandler({ event: ControlEventPlay })">
                 <svg
                     class="icon"
                     style="
@@ -250,7 +250,7 @@
                   ></path>
                 </svg>
               </div>
-              <div v-else @click="sendControlHandler({ event: ControlEventPlay })">
+              <div v-else title="暂停" aria-label="暂停" @click="sendControlHandler({ event: ControlEventPause })">
                 <svg
                     class="icon"
                     style="
@@ -275,7 +275,7 @@
             </div>
 
             <!-- 前进 -->
-            <div v-if="!isLive" @click="sendControlHandler({ event: ControlEventForward })">
+            <div :title="isLive ? '下一频道' : '快进'" :aria-label="isLive ? '下一频道' : '快进'" @click="sendControlHandler({ event: ControlEventForward })">
               <svg
                   class="icon"
                   style="
@@ -306,11 +306,6 @@
 
           <div class="padding-30px"></div>
           <div class="padding-10px"></div>
-
-          <n-space v-if="isLive" justify="center">
-            <n-button @click="sendControlHandler({ event: ControlEventPause })">暂停直播</n-button>
-            <n-button @click="sendControlHandler({ event: ControlEventPlay })">回到直播</n-button>
-          </n-space>
 
           <!-- 声音小 -->
           <div
@@ -347,8 +342,8 @@
         >
           <div class="current-cast-summary">
             <n-image
-                v-if="castSession.thumb"
-                :src="castSession.thumb"
+                v-if="castThumb"
+                :src="castThumb"
                 width="88"
                 height="88"
                 object-fit="cover"
@@ -356,17 +351,12 @@
                 class="current-cast-thumb"
             />
             <div class="current-cast-info">
-              <n-text depth="3" class="current-cast-label">{{ isLive ? '最近发送的直播频道' : '当前投射' }}</n-text>
+              <n-text depth="3" class="current-cast-label">当前投射</n-text>
               <n-ellipsis class="current-cast-title">{{ castSession.title || '未命名内容' }}</n-ellipsis>
               <n-ellipsis class="current-cast-episode">
                 当前：{{ castSession.episodeName || castSession.pid }}　源：{{ castSession.source }}
               </n-ellipsis>
             </div>
-          </div>
-
-          <div v-if="isLive" class="live-channel-controls">
-            <n-text depth="3">指令已发送，播放状态以电视端为准</n-text>
-            <RouterLink to="/tv">返回电视源选台</RouterLink>
           </div>
 
           <div
@@ -380,7 +370,7 @@
                 round
                 :bordered="episode.id !== castSession.pid"
                 :type="episode.id === castSession.pid ? 'success' : 'default'"
-                :disabled="switchingEpisodePid !== null"
+                :disabled="switchingEpisodePid !== null || switchingChannel"
                 :class="{
                   'is-active': episode.id === castSession.pid,
                   'is-pending': switchingEpisodePid === episode.id,
@@ -402,20 +392,25 @@
 <script setup>
 import AppHeader from '../components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
-import {computed, onBeforeMount, onMounted, ref} from 'vue'
-import {NAlert, NButton, NEllipsis, NImage, NSpace, NSpin, NTag, NText, useMessage,} from 'naive-ui'
+import {computed, onBeforeMount, onBeforeUnmount, onMounted, ref} from 'vue'
+import {httpVideo} from '@/helpers/api.js'
+import {NAlert, NEllipsis, NImage, NSpin, NTag, NText, useMessage,} from 'naive-ui'
 import {useRouter} from 'vue-router'
 import {KEY_CLIENT_ID, KEY_ROOM_ID} from '@/helpers/constant'
 import {getStorageSync} from '@/helpers/utils'
 import {sendControlCommand} from '@/helpers/casting'
 import {
   findCastEpisode,
+  buildCastSessionCandidate,
   loadCastSession,
   saveCastSession,
   shouldShowEpisodeSwitcher,
   updateCastSessionEpisode,
+  adjacentCastChannel,
+  updateCastSessionChannel,
 } from '@/helpers/cast-session.js'
 import {useAppStore} from '@/stores/app.js'
+import {castSessionThumbnail} from '@/helpers/iptv-presentation.js'
 import {
   ControlEventBack,
   ControlEventForward,
@@ -442,10 +437,33 @@ const isPlay = ref(null)
 const room = ref(null)
 const clientId = ref(null)
 const castSession = ref(null)
+const castThumb = computed(() => castSessionThumbnail(castSession.value))
 const isLive = computed(() => castSession.value?.media_kind === 'live')
 const switchingEpisodePid = ref(null)
+const switchingChannel = ref(false)
 const message = useMessage()
 const appStore = useAppStore()
+let active = true
+
+const refreshLiveLines = async () => {
+  const session = castSession.value
+  if (session?.media_kind !== 'live') return
+  try {
+    const response = await httpVideo(session.vid, session.source)
+    if (!active || castSession.value !== session || response?.data?.id !== session.vid) return
+    const candidate = buildCastSessionCandidate({
+      room: session.room, source: session.source,
+      video: {...response.data, media_kind: 'live'}, current: {id: session.pid},
+    })
+    const currentLine = candidate.episodes.find(line => line.id === session.pid)
+    const savedSession = saveCastSession({...session, episodes: candidate.episodes,
+      ...(currentLine ? {episodeName: currentLine.name} : {}),
+    })
+    if (savedSession) castSession.value = savedSession
+  } catch (_) {
+    // Detail lookup failure must not change the acknowledged playback state.
+  }
+}
 
 const onMountedHandler = () => {
   // window.onresize = () => {
@@ -461,14 +479,19 @@ const onMountedHandler = () => {
 const onBeforeMountHandler = async () => {
   room.value = getStorageSync(KEY_ROOM_ID)
   castSession.value = loadCastSession(room.value)
+  // A live cast starts playing on load; this is command state, not TV telemetry.
+  if (isLive.value) isPlay.value = true
   clientId.value = getStorageSync(KEY_CLIENT_ID)
+  if (isLive.value && !castSession.value.episodes?.length) void refreshLiveLines()
 }
 
 const onOpenVideo = () => {
 }
 
 const sendControlHandler = async (data) => {
-  if (isLive.value && [ControlEventBack, ControlEventForward].includes(data.event)) return
+  if (isLive.value && [ControlEventBack, ControlEventForward].includes(data.event)) {
+    return switchChannelHandler(data.event === ControlEventBack ? -1 : 1)
+  }
   // console.log('[sendControlHandler]', data)
 
   await sendControlCommand({
@@ -483,7 +506,6 @@ const sendControlHandler = async (data) => {
     updateState: () => {
       if (isLive.value) {
         message.info('指令已发送')
-        return
       }
       switch (data.event) {
         case ControlEventPause:
@@ -507,9 +529,40 @@ const sendControlHandler = async (data) => {
 
 }
 
+const switchChannelHandler = async direction => {
+  if (switchingChannel.value || switchingEpisodePid.value !== null) return
+  const session = castSession.value
+  const channel = adjacentCastChannel(session, direction)
+  if (!channel) { message.info('暂无可切换频道，请返回电视源选台'); return }
+  switchingChannel.value = true
+  try {
+    await sendControlCommand({
+      room: room.value,
+      context: {
+        group: room.value, event: ControlEventLoadVideo,
+        vid: channel.id, pid: channel.pid, source: session.source,
+        mode: appStore.sourceSecret, from: clientId.value,
+      },
+      sendControl: sendControlWithAck,
+      updateState: () => {
+        const savedSession = saveCastSession(updateCastSessionChannel(session, channel.id))
+        if (!savedSession) throw new Error('cast session persistence failed')
+        castSession.value = savedSession
+        isPlay.value = true
+        void refreshLiveLines()
+        message.info('指令已发送')
+      },
+      onFailure: () => message.warning('电视未连接，请重新扫码'),
+    })
+  } finally {
+    switchingChannel.value = false
+  }
+}
+
 const switchEpisodeHandler = async (episode) => {
   if (
     switchingEpisodePid.value !== null
+    || switchingChannel.value
     || episode?.id === castSession.value?.pid
   ) return
 
@@ -535,6 +588,7 @@ const switchEpisodeHandler = async (episode) => {
         const savedSession = saveCastSession(nextSession)
         if (!savedSession) throw new Error('cast session persistence failed')
         castSession.value = savedSession
+        if (isLive.value) isPlay.value = true
       },
       onFailure: () => {
         message.warning('电视未连接，请重新扫码')
@@ -548,6 +602,7 @@ const switchEpisodeHandler = async (episode) => {
 
 onMounted(onMountedHandler)
 onBeforeMount(onBeforeMountHandler)
+onBeforeUnmount(() => { active = false })
 
 </script>
 
@@ -563,8 +618,6 @@ onBeforeMount(onBeforeMountHandler)
     fill: #000000;
   }
 }
-
-.live-channel-controls { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
 
 .current-cast-card {
   margin: 0 0 16px;

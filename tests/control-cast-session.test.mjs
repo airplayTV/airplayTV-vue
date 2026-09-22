@@ -10,12 +10,15 @@ const templateSource = source.slice(
 )
 const templateAst = parse(templateSource)
 
-test('直播遥控隐藏前后跳转并提供选台入口', () => {
+test('直播保留原遥控按钮且不另设直播按钮组', () => {
   for (const event of ['ControlEventForward', 'ControlEventBack']) {
     const button = findElement((node) => directiveExpression(node, 'on')?.includes(event))
-    assert.equal(directiveExpression(button.node, 'if'), '!isLive')
+    assert.equal(directiveExpression(button.node, 'if'), undefined)
   }
-  assert.ok(findElement((node) => node.tag === 'RouterLink' && attributeValue(node, 'to') === '/tv'))
+  assert.equal(findElement((node) => hasClass(node, 'live-channel-controls')), null)
+  const pause = findElement(node => directiveExpression(node, 'on')?.includes('ControlEventPause'))
+  assert.equal(directiveExpression(pause.parent, 'if'), undefined)
+  assert.equal(findElement(node => node.tag === 'n-space' && directiveExpression(node, 'if') === 'isLive'), null)
 })
 
 const attributeValue = (node, name) => node.props?.find((prop) => (
@@ -37,6 +40,14 @@ const findElement = (predicate, node = templateAst, parent = null) => {
   return null
 }
 
+test('播放和暂停按钮的原 SVG 图标与实际指令一致', () => {
+  for (const [event, icon] of [['ControlEventPlay', '6935'], ['ControlEventPause', '8206']]) {
+    const button = findElement(node => directiveExpression(node, 'on')?.includes(event))
+    assert.ok(button)
+    assert.ok(findElement(node => node.tag === 'svg' && attributeValue(node, 'p-id') === icon, button.node))
+  }
+})
+
 test('restores the room-scoped cast snapshot before rendering the optional card', () => {
   assert.match(source, /room\.value\s*=\s*getStorageSync\(KEY_ROOM_ID\)[\s\S]*castSession\.value\s*=\s*loadCastSession\(room\.value\)/)
   assert.match(source, /v-if="castSession"[^>]*data-testid="current-cast-card"/)
@@ -53,7 +64,7 @@ test('restores the room-scoped cast snapshot before rendering the optional card'
 })
 
 test('renders compact current-cast metadata and only shows a multi-episode switcher', () => {
-  assert.match(source, /v-if="castSession\.thumb"[\s\S]*:src="castSession\.thumb"[\s\S]*(?:width="88"|:width="88")[\s\S]*(?:height="88"|:height="88")/)
+  assert.match(source, /v-if="castThumb"[\s\S]*:src="castThumb"[\s\S]*(?:width="88"|:width="88")[\s\S]*(?:height="88"|:height="88")/)
   assert.match(source, /<n-ellipsis[^>]*>[\s\S]*castSession\.title[\s\S]*<\/n-ellipsis>/)
   assert.match(source, /<n-ellipsis[^>]*>[\s\S]*castSession\.episodeName[\s\S]*<\/n-ellipsis>/)
   assert.match(source, /shouldShowEpisodeSwitcher\(castSession\)/)
@@ -120,7 +131,7 @@ test('shows the current source beside the episode in the cast summary', () => {
 
 test('ignores the current episode and all clicks while another switch is pending', () => {
   assert.match(source, /if\s*\([\s\S]*switchingEpisodePid\.value\s*!==\s*null[\s\S]*episode\?\.id\s*===\s*castSession\.value\?\.pid[\s\S]*\)\s*return/)
-  assert.match(source, /:disabled="switchingEpisodePid !== null"/)
+  assert.match(source, /:disabled="switchingEpisodePid !== null \|\| switchingChannel"/)
   assert.match(source, /switchingEpisodePid === episode\.id/)
 })
 

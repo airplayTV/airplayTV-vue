@@ -13,7 +13,7 @@
       </div>
 
       <div style="border-radius: 4px; display: flex; min-height: 180px" class="player-container">
-        <AppPlayLive v-if="isLive" :video="liveVideo" :style="artStyle" @source-loaded="source = $event" @change-channel="onChangeLiveChannel" />
+        <AppPlayLive v-if="isLive" :video="liveVideo" :player-type="playType" :style="artStyle" @source-loaded="source = $event" @change-channel="onChangeLiveChannel" />
         <div v-else-if="playType===playTypeOption.dp" id="dplayer" ref="dplayerRef" :style="artStyle"></div>
         <AppArtplayer
             v-else-if="playType===playTypeOption.art && artOption"
@@ -509,9 +509,9 @@ const onChangePlaying = async (idx, ctx) => {
   }
 
   if (isLive.value) {
-    const channel = playList.value[idx]
-    if (channel.vid !== props.video.id) {
-      await router.push({path: `/video/detail/${channel.vid}`, query: {_source: IPTV_SOURCE, pid: channel.id}})
+    const line = playList.value[idx]
+    if (idx !== playIndex.value) {
+      await router.push({path: route.path, query: {...route.query, pid: line.id}})
     }
     return
   }
@@ -730,8 +730,10 @@ const onBeforeMountHandler = async () => {
   window.addEventListener('resize', resizePlayer)
 
   if (isLive.value) {
-    playList.value = channelPlaylist(props.video.channels)
-    playIndex.value = playList.value.findIndex(channel => channel.vid === props.video.id)
+    playList.value = (props.video.links || []).map(line => ({
+      id: line.id, title: line.name || '直播线路', artist: line.group || IPTV_SOURCE,
+    }))
+    playIndex.value = Math.max(0, playList.value.findIndex(line => line.id === route.query.pid))
     return
   }
 
@@ -937,8 +939,14 @@ const loadHttpCollectList = () => {
 
 const resizePlayer = () => { artStyle.value.height = `${computePlayerHeight()}px` }
 const onChangeLiveChannel = direction => {
-  if (!playList.value.length) return
-  void onChangePlaying((playIndex.value + direction + playList.value.length) % playList.value.length)
+  const channels = channelPlaylist(props.video.channels)
+  if (!channels.length) return
+  const index = channels.findIndex(channel => channel.vid === props.video.id)
+  if (index < 0) return
+  const channel = channels[(index + direction + channels.length) % channels.length]
+  if (channel.vid !== props.video.id) {
+    return router.push({path: `/video/detail/${channel.vid}`, query: {_source: IPTV_SOURCE, pid: channel.id}})
+  }
 }
 
 onBeforeMount(onBeforeMountHandler)
